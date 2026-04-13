@@ -1,45 +1,137 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Send, Mic, Sparkles } from "lucide-react";
+import { X, Send, Mic, Sparkles, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
-  role: "bot" | "user";
-  text: string;
+  role: "user" | "assistant";
+  content: string;
 }
 
-const initialMessages: Message[] = [
-  {
-    role: "bot",
-    text: "Olá! 👋 Qual parte deste capítulo você gostaria que eu explicasse de forma mais simples?",
-  },
-];
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
 const AiChat = ({ onClose }: { onClose: () => void }) => {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: "assistant",
+      content:
+        "Olá! 👋 Qual parte deste capítulo você gostaria que eu explicasse de forma mais simples?",
+    },
+  ]);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const send = () => {
-    if (!input.trim()) return;
-    const userMsg: Message = { role: "user", text: input.trim() };
-    setMessages((m) => [...m, userMsg]);
+  const send = async () => {
+    const text = input.trim();
+    if (!text || isLoading) return;
+
+    const userMsg: Message = { role: "user", content: text };
+    const allMessages = [...messages, userMsg];
+    setMessages(allMessages);
     setInput("");
-    // Mock bot response
-    setTimeout(() => {
-      setMessages((m) => [
-        ...m,
-        {
-          role: "bot",
-          text: "Ótima pergunta! No contexto original, essa passagem se refere à maneira como os povos antigos entendiam a criação do mundo. Posso explicar mais detalhes se quiser. 😊",
+    setIsLoading(true);
+
+    let assistantSoFar = "";
+
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-      ]);
-    }, 1200);
+        body: JSON.stringify({ messages: allMessages }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => null);
+        const errorMsg = err?.error || "Erro ao conectar com o Tutor IA";
+        toast({ title: "Erro", description: errorMsg, variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!resp.body) throw new Error("No response body");
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let streamDone = false;
+
+      const upsert = (chunk: string) => {
+        assistantSoFar += chunk;
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === "assistant" && prev.length > allMessages.length) {
+            return prev.map((m, i) =>
+              i === prev.length - 1 ? { ...m, content: assistantSoFar } : m
+            );
+          }
+          return [...prev, { role: "assistant", content: assistantSoFar }];
+        });
+      };
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            streamDone = true;
+            break;
+          }
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) upsert(content);
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Final flush
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split("\n")) {
+          if (!raw) continue;
+          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+          if (!raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) upsert(content);
+          } catch {}
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Erro",
+        description: "Não foi possível conectar ao Tutor IA. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -58,7 +150,7 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">Tutor IA</p>
-            <p className="text-[11px] text-muted-foreground">Sempre disponível</p>
+            <p className="text-[11px] text-muted-foreground">Powered by Lovable AI</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -73,20 +165,27 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
             key={i}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
+            transition={{ delay: i * 0.03 }}
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === "user"
                   ? "bg-primary text-primary-foreground rounded-br-md"
                   : "bg-muted text-foreground rounded-bl-md"
               }`}
             >
-              {msg.text}
+              {msg.content}
             </div>
           </motion.div>
         ))}
+        {isLoading && messages[messages.length - 1]?.role === "user" && (
+          <div className="flex justify-start">
+            <div className="rounded-2xl rounded-bl-md bg-muted px-4 py-3">
+              <Loader2 size={16} className="animate-spin text-muted-foreground" />
+            </div>
+          </div>
+        )}
         <div ref={endRef} />
       </div>
 
@@ -102,12 +201,13 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
             onKeyDown={(e) => e.key === "Enter" && send()}
             placeholder="Digite sua pergunta..."
             className="rounded-full"
+            disabled={isLoading}
           />
           <Button
             onClick={send}
             size="icon"
             className="shrink-0 rounded-full"
-            disabled={!input.trim()}
+            disabled={!input.trim() || isLoading}
           >
             <Send size={18} />
           </Button>
