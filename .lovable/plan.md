@@ -1,52 +1,63 @@
 
 
-# 📖 Guia Bíblico Inteligente — App Mobile-First
+## Diagnóstico
 
-## Visão Geral
-Aplicativo web mobile-first de estudo bíblico para iniciantes, com design minimalista inspirado em Apple + Duolingo, tom sereno e tecnológico.
+Confirmei que o app hoje é praticamente uma casca visual:
 
-## Design System
-- **Fundo claro**: off-white (#F8F7F4), **Dark mode**: cinza-azulado (#1A1F2E)
-- **Primária**: azul profundo (#1E3A5F), **Accent**: dourado suave (#C9A84C)
-- **Tipografia**: Inter (UI), fonte serifada elegante (texto bíblico via Google Fonts — Lora ou Merriweather)
-- **Bordas arredondadas**, sombras suaves, animações de transição com Framer Motion
+- **Leitura (`Reading.tsx`)**: só mostra 5 versículos de Gênesis 1 codificados manualmente. Não há livro, capítulo, navegação nem texto bíblico real.
+- **Dashboard / Perfil / Explorar**: tudo é mock estático ("Maxwell", "3 de 50 capítulos", lugares com gradientes coloridos em vez de imagens reais, estatísticas fixas).
+- **Tutor IA (`AiChat.tsx` + edge function `chat`)**: o código de streaming está correto e a `LOVABLE_API_KEY` existe nos secrets. A causa mais provável de "não funcionar" é o modelo `google/gemini-3-flash-preview` (preview) estar instável/indisponível, sem fallback nem log claro no front. Sem console/network logs no replay, vou estabilizar trocando para um modelo estável + melhor tratamento de erro.
 
-## Navegação
-- **Bottom Navigation Bar** fixa com 4 abas: Início, Leitura, Explorar, Perfil
-- Transições suaves entre telas via React Router
+## O que vou fazer
 
-## Telas
+### 1. Bíblia real integrada (ARC – Almeida Revista e Corrigida, domínio público)
 
-### 1. Tela Inicial (Dashboard)
-- Saudação personalizada ("Bom dia, Maxwell") com progresso da trilha
-- Card "Contexto do Dia" estilo story com imagem de fundo e botão play
-- Botão grande "Continuar Leitura"
-- Seção de progresso com barra visual
+Usar a API pública gratuita **bible-api.com** (suporta versão `almeida` em português, sem chave). Para evitar CORS e travamentos do front, criar uma edge function `bible` que faz proxy + cache em memória.
 
-### 2. Tela de Leitura
-- Texto bíblico limpo, espaçado, com fonte serifada
-- Palavras-chave sublinhadas que ao clicar abrem **Bottom Sheet** (Drawer do shadcn) com dicionário visual rápido (significado, contexto cultural, imagem)
-- **FAB** no canto inferior direito com ícone de faísca (Sparkles) — abre o Tutor IA
+- Nova edge function `supabase/functions/bible/index.ts`:
+  - `GET ?book=genesis&chapter=1` → retorna `{ reference, verses: [{ verse, text }] }`.
+  - Faz `fetch` em `https://bible-api.com/<book>+<chapter>?translation=almeida`.
+  - CORS liberado, cache simples por chave `book:chapter`.
+- Lista de livros (66) hardcoded no front com nome PT + slug API + nº de capítulos.
 
-### 3. Tela do Tutor IA (Chat)
-- Interface de chat moderna que se abre como sheet/overlay
-- Mensagem inicial do bot pré-configurada
-- Balões de mensagem estilizados (usuário vs bot)
-- Input com opção de texto e ícone de microfone (visual, sem funcionalidade real por enquanto)
+### 2. Tela de Leitura funcional
 
-### 4. Tela Explorar
-- Galeria de cards com imagens representando locais históricos
-- Tags "Mapa 3D" e "Cultura" nos cards
-- Layout em grid responsivo
+Reescrever `Reading.tsx`:
+- Seletor de **Livro** (Sheet com lista dos 66 livros) e seletor de **Capítulo** (grid numérico).
+- Botões ◀ ▶ para capítulo anterior/próximo.
+- Carrega versículos via edge function `bible`, com skeleton de loading e tratamento de erro.
+- Estado persistido em `localStorage` (último livro/capítulo lido) → o botão "Continuar Leitura" do Dashboard usa isso.
+- Mantém o FAB do Tutor IA, agora passando o contexto real (livro + capítulo + texto) para o chat.
+- Dicionário fica como tooltip opcional só nas palavras conhecidas (sem quebrar o texto vindo da API).
 
-### 5. Tela Perfil
-- Avatar, nome, estatísticas de leitura
-- Configurações básicas (tema claro/escuro toggle)
+### 3. Tutor IA estável
 
-## Funcionalidades Técnicas
-- Dark mode via toggle no perfil (classe CSS)
-- Dados mockados para texto bíblico, dicionário e cards de exploração
-- Framer Motion para animações de entrada e transição
-- Componentes shadcn: Drawer, Card, Button, Sheet, Avatar, Badge, Progress
-- Layout 100% mobile-first, responsivo
+- Trocar modelo padrão para `google/gemini-2.5-flash` (estável, já incluso no plano) com fallback para `google/gemini-2.5-flash-lite` em caso de erro.
+- A edge function `chat` recebe agora `{ messages, context: { book, chapter, text } }` e injeta o texto bíblico no system prompt — assim o tutor responde sobre o que o usuário está lendo.
+- Front (`AiChat.tsx`):
+  - Passa o contexto de leitura.
+  - Mostra mensagem de erro real no balão (não só toast) quando 429/402/500.
+  - Renderiza markdown nas respostas (`react-markdown`) para listas/negrito ficarem legíveis.
+
+### 4. Dashboard ligado ao real
+
+- "Trilha: Gênesis – X de 50" vira "Último capítulo lido: <Livro> <Cap>" lido do `localStorage`.
+- Botão "Continuar Leitura" navega para `/reading?book=...&chapter=...`.
+- Estatísticas locais simples (capítulos lidos, sequência) baseadas em `localStorage`.
+
+### 5. Explorar — fora de escopo agora
+
+Você marcou só **Leitura real** + **Chat real**. Mantenho a tela Explorar como está (mock visual) e deixo nota para uma próxima iteração trocar por conteúdo real com imagens.
+
+## Arquivos afetados
+
+- **Criar**: `supabase/functions/bible/index.ts`, `src/lib/bible-books.ts`, `src/lib/reading-progress.ts`, `src/hooks/useBibleChapter.ts`
+- **Editar**: `src/pages/Reading.tsx`, `src/pages/Dashboard.tsx`, `src/components/AiChat.tsx`, `supabase/functions/chat/index.ts`
+- **Dependência nova**: `react-markdown`
+
+## Fora deste passo
+
+- Autenticação e progresso salvo no banco (posso fazer depois se quiser sair do `localStorage`).
+- Conteúdo real da aba Explorar.
+- Áudio do "Contexto do Dia" (botão hoje é decorativo).
 
