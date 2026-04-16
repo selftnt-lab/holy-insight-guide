@@ -1,149 +1,255 @@
-import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from "@/components/ui/drawer";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import AiChat from "@/components/AiChat";
-
-interface WordDef {
-  word: string;
-  meaning: string;
-  context: string;
-}
-
-const dictionary: Record<string, WordDef> = {
-  Gênesis: {
-    word: "Gênesis",
-    meaning: "Do grego 'génesis' — origem, nascimento. É o livro das origens.",
-    context: "No hebraico, o livro é chamado 'Bereshit' (בְּרֵאשִׁית), que significa 'No princípio'.",
-  },
-  Espírito: {
-    word: "Espírito de Deus",
-    meaning: "Em hebraico: 'Ruach Elohim' — sopro ou vento de Deus.",
-    context: "Representa a presença ativa e criadora de Deus movendo-se sobre as águas primordiais.",
-  },
-  trevas: {
-    word: "Trevas",
-    meaning: "Ausência de luz; no contexto bíblico, representa o caos antes da criação.",
-    context: "As trevas no Antigo Oriente simbolizavam desordem e o desconhecido.",
-  },
-  abismo: {
-    word: "Abismo (Tehom)",
-    meaning: "Águas primordiais profundas. Em hebraico: 'Tehom'.",
-    context: "Referência às águas caóticas que existiam antes da criação ordenada por Deus.",
-  },
-};
-
-const verses = [
-  { num: 1, text: ["No princípio, Deus criou os céus e a terra."] },
-  {
-    num: 2,
-    text: [
-      "A terra era sem forma e vazia; ",
-      { word: "trevas", display: "trevas" },
-      " cobriam a face do ",
-      { word: "abismo", display: "abismo" },
-      ", e o ",
-      { word: "Espírito", display: "Espírito" },
-      " de Deus pairava sobre as águas.",
-    ],
-  },
-  { num: 3, text: ["Disse Deus: \"Haja luz\"; e houve luz."] },
-  { num: 4, text: ["Deus viu que a luz era boa; e separou a luz das trevas."] },
-  { num: 5, text: ["Deus chamou à luz Dia, e às trevas chamou Noite. Houve tarde e manhã — o primeiro dia."] },
-];
+import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
+import { useBibleChapter } from "@/hooks/useBibleChapter";
+import { getProgress, saveProgress } from "@/lib/reading-progress";
 
 const Reading = () => {
-  const [selectedWord, setSelectedWord] = useState<WordDef | null>(null);
+  const [params, setParams] = useSearchParams();
+  const initial = useMemo(() => {
+    const p = getProgress();
+    return {
+      bookSlug: params.get("book") || p.bookSlug,
+      chapter: Number(params.get("chapter")) || p.chapter,
+    };
+  }, []); // eslint-disable-line
+
+  const [bookSlug, setBookSlug] = useState(initial.bookSlug);
+  const [chapter, setChapter] = useState(initial.chapter);
   const [showChat, setShowChat] = useState(false);
+  const [bookSheetOpen, setBookSheetOpen] = useState(false);
+  const [chapterSheetOpen, setChapterSheetOpen] = useState(false);
+
+  const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
+  const { data, loading, error } = useBibleChapter(bookSlug, chapter);
+
+  useEffect(() => {
+    saveProgress(bookSlug, chapter);
+    setParams({ book: bookSlug, chapter: String(chapter) }, { replace: true });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [bookSlug, chapter, setParams]);
+
+  const goPrev = () => {
+    if (chapter > 1) setChapter(chapter - 1);
+  };
+  const goNext = () => {
+    if (chapter < book.chapters) setChapter(chapter + 1);
+  };
+
+  const fullText = data
+    ? data.verses.map((v) => `${v.verse}. ${v.text}`).join("\n")
+    : "";
 
   return (
     <div className="min-h-screen pb-28">
       <div className="mx-auto max-w-lg px-5 pt-10">
+        {/* Selectors */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mb-6 flex items-center gap-2"
+        >
+          <Sheet open={bookSheetOpen} onOpenChange={setBookSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="flex-1 justify-start gap-2 rounded-full">
+                <BookOpen size={16} />
+                <span className="truncate">{book.name}</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[80vh]">
+              <SheetHeader>
+                <SheetTitle>Escolha um livro</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4 overflow-y-auto h-[calc(80vh-80px)]">
+                {(["AT", "NT"] as const).map((t) => (
+                  <div key={t} className="mb-4">
+                    <p className="px-2 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      {t === "AT" ? "Antigo Testamento" : "Novo Testamento"}
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {BIBLE_BOOKS.filter((b) => b.testament === t).map((b) => (
+                        <button
+                          key={b.slug}
+                          onClick={() => {
+                            setBookSlug(b.slug);
+                            setChapter(1);
+                            setBookSheetOpen(false);
+                          }}
+                          className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                            b.slug === bookSlug
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-muted"
+                          }`}
+                        >
+                          {b.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <Sheet open={chapterSheetOpen} onOpenChange={setChapterSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="rounded-full">
+                Cap. {chapter}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[60vh]">
+              <SheetHeader>
+                <SheetTitle>{book.name} — Capítulo</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4 grid grid-cols-6 gap-2 overflow-y-auto h-[calc(60vh-80px)]">
+                {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => {
+                      setChapter(n);
+                      setChapterSheetOpen(false);
+                    }}
+                    className={`aspect-square rounded-lg text-sm font-medium transition-colors ${
+                      n === chapter
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted hover:bg-muted/70"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </motion.div>
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mb-8"
+          className="mb-6"
         >
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">
-            Gênesis · Capítulo 1
+            {book.name} · Capítulo {chapter}
           </p>
           <h1 className="mt-1 font-serif text-2xl font-bold text-foreground">
-            A Criação
+            {data?.reference || `${book.name} ${chapter}`}
           </h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            Almeida Revista e Corrigida
+          </p>
         </motion.div>
 
-        {/* Verses */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="space-y-5"
-        >
-          {verses.map((verse) => (
-            <p key={verse.num} className="font-serif text-lg leading-relaxed text-foreground/90">
-              <sup className="mr-1 text-xs font-sans font-bold text-accent">
-                {verse.num}
-              </sup>
-              {verse.text.map((part, i) => {
-                if (typeof part === "string") return <span key={i}>{part}</span>;
-                return (
-                  <button
-                    key={i}
-                    onClick={() => setSelectedWord(dictionary[part.word])}
-                    className="border-b border-dashed border-accent/50 text-primary font-medium transition-colors hover:border-accent"
-                  >
-                    {part.display}
-                  </button>
-                );
-              })}
-            </p>
-          ))}
-        </motion.div>
+        {/* Content */}
+        {loading && (
+          <div className="space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+            <div className="flex items-start gap-2 text-destructive">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <div>
+                <p className="font-semibold text-sm">Não foi possível carregar</p>
+                <p className="text-xs mt-1">{error}</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={() => setChapter(chapter)}
+            >
+              Tentar novamente
+            </Button>
+          </div>
+        )}
+
+        {data && !loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            {data.verses.map((v) => (
+              <p
+                key={v.verse}
+                className="font-serif text-lg leading-relaxed text-foreground/90"
+              >
+                <sup className="mr-1 text-xs font-sans font-bold text-accent">
+                  {v.verse}
+                </sup>
+                {v.text}
+              </p>
+            ))}
+          </motion.div>
+        )}
+
+        {/* Pagination */}
+        {data && !loading && (
+          <div className="mt-8 flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={goPrev}
+              disabled={chapter <= 1}
+              className="rounded-full"
+            >
+              <ChevronLeft size={16} className="mr-1" /> Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {chapter} / {book.chapters}
+            </span>
+            <Button
+              variant="outline"
+              onClick={goNext}
+              disabled={chapter >= book.chapters}
+              className="rounded-full"
+            >
+              Próximo <ChevronRight size={16} className="ml-1" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* FAB */}
       <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ delay: 0.5, type: "spring" }}
+        transition={{ delay: 0.3, type: "spring" }}
         onClick={() => setShowChat(true)}
         className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/30 transition-transform active:scale-95"
+        aria-label="Abrir Tutor IA"
       >
         <Sparkles size={24} />
       </motion.button>
 
-      {/* Dictionary Drawer */}
-      <Drawer open={!!selectedWord} onOpenChange={(o) => !o && setSelectedWord(null)}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle className="text-lg">{selectedWord?.word}</DrawerTitle>
-            <DrawerDescription className="mt-2 text-base leading-relaxed">
-              {selectedWord?.meaning}
-            </DrawerDescription>
-          </DrawerHeader>
-          <div className="px-4 pb-8">
-            <div className="rounded-xl bg-muted p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Contexto Cultural
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-foreground">
-                {selectedWord?.context}
-              </p>
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
-
-      {/* AI Chat Overlay */}
       <AnimatePresence>
-        {showChat && <AiChat onClose={() => setShowChat(false)} />}
+        {showChat && (
+          <AiChat
+            onClose={() => setShowChat(false)}
+            context={
+              data
+                ? { bookName: book.name, chapter, text: fullText }
+                : undefined
+            }
+          />
+        )}
       </AnimatePresence>
     </div>
   );

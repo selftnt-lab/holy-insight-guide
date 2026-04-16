@@ -6,44 +6,63 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const PRIMARY_MODEL = "google/gemini-2.5-flash";
+const FALLBACK_MODEL = "google/gemini-2.5-flash-lite";
+
+async function callGateway(model: string, payload: any, apiKey: string) {
+  return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ...payload, model }),
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS")
     return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    const body = await req.json();
+    const messages = body.messages || [];
+    const ctx = body.context as
+      | { bookName?: string; chapter?: number; text?: string }
+      | undefined;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            {
-              role: "system",
-              content: `Você é um tutor bíblico amigável e paciente, especializado em explicar a Bíblia para iniciantes.
+    let systemContent = `Você é um tutor bíblico amigável e paciente, especializado em explicar a Bíblia para iniciantes.
 Suas respostas devem ser:
 - Em português brasileiro
 - Claras, simples e acessíveis
 - Com contexto histórico e cultural quando relevante
 - Respeitosas a todas as tradições cristãs
 - Curtas (máximo 3 parágrafos), a menos que o usuário peça mais detalhes
-- Use emojis ocasionalmente para manter o tom amigável
-Você está ajudando o usuário a estudar Gênesis capítulo 1 (A Criação).`,
-            },
-            ...messages,
-          ],
-          stream: true,
-        }),
+- Use markdown (negrito, listas) e emojis ocasionalmente para manter o tom amigável.`;
+
+    if (ctx?.bookName && ctx?.chapter) {
+      systemContent += `\n\nO usuário está lendo: **${ctx.bookName} ${ctx.chapter}** (versão Almeida).`;
+      if (ctx.text) {
+        const snippet = ctx.text.slice(0, 4000);
+        systemContent += `\n\nTexto do capítulo:\n"""\n${snippet}\n"""\n\nResponda baseado neste texto sempre que possível.`;
       }
-    );
+    }
+
+    const payload = {
+      messages: [{ role: "system", content: systemContent }, ...messages],
+      stream: true,
+    };
+
+    let response = await callGateway(PRIMARY_MODEL, payload, LOVABLE_API_KEY);
+
+    // fallback for transient errors
+    if (!response.ok && [500, 502, 503, 504].includes(response.status)) {
+      console.warn("Primary model failed, trying fallback:", response.status);
+      response = await callGateway(FALLBACK_MODEL, payload, LOVABLE_API_KEY);
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -54,14 +73,14 @@ Você está ajudando o usuário a estudar Gênesis capítulo 1 (A Criação).`,
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Créditos esgotados. Adicione fundos nas configurações." }),
+          JSON.stringify({ error: "Créditos esgotados. Adicione fundos nas configurações do workspace." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       const t = await response.text();
       console.error("AI gateway error:", response.status, t);
       return new Response(
-        JSON.stringify({ error: "Erro no serviço de IA" }),
+        JSON.stringify({ error: `Erro no serviço de IA (${response.status})` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

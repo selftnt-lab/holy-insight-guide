@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Send, Mic, Sparkles, Loader2 } from "lucide-react";
+import { X, Send, Sparkles, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -8,17 +9,29 @@ import { useToast } from "@/hooks/use-toast";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  isError?: boolean;
+}
+
+export interface ChatContext {
+  bookName: string;
+  chapter: number;
+  text: string;
+}
+
+interface Props {
+  onClose: () => void;
+  context?: ChatContext;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
-const AiChat = ({ onClose }: { onClose: () => void }) => {
+const AiChat = ({ onClose, context }: Props) => {
+  const greeting = context
+    ? `Olá! 👋 Estou aqui para ajudar com **${context.bookName} ${context.chapter}**. Sobre o que você quer saber?`
+    : "Olá! 👋 Qual parte da Bíblia você gostaria que eu explicasse?";
+
   const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content:
-        "Olá! 👋 Qual parte deste capítulo você gostaria que eu explicasse de forma mais simples?",
-    },
+    { role: "assistant", content: greeting },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -34,8 +47,8 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
     if (!text || isLoading) return;
 
     const userMsg: Message = { role: "user", content: text };
-    const allMessages = [...messages, userMsg];
-    setMessages(allMessages);
+    const allMessages = [...messages.filter((m) => !m.isError), userMsg];
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
 
@@ -48,33 +61,47 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: allMessages }),
+        body: JSON.stringify({
+          messages: allMessages.map(({ role, content }) => ({ role, content })),
+          context: context
+            ? {
+                bookName: context.bookName,
+                chapter: context.chapter,
+                text: context.text,
+              }
+            : undefined,
+        }),
       });
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => null);
-        const errorMsg = err?.error || "Erro ao conectar com o Tutor IA";
+        const errorMsg = err?.error || `Erro ${resp.status} ao conectar com o Tutor IA`;
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: `⚠️ ${errorMsg}`, isError: true },
+        ]);
         toast({ title: "Erro", description: errorMsg, variant: "destructive" });
         setIsLoading(false);
         return;
       }
 
-      if (!resp.body) throw new Error("No response body");
+      if (!resp.body) throw new Error("Sem corpo de resposta");
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let textBuffer = "";
       let streamDone = false;
+      let started = false;
 
       const upsert = (chunk: string) => {
         assistantSoFar += chunk;
         setMessages((prev) => {
-          const last = prev[prev.length - 1];
-          if (last?.role === "assistant" && prev.length > allMessages.length) {
+          if (started) {
             return prev.map((m, i) =>
               i === prev.length - 1 ? { ...m, content: assistantSoFar } : m
             );
           }
+          started = true;
           return [...prev, { role: "assistant", content: assistantSoFar }];
         });
       };
@@ -107,7 +134,6 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
         }
       }
 
-      // Final flush
       if (textBuffer.trim()) {
         for (let raw of textBuffer.split("\n")) {
           if (!raw) continue;
@@ -124,11 +150,12 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
       }
     } catch (e) {
       console.error(e);
-      toast({
-        title: "Erro",
-        description: "Não foi possível conectar ao Tutor IA. Tente novamente.",
-        variant: "destructive",
-      });
+      const msg = "Não foi possível conectar ao Tutor IA. Verifique sua conexão.";
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: `⚠️ ${msg}`, isError: true },
+      ]);
+      toast({ title: "Erro", description: msg, variant: "destructive" });
     }
 
     setIsLoading(false);
@@ -142,7 +169,6 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
       transition={{ type: "spring", damping: 28, stiffness: 300 }}
       className="fixed inset-0 z-50 flex flex-col bg-background"
     >
-      {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
@@ -150,7 +176,9 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">Tutor IA</p>
-            <p className="text-[11px] text-muted-foreground">Powered by Lovable AI</p>
+            <p className="text-[11px] text-muted-foreground">
+              {context ? `${context.bookName} ${context.chapter}` : "Powered by Lovable AI"}
+            </p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -158,24 +186,30 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
         </Button>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.map((msg, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.03 }}
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 msg.role === "user"
                   ? "bg-primary text-primary-foreground rounded-br-md"
+                  : msg.isError
+                  ? "bg-destructive/10 text-destructive rounded-bl-md border border-destructive/20"
                   : "bg-muted text-foreground rounded-bl-md"
               }`}
             >
-              {msg.content}
+              {msg.role === "assistant" ? (
+                <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 dark:prose-invert">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <span className="whitespace-pre-wrap">{msg.content}</span>
+              )}
             </div>
           </motion.div>
         ))}
@@ -189,12 +223,8 @@ const AiChat = ({ onClose }: { onClose: () => void }) => {
         <div ref={endRef} />
       </div>
 
-      {/* Input */}
-      <div className="border-t border-border px-4 py-3 safe-bottom">
+      <div className="border-t border-border px-4 py-3">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground">
-            <Mic size={20} />
-          </Button>
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
