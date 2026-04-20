@@ -1,17 +1,48 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, Star } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchProgress } from "@/lib/reading-progress";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Profile = () => {
   const { theme, toggle } = useTheme();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [displayName, setDisplayName] = useState("");
+  const [chaptersRead, setChaptersRead] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setDisplayName(data?.display_name || user.email?.split("@")[0] || "Leitor");
+      });
+    fetchProgress(user.id).then((p) => setChaptersRead(p.chaptersRead.length));
+  }, [user]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Até logo!");
+    navigate("/auth", { replace: true });
+  };
+
+  const initial = (displayName || "L").charAt(0).toUpperCase();
 
   const stats = [
-    { icon: Flame, label: "Sequência", value: "7 dias" },
-    { icon: BookOpen, label: "Capítulos", value: "3" },
-    { icon: Star, label: "Palavras salvas", value: "12" },
+    { icon: Flame, label: "Sequência", value: "—" },
+    { icon: BookOpen, label: "Capítulos", value: String(chaptersRead) },
   ];
 
   return (
@@ -24,19 +55,18 @@ const Profile = () => {
         >
           <Avatar className="h-20 w-20 border-4 border-accent/30">
             <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
-              M
+              {initial}
             </AvatarFallback>
           </Avatar>
-          <h1 className="mt-4 text-xl font-bold text-foreground">Maxwell</h1>
-          <p className="text-sm text-muted-foreground">Estudante iniciante</p>
+          <h1 className="mt-4 text-xl font-bold text-foreground">{displayName}</h1>
+          <p className="text-sm text-muted-foreground">{user?.email}</p>
         </motion.div>
 
-        {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="mt-8 grid grid-cols-3 gap-3"
+          className="mt-8 grid grid-cols-2 gap-3"
         >
           {stats.map(({ icon: Icon, label, value }) => (
             <Card key={label} className="rounded-xl p-4 text-center">
@@ -47,7 +77,6 @@ const Profile = () => {
           ))}
         </motion.div>
 
-        {/* Settings */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -66,6 +95,22 @@ const Profile = () => {
               <Switch checked={theme === "dark"} onCheckedChange={toggle} />
             </div>
           </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="mt-6"
+        >
+          <Button
+            variant="outline"
+            className="w-full rounded-xl"
+            onClick={handleSignOut}
+          >
+            <LogOut size={18} className="mr-2" />
+            Sair
+          </Button>
         </motion.div>
       </div>
     </div>
