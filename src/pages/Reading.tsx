@@ -14,32 +14,41 @@ import { Skeleton } from "@/components/ui/skeleton";
 import AiChat from "@/components/AiChat";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
-import { getProgress, saveProgress } from "@/lib/reading-progress";
+import { fetchProgress, saveProgress } from "@/lib/reading-progress";
+import { useAuth } from "@/hooks/useAuth";
 
 const Reading = () => {
   const [params, setParams] = useSearchParams();
-  const initial = useMemo(() => {
-    const p = getProgress();
-    return {
-      bookSlug: params.get("book") || p.bookSlug,
-      chapter: Number(params.get("chapter")) || p.chapter,
-    };
-  }, []); // eslint-disable-line
-
-  const [bookSlug, setBookSlug] = useState(initial.bookSlug);
-  const [chapter, setChapter] = useState(initial.chapter);
+  const { user } = useAuth();
+  const [bookSlug, setBookSlug] = useState(params.get("book") || "genesis");
+  const [chapter, setChapter] = useState(Number(params.get("chapter")) || 1);
   const [showChat, setShowChat] = useState(false);
   const [bookSheetOpen, setBookSheetOpen] = useState(false);
   const [chapterSheetOpen, setChapterSheetOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
   const { data, loading, error } = useBibleChapter(bookSlug, chapter);
 
+  // Hydrate from DB if no URL params
   useEffect(() => {
-    saveProgress(bookSlug, chapter);
+    if (!user || hydrated) return;
+    if (!params.get("book")) {
+      fetchProgress(user.id).then((p) => {
+        setBookSlug(p.bookSlug);
+        setChapter(p.chapter);
+        setHydrated(true);
+      });
+    } else {
+      setHydrated(true);
+    }
+  }, [user, hydrated, params]);
+
+  useEffect(() => {
+    if (user && hydrated) saveProgress(user.id, bookSlug, chapter);
     setParams({ book: bookSlug, chapter: String(chapter) }, { replace: true });
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [bookSlug, chapter, setParams]);
+  }, [bookSlug, chapter, setParams, user, hydrated]);
 
   const goPrev = () => {
     if (chapter > 1) setChapter(chapter - 1);

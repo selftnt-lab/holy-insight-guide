@@ -1,18 +1,30 @@
+import { useEffect, useState } from "react";
 import { Play, BookOpen, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getProgress } from "@/lib/reading-progress";
+import { fetchProgress, type ReadingProgress } from "@/lib/reading-progress";
 import { getBookBySlug } from "@/lib/bible-books";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
-  const progress = getProgress();
+  const [progress, setProgress] = useState<ReadingProgress>({
+    bookSlug: "genesis",
+    chapter: 1,
+    chaptersRead: [],
+  });
+
+  useEffect(() => {
+    if (user) fetchProgress(user.id).then(setProgress);
+  }, [user]);
+
   const book = getBookBySlug(progress.bookSlug);
   const bookName = book?.name || "Gênesis";
   const totalChapters = book?.chapters || 50;
