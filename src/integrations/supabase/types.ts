@@ -17,25 +17,64 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bible_level: string | null
+          bio: string | null
+          birth_date: string | null
+          church_city: string | null
+          church_denomination: string | null
+          church_name: string | null
+          church_role: string | null
+          church_years: number | null
+          city: string | null
           created_at: string
           display_name: string | null
+          full_name: string | null
+          gender: string | null
           id: string
+          interests: string[] | null
+          tradition: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
+          bible_level?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          church_city?: string | null
+          church_denomination?: string | null
+          church_name?: string | null
+          church_role?: string | null
+          church_years?: number | null
+          city?: string | null
           created_at?: string
           display_name?: string | null
+          full_name?: string | null
+          gender?: string | null
           id?: string
+          interests?: string[] | null
+          tradition?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string | null
+          bible_level?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          church_city?: string | null
+          church_denomination?: string | null
+          church_name?: string | null
+          church_role?: string | null
+          church_years?: number | null
+          city?: string | null
           created_at?: string
           display_name?: string | null
+          full_name?: string | null
+          gender?: string | null
           id?: string
+          interests?: string[] | null
+          tradition?: string | null
           updated_at?: string
           user_id?: string
         }
