@@ -1,36 +1,77 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProgress } from "@/lib/reading-progress";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import ProfileEditDialog from "@/components/ProfileEditDialog";
+
+interface ProfileRow {
+  display_name: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  city: string | null;
+  bible_level: string | null;
+  tradition: string | null;
+  interests: string[] | null;
+  church_name: string | null;
+  church_denomination: string | null;
+  church_role: string | null;
+}
+
+const ROLE_LABEL: Record<string, string> = {
+  member: "Membro",
+  visitor: "Visitante",
+  leader: "Líder",
+  teacher: "Professor(a)",
+  deacon: "Diácono(a)",
+  elder: "Presbítero(a)",
+  pastor: "Pastor(a)",
+  missionary: "Missionário(a)",
+  musician: "Músico(a)",
+  other: "Outro",
+};
+
+const LEVEL_LABEL: Record<string, string> = {
+  beginner: "Iniciante",
+  intermediate: "Intermediário",
+  advanced: "Avançado",
+};
 
 const Profile = () => {
   const { theme, toggle } = useTheme();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState("");
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [chaptersRead, setChaptersRead] = useState(0);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select(
+        "display_name, full_name, avatar_url, bio, city, bible_level, tradition, interests, church_name, church_denomination, church_role"
+      )
+      .eq("user_id", user.id)
+      .maybeSingle();
+    setProfile(data ?? null);
+    const p = await fetchProgress(user.id);
+    setChaptersRead(p.chaptersRead.length);
+  }, [user]);
 
   useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("profiles")
-      .select("display_name")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setDisplayName(data?.display_name || user.email?.split("@")[0] || "Leitor");
-      });
-    fetchProgress(user.id).then((p) => setChaptersRead(p.chaptersRead.length));
-  }, [user]);
+    load();
+  }, [load]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -38,7 +79,14 @@ const Profile = () => {
     navigate("/auth", { replace: true });
   };
 
-  const initial = (displayName || "L").charAt(0).toUpperCase();
+  const displayName =
+    profile?.display_name || user?.email?.split("@")[0] || "Leitor";
+  const initial = displayName.charAt(0).toUpperCase();
+  const avatarUrl =
+    profile?.avatar_url ||
+    (user?.user_metadata as { picture?: string; avatar_url?: string } | undefined)
+      ?.picture ||
+    (user?.user_metadata as { avatar_url?: string } | undefined)?.avatar_url;
 
   const stats = [
     { icon: Flame, label: "Sequência", value: "—" },
@@ -54,19 +102,45 @@ const Profile = () => {
           className="flex flex-col items-center"
         >
           <Avatar className="h-20 w-20 border-4 border-accent/30">
+            {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName} /> : null}
             <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
               {initial}
             </AvatarFallback>
           </Avatar>
           <h1 className="mt-4 text-xl font-bold text-foreground">{displayName}</h1>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
+          {profile?.city && (
+            <p className="text-xs text-muted-foreground mt-0.5">{profile.city}</p>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4 rounded-full"
+            onClick={() => setEditOpen(true)}
+          >
+            <Pencil size={14} className="mr-2" />
+            Editar perfil
+          </Button>
         </motion.div>
 
+        {profile?.bio && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="mt-5 text-center text-sm text-foreground/80"
+          >
+            {profile.bio}
+          </motion.p>
+        )}
+
+        {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="mt-8 grid grid-cols-2 gap-3"
+          className="mt-6 grid grid-cols-2 gap-3"
         >
           {stats.map(({ icon: Icon, label, value }) => (
             <Card key={label} className="rounded-xl p-4 text-center">
@@ -77,10 +151,73 @@ const Profile = () => {
           ))}
         </motion.div>
 
+        {/* Interests */}
+        {profile?.interests && profile.interests.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-6"
+          >
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Interesses
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {profile.interests.map((i) => (
+                <Badge key={i} variant="secondary">
+                  {i}
+                </Badge>
+              ))}
+            </div>
+            {profile.bible_level && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Nível: {LEVEL_LABEL[profile.bible_level] ?? profile.bible_level}
+              </p>
+            )}
+          </motion.div>
+        )}
+
+        {/* Church */}
+        {(profile?.church_name || profile?.church_role) && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mt-6"
+          >
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Igreja
+            </h2>
+            <Card className="rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Church size={18} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  {profile.church_name && (
+                    <p className="font-semibold text-foreground truncate">
+                      {profile.church_name}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {[
+                      profile.church_denomination,
+                      profile.church_role && ROLE_LABEL[profile.church_role],
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Settings */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.3 }}
           className="mt-8"
         >
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
@@ -113,6 +250,15 @@ const Profile = () => {
           </Button>
         </motion.div>
       </div>
+
+      {user && (
+        <ProfileEditDialog
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          userId={user.id}
+          onSaved={load}
+        />
+      )}
     </div>
   );
 };
