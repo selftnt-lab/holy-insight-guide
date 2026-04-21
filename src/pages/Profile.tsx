@@ -79,14 +79,27 @@ const Profile = () => {
     navigate("/auth", { replace: true });
   };
 
+  const meta = (user?.user_metadata ?? {}) as {
+    full_name?: string;
+    name?: string;
+    given_name?: string;
+    first_name?: string;
+    picture?: string;
+    avatar_url?: string;
+  };
+  const firstNameOf = (s?: string | null) =>
+    s ? s.trim().split(/\s+/)[0] : undefined;
   const displayName =
-    profile?.display_name || user?.email?.split("@")[0] || "Leitor";
+    firstNameOf(profile?.full_name) ||
+    meta.given_name ||
+    meta.first_name ||
+    firstNameOf(meta.full_name) ||
+    firstNameOf(meta.name) ||
+    firstNameOf(profile?.display_name) ||
+    user?.email?.split("@")[0] ||
+    "Leitor";
   const initial = displayName.charAt(0).toUpperCase();
-  const avatarUrl =
-    profile?.avatar_url ||
-    (user?.user_metadata as { picture?: string; avatar_url?: string } | undefined)
-      ?.picture ||
-    (user?.user_metadata as { avatar_url?: string } | undefined)?.avatar_url;
+  const avatarUrl = profile?.avatar_url || meta.picture || meta.avatar_url;
 
   const stats = [
     { icon: Flame, label: "Sequência", value: "—" },
