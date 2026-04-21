@@ -99,11 +99,7 @@ const Profile = () => {
     user?.email?.split("@")[0] ||
     "Leitor";
   const initial = displayName.charAt(0).toUpperCase();
-  const avatarUrl =
-    profile?.avatar_url ||
-    (user?.user_metadata as { picture?: string; avatar_url?: string } | undefined)
-      ?.picture ||
-    (user?.user_metadata as { avatar_url?: string } | undefined)?.avatar_url;
+  const avatarUrl = profile?.avatar_url || meta.picture || meta.avatar_url;
 
   const stats = [
     { icon: Flame, label: "Sequência", value: "—" },
