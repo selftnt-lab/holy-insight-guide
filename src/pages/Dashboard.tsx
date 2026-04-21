@@ -8,6 +8,15 @@ import { Card } from "@/components/ui/card";
 import { fetchProgress, type ReadingProgress } from "@/lib/reading-progress";
 import { getBookBySlug } from "@/lib/bible-books";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ProfileName {
+  full_name: string | null;
+  display_name: string | null;
+}
+
+const firstNameOf = (value?: string | null) =>
+  value?.trim().split(/\s+/).filter(Boolean)[0];
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -20,9 +29,18 @@ const Dashboard = () => {
     chapter: 1,
     chaptersRead: [],
   });
+  const [profileName, setProfileName] = useState<ProfileName | null>(null);
 
   useEffect(() => {
-    if (user) fetchProgress(user.id).then(setProgress);
+    if (!user) return;
+
+    fetchProgress(user.id).then(setProgress);
+    supabase
+      .from("profiles")
+      .select("full_name, display_name")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setProfileName(data ?? null));
   }, [user]);
 
   const book = getBookBySlug(progress.bookSlug);
@@ -30,6 +48,20 @@ const Dashboard = () => {
   const totalChapters = book?.chapters || 50;
   const pct = Math.round((progress.chapter / totalChapters) * 100);
   const chaptersRead = progress.chaptersRead.length;
+  const meta = (user?.user_metadata ?? {}) as {
+    full_name?: string;
+    name?: string;
+    given_name?: string;
+    first_name?: string;
+  };
+  const readerName =
+    firstNameOf(profileName?.full_name) ||
+    meta.given_name ||
+    meta.first_name ||
+    firstNameOf(meta.full_name) ||
+    firstNameOf(meta.name) ||
+    firstNameOf(profileName?.display_name) ||
+    "leitor";
 
   const continueReading = () => {
     navigate(`/reading?book=${progress.bookSlug}&chapter=${progress.chapter}`);
@@ -45,7 +77,7 @@ const Dashboard = () => {
         >
           <p className="text-sm text-muted-foreground">📖 Guia Bíblico</p>
           <h1 className="mt-1 text-2xl font-bold text-foreground">
-            {greeting}, <span className="text-primary">leitor</span>
+            {greeting}, <span className="text-primary">{readerName}</span>
           </h1>
         </motion.div>
 
