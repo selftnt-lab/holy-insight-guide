@@ -13,6 +13,7 @@ import { fetchProgress } from "@/lib/reading-progress";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
+import { resolveFirstName } from "@/lib/user-name";
 
 interface ProfileRow {
   display_name: string | null;
@@ -80,24 +81,10 @@ const Profile = () => {
   };
 
   const meta = (user?.user_metadata ?? {}) as {
-    full_name?: string;
-    name?: string;
-    given_name?: string;
-    first_name?: string;
     picture?: string;
     avatar_url?: string;
   };
-  const firstNameOf = (s?: string | null) =>
-    s ? s.trim().split(/\s+/)[0] : undefined;
-  const displayName =
-    firstNameOf(profile?.full_name) ||
-    meta.given_name ||
-    meta.first_name ||
-    firstNameOf(meta.full_name) ||
-    firstNameOf(meta.name) ||
-    firstNameOf(profile?.display_name) ||
-    user?.email?.split("@")[0] ||
-    "Leitor";
+  const displayName = resolveFirstName(user, profile, "Leitor");
   const initial = displayName.charAt(0).toUpperCase();
   const avatarUrl = profile?.avatar_url || meta.picture || meta.avatar_url;
 

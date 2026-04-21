@@ -9,14 +9,7 @@ import { fetchProgress, type ReadingProgress } from "@/lib/reading-progress";
 import { getBookBySlug } from "@/lib/bible-books";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-
-interface ProfileName {
-  full_name: string | null;
-  display_name: string | null;
-}
-
-const firstNameOf = (value?: string | null) =>
-  value?.trim().split(/\s+/).filter(Boolean)[0];
+import { resolveFirstName, type ProfileNameSource } from "@/lib/user-name";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -29,7 +22,7 @@ const Dashboard = () => {
     chapter: 1,
     chaptersRead: [],
   });
-  const [profileName, setProfileName] = useState<ProfileName | null>(null);
+  const [profileName, setProfileName] = useState<ProfileNameSource | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -48,20 +41,7 @@ const Dashboard = () => {
   const totalChapters = book?.chapters || 50;
   const pct = Math.round((progress.chapter / totalChapters) * 100);
   const chaptersRead = progress.chaptersRead.length;
-  const meta = (user?.user_metadata ?? {}) as {
-    full_name?: string;
-    name?: string;
-    given_name?: string;
-    first_name?: string;
-  };
-  const readerName =
-    firstNameOf(profileName?.full_name) ||
-    meta.given_name ||
-    meta.first_name ||
-    firstNameOf(meta.full_name) ||
-    firstNameOf(meta.name) ||
-    firstNameOf(profileName?.display_name) ||
-    "leitor";
+  const readerName = resolveFirstName(user, profileName);
 
   const continueReading = () => {
     navigate(`/reading?book=${progress.bookSlug}&chapter=${progress.chapter}`);
