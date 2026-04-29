@@ -79,6 +79,9 @@ const AiChat = ({ onClose, context, topic }: Props) => {
                 text: context.text,
               }
             : undefined,
+          topic: topic
+            ? { topicName: topic.topicName, description: topic.description }
+            : undefined,
         }),
       });
 
