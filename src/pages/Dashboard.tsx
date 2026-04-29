@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Play, BookOpen, ChevronRight } from "lucide-react";
+import { Play, BookOpen, ChevronRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { getBookBySlug } from "@/lib/bible-books";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveFirstName, type ProfileNameSource } from "@/lib/user-name";
+import AiChat from "@/components/AiChat";
 
 const Dashboard = () => {
   const navigate = useNavigate();
