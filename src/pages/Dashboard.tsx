@@ -145,6 +145,19 @@ const Dashboard = () => {
           ))}
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {showChat && (
+          <AiChat
+            onClose={() => setShowChat(false)}
+            topic={{
+              topicName: `${bookName} ${progress.chapter}`,
+              description: `Capítulo atual da sua leitura.`,
+              initialPrompt: `Me dê um resumo de ${bookName} ${progress.chapter}.`,
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
