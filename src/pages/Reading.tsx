@@ -27,6 +27,7 @@ const Reading = () => {
   const [bookSheetOpen, setBookSheetOpen] = useState(false);
   const [chapterSheetOpen, setChapterSheetOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [activeVerse, setActiveVerse] = useState<{ verse: number; text: string } | null>(null);
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
   const { data, loading, error } = useBibleChapter(bookSlug, chapter);
