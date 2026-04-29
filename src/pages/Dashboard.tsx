@@ -24,6 +24,7 @@ const Dashboard = () => {
     chaptersRead: [],
   });
   const [profileName, setProfileName] = useState<ProfileNameSource | null>(null);
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     if (!user) return;
