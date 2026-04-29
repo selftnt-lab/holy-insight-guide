@@ -18,6 +18,12 @@ export interface ChatContext {
   text: string;
 }
 
+export interface TopicContext {
+  topicName: string;
+  description?: string;
+  initialPrompt?: string;
+}
+
 interface Props {
   onClose: () => void;
   context?: ChatContext;
