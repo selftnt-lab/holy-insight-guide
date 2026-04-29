@@ -78,3 +78,17 @@ export const BIBLE_BOOKS: BibleBook[] = [
 
 export const getBookBySlug = (slug: string) =>
   BIBLE_BOOKS.find((b) => b.slug === slug);
+
+const normalize = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\./g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+export const getBookByName = (name: string): BibleBook | undefined => {
+  const target = normalize(name);
+  return BIBLE_BOOKS.find((b) => normalize(b.name) === target);
+};
