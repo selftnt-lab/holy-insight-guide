@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import AiChat from "@/components/AiChat";
+import VerseReferencesSheet from "@/components/VerseReferencesSheet";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { fetchProgress, saveProgress } from "@/lib/reading-progress";
@@ -26,6 +27,7 @@ const Reading = () => {
   const [bookSheetOpen, setBookSheetOpen] = useState(false);
   const [chapterSheetOpen, setChapterSheetOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [activeVerse, setActiveVerse] = useState<{ verse: number; text: string } | null>(null);
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
   const { data, loading, error } = useBibleChapter(bookSlug, chapter);
@@ -197,15 +199,17 @@ const Reading = () => {
             className="space-y-4"
           >
             {data.verses.map((v) => (
-              <p
+              <button
                 key={v.verse}
-                className="font-serif text-lg leading-relaxed text-foreground/90"
+                onClick={() => setActiveVerse({ verse: v.verse, text: v.text })}
+                className="block w-full rounded-lg px-2 py-1 text-left font-serif text-lg leading-relaxed text-foreground/90 transition-colors hover:bg-muted/50 focus:bg-muted/50 focus:outline-none"
+                aria-label={`Ver referências cruzadas do versículo ${v.verse}`}
               >
                 <sup className="mr-1 text-xs font-sans font-bold text-accent">
                   {v.verse}
                 </sup>
                 {v.text}
-              </p>
+              </button>
             ))}
           </motion.div>
         )}
@@ -260,6 +264,19 @@ const Reading = () => {
           />
         )}
       </AnimatePresence>
+
+      <VerseReferencesSheet
+        open={!!activeVerse}
+        onClose={() => setActiveVerse(null)}
+        bookName={book.name}
+        chapter={chapter}
+        verse={activeVerse?.verse ?? 0}
+        verseText={activeVerse?.text ?? ""}
+        onNavigate={(slug, ch) => {
+          setBookSlug(slug);
+          setChapter(ch);
+        }}
+      />
     </div>
   );
 };
