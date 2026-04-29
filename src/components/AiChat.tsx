@@ -189,7 +189,11 @@ const AiChat = ({ onClose, context, topic }: Props) => {
           <div>
             <p className="text-sm font-semibold text-foreground">Tutor IA</p>
             <p className="text-[11px] text-muted-foreground">
-              {context ? `${context.bookName} ${context.chapter}` : "Powered by Lovable AI"}
+              {topic
+                ? topic.topicName
+                : context
+                ? `${context.bookName} ${context.chapter}`
+                : "Powered by Lovable AI"}
             </p>
           </div>
         </div>
