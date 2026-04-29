@@ -89,12 +89,6 @@ const Explore = () => {
                 }}
                 className={`relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br ${place.gradient} p-4 text-white shadow-md cursor-pointer transition-transform active:scale-[0.97] h-40 flex flex-col justify-end focus:outline-none focus:ring-2 focus:ring-accent`}
               >
-                <Badge
-                  variant="secondary"
-                  className="absolute right-3 top-3 bg-white/20 text-white text-[10px] backdrop-blur-sm border-0"
-                >
-                  {place.tag}
-                </Badge>
                 <h3 className="text-base font-bold leading-tight">{place.name}</h3>
                 <p className="mt-1 text-[11px] leading-snug opacity-80">
                   {place.desc}
