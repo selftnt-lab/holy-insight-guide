@@ -95,16 +95,16 @@ const Dashboard = () => {
                 Pergunte sobre {bookName} {progress.chapter}
               </h2>
               <p className="mt-2 text-sm opacity-80">
-                Abra o capítulo e toque no botão de faísca para conversar com o tutor.
+                Tire dúvidas sobre o capítulo direto com o Tutor IA.
               </p>
               <button
-                onClick={continueReading}
+                onClick={() => setShowChat(true)}
                 className="mt-4 flex items-center gap-2 text-sm font-semibold text-accent"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                  <Play size={14} fill="currentColor" />
+                  <Sparkles size={14} />
                 </div>
-                Abrir agora
+                Conversar agora
               </button>
             </div>
           </Card>
