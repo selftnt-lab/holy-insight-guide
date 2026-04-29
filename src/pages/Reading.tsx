@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import AiChat from "@/components/AiChat";
+import VerseReferencesSheet from "@/components/VerseReferencesSheet";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { fetchProgress, saveProgress } from "@/lib/reading-progress";
