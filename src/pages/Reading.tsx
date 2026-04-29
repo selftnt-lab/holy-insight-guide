@@ -264,6 +264,19 @@ const Reading = () => {
           />
         )}
       </AnimatePresence>
+
+      <VerseReferencesSheet
+        open={!!activeVerse}
+        onClose={() => setActiveVerse(null)}
+        bookName={book.name}
+        chapter={chapter}
+        verse={activeVerse?.verse ?? 0}
+        verseText={activeVerse?.text ?? ""}
+        onNavigate={(slug, ch) => {
+          setBookSlug(slug);
+          setChapter(ch);
+        }}
+      />
     </div>
   );
 };
