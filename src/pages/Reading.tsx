@@ -199,15 +199,17 @@ const Reading = () => {
             className="space-y-4"
           >
             {data.verses.map((v) => (
-              <p
+              <button
                 key={v.verse}
-                className="font-serif text-lg leading-relaxed text-foreground/90"
+                onClick={() => setActiveVerse({ verse: v.verse, text: v.text })}
+                className="block w-full rounded-lg px-2 py-1 text-left font-serif text-lg leading-relaxed text-foreground/90 transition-colors hover:bg-muted/50 focus:bg-muted/50 focus:outline-none"
+                aria-label={`Ver referências cruzadas do versículo ${v.verse}`}
               >
                 <sup className="mr-1 text-xs font-sans font-bold text-accent">
                   {v.verse}
                 </sup>
                 {v.text}
-              </p>
+              </button>
             ))}
           </motion.div>
         )}
