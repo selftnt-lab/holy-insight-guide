@@ -27,19 +27,22 @@ export interface TopicContext {
 interface Props {
   onClose: () => void;
   context?: ChatContext;
+  topic?: TopicContext;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
-const AiChat = ({ onClose, context }: Props) => {
-  const greeting = context
+const AiChat = ({ onClose, context, topic }: Props) => {
+  const greeting = topic
+    ? `Olá! 👋 Vamos conversar sobre **${topic.topicName}**.${topic.description ? ` ${topic.description}` : ""} O que você quer saber?`
+    : context
     ? `Olá! 👋 Estou aqui para ajudar com **${context.bookName} ${context.chapter}**. Sobre o que você quer saber?`
     : "Olá! 👋 Qual parte da Bíblia você gostaria que eu explicasse?";
 
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: greeting },
   ]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(topic?.initialPrompt ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
