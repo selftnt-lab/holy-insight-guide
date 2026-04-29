@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Play, BookOpen, ChevronRight } from "lucide-react";
+import { Play, BookOpen, ChevronRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { getBookBySlug } from "@/lib/bible-books";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveFirstName, type ProfileNameSource } from "@/lib/user-name";
+import AiChat from "@/components/AiChat";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Dashboard = () => {
     chaptersRead: [],
   });
   const [profileName, setProfileName] = useState<ProfileNameSource | null>(null);
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -93,16 +95,16 @@ const Dashboard = () => {
                 Pergunte sobre {bookName} {progress.chapter}
               </h2>
               <p className="mt-2 text-sm opacity-80">
-                Abra o capítulo e toque no botão de faísca para conversar com o tutor.
+                Tire dúvidas sobre o capítulo direto com o Tutor IA.
               </p>
               <button
-                onClick={continueReading}
+                onClick={() => setShowChat(true)}
                 className="mt-4 flex items-center gap-2 text-sm font-semibold text-accent"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                  <Play size={14} fill="currentColor" />
+                  <Sparkles size={14} />
                 </div>
-                Abrir agora
+                Conversar agora
               </button>
             </div>
           </Card>
@@ -143,6 +145,19 @@ const Dashboard = () => {
           ))}
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {showChat && (
+          <AiChat
+            onClose={() => setShowChat(false)}
+            topic={{
+              topicName: `${bookName} ${progress.chapter}`,
+              description: `Capítulo atual da sua leitura.`,
+              initialPrompt: `Me dê um resumo de ${bookName} ${progress.chapter}.`,
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

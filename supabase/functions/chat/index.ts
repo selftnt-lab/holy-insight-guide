@@ -30,6 +30,9 @@ serve(async (req) => {
     const ctx = body.context as
       | { bookName?: string; chapter?: number; text?: string }
       | undefined;
+    const topic = body.topic as
+      | { topicName?: string; description?: string }
+      | undefined;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -49,6 +52,10 @@ Suas respostas devem ser:
         const snippet = ctx.text.slice(0, 4000);
         systemContent += `\n\nTexto do capítulo:\n"""\n${snippet}\n"""\n\nResponda baseado neste texto sempre que possível.`;
       }
+    }
+
+    if (topic?.topicName) {
+      systemContent += `\n\nO usuário quer aprender sobre **${topic.topicName}**${topic.description ? ` — ${topic.description}` : ""}. Forneça contexto bíblico, histórico e cultural sobre este tema.`;
     }
 
     const payload = {

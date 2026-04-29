@@ -18,22 +18,31 @@ export interface ChatContext {
   text: string;
 }
 
+export interface TopicContext {
+  topicName: string;
+  description?: string;
+  initialPrompt?: string;
+}
+
 interface Props {
   onClose: () => void;
   context?: ChatContext;
+  topic?: TopicContext;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
-const AiChat = ({ onClose, context }: Props) => {
-  const greeting = context
+const AiChat = ({ onClose, context, topic }: Props) => {
+  const greeting = topic
+    ? `Olá! 👋 Vamos conversar sobre **${topic.topicName}**.${topic.description ? ` ${topic.description}` : ""} O que você quer saber?`
+    : context
     ? `Olá! 👋 Estou aqui para ajudar com **${context.bookName} ${context.chapter}**. Sobre o que você quer saber?`
     : "Olá! 👋 Qual parte da Bíblia você gostaria que eu explicasse?";
 
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: greeting },
   ]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(topic?.initialPrompt ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -69,6 +78,9 @@ const AiChat = ({ onClose, context }: Props) => {
                 chapter: context.chapter,
                 text: context.text,
               }
+            : undefined,
+          topic: topic
+            ? { topicName: topic.topicName, description: topic.description }
             : undefined,
         }),
       });
@@ -177,7 +189,11 @@ const AiChat = ({ onClose, context }: Props) => {
           <div>
             <p className="text-sm font-semibold text-foreground">Tutor IA</p>
             <p className="text-[11px] text-muted-foreground">
-              {context ? `${context.bookName} ${context.chapter}` : "Powered by Lovable AI"}
+              {topic
+                ? topic.topicName
+                : context
+                ? `${context.bookName} ${context.chapter}`
+                : "Powered by Lovable AI"}
             </p>
           </div>
         </div>
