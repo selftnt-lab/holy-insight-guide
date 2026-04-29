@@ -45,11 +45,16 @@ const AiChat = ({ onClose, context, topic }: Props) => {
   const [input, setInput] = useState(topic?.initialPrompt ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const send = async () => {
     const text = input.trim();
@@ -179,7 +184,7 @@ const AiChat = ({ onClose, context, topic }: Props) => {
       animate={{ y: 0 }}
       exit={{ y: "100%" }}
       transition={{ type: "spring", damping: 28, stiffness: 300 }}
-      className="fixed inset-0 z-50 flex flex-col bg-background"
+      className="fixed inset-0 z-[60] flex h-dvh flex-col bg-background"
     >
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
@@ -239,25 +244,31 @@ const AiChat = ({ onClose, context, topic }: Props) => {
         <div ref={endRef} />
       </div>
 
-      <div className="border-t border-border px-4 py-3">
-        <div className="flex items-center gap-2">
+      <div className="border-t border-border bg-background px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3">
+        <form
+          className="flex items-center gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
+          }}
+        >
           <Input
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send()}
             placeholder="Digite sua pergunta..."
             className="rounded-full"
             disabled={isLoading}
           />
           <Button
-            onClick={send}
+            type="submit"
             size="icon"
             className="shrink-0 rounded-full"
             disabled={!input.trim() || isLoading}
           >
             <Send size={18} />
           </Button>
-        </div>
+        </form>
       </div>
     </motion.div>
   );
