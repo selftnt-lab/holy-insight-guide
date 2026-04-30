@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      explore_suggestions: {
+        Row: {
+          book_slug: string
+          cards: Json
+          chapter: number
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          book_slug: string
+          cards: Json
+          chapter: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          book_slug?: string
+          cards?: Json
+          chapter?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
