@@ -11,8 +11,10 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import AiChat from "@/components/AiChat";
+import AiChat, { type TopicContext } from "@/components/AiChat";
 import VerseReferencesSheet from "@/components/VerseReferencesSheet";
+import ClickableVerse from "@/components/ClickableVerse";
+import WordStudyPanel from "@/components/WordStudyPanel";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { fetchProgress, saveProgress } from "@/lib/reading-progress";
@@ -28,6 +30,13 @@ const Reading = () => {
   const [chapterSheetOpen, setChapterSheetOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [activeVerse, setActiveVerse] = useState<{ verse: number; text: string } | null>(null);
+  const [activeWord, setActiveWord] = useState<{
+    verse: number;
+    text: string;
+    word: string;
+    wordIndex: number;
+  } | null>(null);
+  const [chatTopic, setChatTopic] = useState<TopicContext | null>(null);
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
   const { data, loading, error } = useBibleChapter(bookSlug, chapter);
@@ -199,17 +208,30 @@ const Reading = () => {
             className="space-y-4"
           >
             {data.verses.map((v) => (
-              <button
+              <p
                 key={v.verse}
-                onClick={() => setActiveVerse({ verse: v.verse, text: v.text })}
-                className="block w-full rounded-lg px-2 py-1 text-left font-serif text-lg leading-relaxed text-foreground/90 transition-colors hover:bg-muted/50 focus:bg-muted/50 focus:outline-none"
-                aria-label={`Ver referências cruzadas do versículo ${v.verse}`}
+                className="rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90"
               >
-                <sup className="mr-1 text-xs font-sans font-bold text-accent">
+                <button
+                  type="button"
+                  onClick={() => setActiveVerse({ verse: v.verse, text: v.text })}
+                  className="mr-1 align-super text-xs font-sans font-bold text-accent hover:underline focus:outline-none focus:underline"
+                  aria-label={`Ver referências cruzadas do versículo ${v.verse}`}
+                >
                   {v.verse}
-                </sup>
-                {v.text}
-              </button>
+                </button>
+                <ClickableVerse
+                  text={v.text}
+                  onWordClick={(word, wordIndex) =>
+                    setActiveWord({
+                      verse: v.verse,
+                      text: v.text,
+                      word,
+                      wordIndex,
+                    })
+                  }
+                />
+              </p>
             ))}
           </motion.div>
         )}
@@ -263,6 +285,12 @@ const Reading = () => {
             }
           />
         )}
+        {chatTopic && (
+          <AiChat
+            onClose={() => setChatTopic(null)}
+            topic={chatTopic}
+          />
+        )}
       </AnimatePresence>
 
       <VerseReferencesSheet
@@ -275,6 +303,22 @@ const Reading = () => {
         onNavigate={(slug, ch) => {
           setBookSlug(slug);
           setChapter(ch);
+        }}
+      />
+
+      <WordStudyPanel
+        open={!!activeWord}
+        onClose={() => setActiveWord(null)}
+        bookSlug={bookSlug}
+        bookName={book.name}
+        chapter={chapter}
+        verse={activeWord?.verse ?? 0}
+        verseText={activeWord?.text ?? ""}
+        word={activeWord?.word ?? ""}
+        wordIndex={activeWord?.wordIndex ?? 0}
+        onAskTutor={(t) => {
+          setActiveWord(null);
+          setChatTopic(t);
         }}
       />
     </div>
