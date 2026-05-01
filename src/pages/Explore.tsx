@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, RefreshCw, MapPin, User, Lightbulb, HelpCircle, BookOpen } from "lucide-react";
+import { Loader2, RefreshCw, MapPin, User, Lightbulb, HelpCircle, BookOpen, Search, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import AiChat, { type TopicContext } from "@/components/AiChat";
 import { useAuth } from "@/hooks/useAuth";
