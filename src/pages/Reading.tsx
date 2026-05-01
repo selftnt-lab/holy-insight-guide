@@ -208,17 +208,30 @@ const Reading = () => {
             className="space-y-4"
           >
             {data.verses.map((v) => (
-              <button
+              <p
                 key={v.verse}
-                onClick={() => setActiveVerse({ verse: v.verse, text: v.text })}
-                className="block w-full rounded-lg px-2 py-1 text-left font-serif text-lg leading-relaxed text-foreground/90 transition-colors hover:bg-muted/50 focus:bg-muted/50 focus:outline-none"
-                aria-label={`Ver referências cruzadas do versículo ${v.verse}`}
+                className="rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90"
               >
-                <sup className="mr-1 text-xs font-sans font-bold text-accent">
+                <button
+                  type="button"
+                  onClick={() => setActiveVerse({ verse: v.verse, text: v.text })}
+                  className="mr-1 align-super text-xs font-sans font-bold text-accent hover:underline focus:outline-none focus:underline"
+                  aria-label={`Ver referências cruzadas do versículo ${v.verse}`}
+                >
                   {v.verse}
-                </sup>
-                {v.text}
-              </button>
+                </button>
+                <ClickableVerse
+                  text={v.text}
+                  onWordClick={(word, wordIndex) =>
+                    setActiveWord({
+                      verse: v.verse,
+                      text: v.text,
+                      word,
+                      wordIndex,
+                    })
+                  }
+                />
+              </p>
             ))}
           </motion.div>
         )}
