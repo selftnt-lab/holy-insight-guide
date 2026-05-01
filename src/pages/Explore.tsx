@@ -183,6 +183,51 @@ const Explore = () => {
           )}
         </motion.div>
 
+        <motion.form
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAsk(query);
+          }}
+          className="mt-5"
+        >
+          <div className="relative">
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Pergunte qualquer coisa sobre a Bíblia..."
+              className="h-11 rounded-full border-border/60 bg-card/60 pl-9 pr-12 text-sm shadow-sm focus-visible:ring-accent"
+            />
+            <Button
+              type="submit"
+              size="icon"
+              disabled={!query.trim()}
+              aria-label="Perguntar ao tutor"
+              className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
+            >
+              <Sparkles size={15} />
+            </Button>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {QUICK_PROMPTS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setQuery(p)}
+                className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </motion.form>
+
         <div className="mt-4 flex justify-end">
           <Button
             variant="ghost"
