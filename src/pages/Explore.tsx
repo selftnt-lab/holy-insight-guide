@@ -86,6 +86,25 @@ const Explore = () => {
   const [bookName, setBookName] = useState<string>("");
   const [chapter, setChapter] = useState<number>(1);
   const [chaptersReadCount, setChaptersReadCount] = useState(0);
+  const [query, setQuery] = useState("");
+
+  const QUICK_PROMPTS = [
+    "O que é graça?",
+    "Quem foi Paulo?",
+    "Por que existem 4 evangelhos?",
+    "O que é o Reino de Deus?",
+  ];
+
+  const handleAsk = (text: string) => {
+    const q = text.trim();
+    if (!q) return;
+    setTopic({
+      topicName: "Pergunta livre",
+      description: q.length > 80 ? q.slice(0, 80) + "…" : q,
+      initialPrompt: q,
+    });
+    setQuery("");
+  };
 
   const loadCards = async (force = false) => {
     if (!user) return;
