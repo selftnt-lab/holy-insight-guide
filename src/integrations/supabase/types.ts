@@ -137,6 +137,116 @@ export type Database = {
         }
         Relationships: []
       }
+      strong_entries: {
+        Row: {
+          created_at: string
+          full_definition: string | null
+          language: string
+          original: string
+          part_of_speech: string | null
+          pronunciation: string | null
+          short_definition: string | null
+          strong_code: string
+          transliteration: string | null
+        }
+        Insert: {
+          created_at?: string
+          full_definition?: string | null
+          language: string
+          original: string
+          part_of_speech?: string | null
+          pronunciation?: string | null
+          short_definition?: string | null
+          strong_code: string
+          transliteration?: string | null
+        }
+        Update: {
+          created_at?: string
+          full_definition?: string | null
+          language?: string
+          original?: string
+          part_of_speech?: string | null
+          pronunciation?: string | null
+          short_definition?: string | null
+          strong_code?: string
+          transliteration?: string | null
+        }
+        Relationships: []
+      }
+      verse_word_map: {
+        Row: {
+          book_slug: string
+          chapter: number
+          context_meaning: string | null
+          created_at: string
+          id: string
+          strong_code: string | null
+          verse: number
+          word_index: number
+          word_pt: string
+        }
+        Insert: {
+          book_slug: string
+          chapter: number
+          context_meaning?: string | null
+          created_at?: string
+          id?: string
+          strong_code?: string | null
+          verse: number
+          word_index: number
+          word_pt: string
+        }
+        Update: {
+          book_slug?: string
+          chapter?: number
+          context_meaning?: string | null
+          created_at?: string
+          id?: string
+          strong_code?: string | null
+          verse?: number
+          word_index?: number
+          word_pt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verse_word_map_strong_code_fkey"
+            columns: ["strong_code"]
+            isOneToOne: false
+            referencedRelation: "strong_entries"
+            referencedColumns: ["strong_code"]
+          },
+        ]
+      }
+      word_study_cache: {
+        Row: {
+          book_slug: string
+          chapter: number
+          id: string
+          payload: Json
+          updated_at: string
+          verse: number
+          word_pt: string
+        }
+        Insert: {
+          book_slug: string
+          chapter: number
+          id?: string
+          payload: Json
+          updated_at?: string
+          verse: number
+          word_pt: string
+        }
+        Update: {
+          book_slug?: string
+          chapter?: number
+          id?: string
+          payload?: Json
+          updated_at?: string
+          verse?: number
+          word_pt?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
