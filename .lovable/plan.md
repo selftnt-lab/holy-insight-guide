@@ -1,63 +1,31 @@
+## Objetivo
 
+Adicionar uma barra de pesquisa no topo da aba **Explorar** que funciona como um "GPT bíblico" — permite ao usuário fazer qualquer pergunta livre (não restrita ao capítulo atual), abrindo o Tutor IA com a pergunta como prompt inicial.
 
-## Diagnóstico
+## Comportamento
 
-Confirmei que o app hoje é praticamente uma casca visual:
+- Campo de busca fixo no topo, acima dos cards de sugestões.
+- Placeholder: "Pergunte qualquer coisa sobre a Bíblia..."
+- Ícone de lupa à esquerda; botão de enviar (ou Enter) dispara a consulta.
+- Ao enviar:
+  - Abre o `AiChat` (mesmo componente já usado pelos cards) com `topic.initialPrompt = textoDigitado`.
+  - `topicName` = "Pergunta livre" e `description` = primeiros ~80 chars da pergunta.
+  - Limpa o campo após envio.
+- Validação: ignora envio se vazio ou só espaços; trim antes de mandar.
+- Sugestões rápidas (chips) abaixo do input para inspirar perguntas: "O que é graça?", "Quem foi Paulo?", "Por que existem 4 evangelhos?", "O que é o Reino de Deus?". Clicar preenche o input (não envia direto, para o usuário poder editar).
 
-- **Leitura (`Reading.tsx`)**: só mostra 5 versículos de Gênesis 1 codificados manualmente. Não há livro, capítulo, navegação nem texto bíblico real.
-- **Dashboard / Perfil / Explorar**: tudo é mock estático ("Maxwell", "3 de 50 capítulos", lugares com gradientes coloridos em vez de imagens reais, estatísticas fixas).
-- **Tutor IA (`AiChat.tsx` + edge function `chat`)**: o código de streaming está correto e a `LOVABLE_API_KEY` existe nos secrets. A causa mais provável de "não funcionar" é o modelo `google/gemini-3-flash-preview` (preview) estar instável/indisponível, sem fallback nem log claro no front. Sem console/network logs no replay, vou estabilizar trocando para um modelo estável + melhor tratamento de erro.
+## Arquivos
 
-## O que vou fazer
+**Editar `src/pages/Explore.tsx`:**
+- Adicionar estado `query: string`.
+- Renderizar bloco de busca entre o header e o botão "Atualizar":
+  - `<Input>` + `<Button size="icon">` com ícone `Send`/`Sparkles`.
+  - `<form onSubmit>` para suportar Enter.
+  - Linha de chips (botões `variant="outline" size="sm"`) com prompts pré-definidos.
+- Função `handleAsk(text)` que valida, define `setTopic({ topicName: "Pergunta livre", description: text.slice(0,80), initialPrompt: text })` e limpa o input.
 
-### 1. Bíblia real integrada (ARC – Almeida Revista e Corrigida, domínio público)
+## Observações técnicas
 
-Usar a API pública gratuita **bible-api.com** (suporta versão `almeida` em português, sem chave). Para evitar CORS e travamentos do front, criar uma edge function `bible` que faz proxy + cache em memória.
-
-- Nova edge function `supabase/functions/bible/index.ts`:
-  - `GET ?book=genesis&chapter=1` → retorna `{ reference, verses: [{ verse, text }] }`.
-  - Faz `fetch` em `https://bible-api.com/<book>+<chapter>?translation=almeida`.
-  - CORS liberado, cache simples por chave `book:chapter`.
-- Lista de livros (66) hardcoded no front com nome PT + slug API + nº de capítulos.
-
-### 2. Tela de Leitura funcional
-
-Reescrever `Reading.tsx`:
-- Seletor de **Livro** (Sheet com lista dos 66 livros) e seletor de **Capítulo** (grid numérico).
-- Botões ◀ ▶ para capítulo anterior/próximo.
-- Carrega versículos via edge function `bible`, com skeleton de loading e tratamento de erro.
-- Estado persistido em `localStorage` (último livro/capítulo lido) → o botão "Continuar Leitura" do Dashboard usa isso.
-- Mantém o FAB do Tutor IA, agora passando o contexto real (livro + capítulo + texto) para o chat.
-- Dicionário fica como tooltip opcional só nas palavras conhecidas (sem quebrar o texto vindo da API).
-
-### 3. Tutor IA estável
-
-- Trocar modelo padrão para `google/gemini-2.5-flash` (estável, já incluso no plano) com fallback para `google/gemini-2.5-flash-lite` em caso de erro.
-- A edge function `chat` recebe agora `{ messages, context: { book, chapter, text } }` e injeta o texto bíblico no system prompt — assim o tutor responde sobre o que o usuário está lendo.
-- Front (`AiChat.tsx`):
-  - Passa o contexto de leitura.
-  - Mostra mensagem de erro real no balão (não só toast) quando 429/402/500.
-  - Renderiza markdown nas respostas (`react-markdown`) para listas/negrito ficarem legíveis.
-
-### 4. Dashboard ligado ao real
-
-- "Trilha: Gênesis – X de 50" vira "Último capítulo lido: <Livro> <Cap>" lido do `localStorage`.
-- Botão "Continuar Leitura" navega para `/reading?book=...&chapter=...`.
-- Estatísticas locais simples (capítulos lidos, sequência) baseadas em `localStorage`.
-
-### 5. Explorar — fora de escopo agora
-
-Você marcou só **Leitura real** + **Chat real**. Mantenho a tela Explorar como está (mock visual) e deixo nota para uma próxima iteração trocar por conteúdo real com imagens.
-
-## Arquivos afetados
-
-- **Criar**: `supabase/functions/bible/index.ts`, `src/lib/bible-books.ts`, `src/lib/reading-progress.ts`, `src/hooks/useBibleChapter.ts`
-- **Editar**: `src/pages/Reading.tsx`, `src/pages/Dashboard.tsx`, `src/components/AiChat.tsx`, `supabase/functions/chat/index.ts`
-- **Dependência nova**: `react-markdown`
-
-## Fora deste passo
-
-- Autenticação e progresso salvo no banco (posso fazer depois se quiser sair do `localStorage`).
-- Conteúdo real da aba Explorar.
-- Áudio do "Contexto do Dia" (botão hoje é decorativo).
-
+- Nenhuma mudança de backend: o `AiChat` já chama a edge function `chat`, que aceita prompts arbitrários sem precisar de contexto de capítulo (o `topic` é opcional no system prompt).
+- Sem nova tabela, sem nova edge function, sem alteração no schema.
+- Mantém os cards dinâmicos atuais intactos abaixo da busca.
