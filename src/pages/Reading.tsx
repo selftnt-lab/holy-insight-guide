@@ -285,6 +285,12 @@ const Reading = () => {
             }
           />
         )}
+        {chatTopic && (
+          <AiChat
+            onClose={() => setChatTopic(null)}
+            topic={chatTopic}
+          />
+        )}
       </AnimatePresence>
 
       <VerseReferencesSheet
@@ -297,6 +303,22 @@ const Reading = () => {
         onNavigate={(slug, ch) => {
           setBookSlug(slug);
           setChapter(ch);
+        }}
+      />
+
+      <WordStudyPanel
+        open={!!activeWord}
+        onClose={() => setActiveWord(null)}
+        bookSlug={bookSlug}
+        bookName={book.name}
+        chapter={chapter}
+        verse={activeWord?.verse ?? 0}
+        verseText={activeWord?.text ?? ""}
+        word={activeWord?.word ?? ""}
+        wordIndex={activeWord?.wordIndex ?? 0}
+        onAskTutor={(t) => {
+          setActiveWord(null);
+          setChatTopic(t);
         }}
       />
     </div>
