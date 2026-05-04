@@ -223,23 +223,43 @@ const WordStudyPanel = ({
               </div>
             </section>
 
-            <Button
-              variant="default"
-              className="w-full gap-2 rounded-full"
-              onClick={() =>
-                onAskTutor?.({
-                  topicName: `${data.original} (${data.strong_code})`,
-                  description: `${word} — ${data.short_definition}`,
-                  initialPrompt: `Aprofunde o estudo da palavra "${data.original}" (${data.transliteration}, ${data.strong_code}) no contexto de ${bookName} ${chapter}:${verse}: "${verseText}". Foque em aspectos linguísticos e literários, sem vieses doutrinários.`,
-                })
-              }
-            >
-              <Sparkles size={16} />
-              Aprofundar com Tutor IA
-            </Button>
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full gap-2 rounded-full"
+                onClick={() => setStrongDetailCode(data.strong_code)}
+              >
+                Ver outras ocorrências
+              </Button>
+              <Button
+                variant="default"
+                className="w-full gap-2 rounded-full"
+                onClick={() =>
+                  onAskTutor?.({
+                    topicName: `${data.original} (${data.strong_code})`,
+                    description: `${word} — ${data.short_definition}`,
+                    initialPrompt: `Aprofunde o estudo da palavra "${data.original}" (${data.transliteration}, ${data.strong_code}) no contexto de ${bookName} ${chapter}:${verse}: "${verseText}". Foque em aspectos linguísticos e literários, sem vieses doutrinários.`,
+                  })
+                }
+              >
+                <Sparkles size={16} />
+                Aprofundar com Tutor IA
+              </Button>
+            </div>
           </div>
         )}
       </SheetContent>
+
+      <StrongDetailSheet
+        open={!!strongDetailCode}
+        code={strongDetailCode}
+        onClose={() => setStrongDetailCode(null)}
+        onNavigate={(slug, ch) => {
+          setStrongDetailCode(null);
+          onClose();
+          onNavigate?.(slug, ch);
+        }}
+      />
     </Sheet>
   );
 };
