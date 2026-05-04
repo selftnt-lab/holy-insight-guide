@@ -91,6 +91,13 @@ const Explore = () => {
   const [chapter, setChapter] = useState<number>(1);
   const [chaptersReadCount, setChaptersReadCount] = useState(0);
   const [query, setQuery] = useState("");
+  const [mode, setMode] = useState<"ask" | "word">("ask");
+  const [wordQuery, setWordQuery] = useState("");
+  const [activeWordSearch, setActiveWordSearch] = useState<string | null>(null);
+  const [strongDetailCode, setStrongDetailCode] = useState<string | null>(null);
+
+  const { data: searchData, loading: searchLoading, error: searchError } =
+    useStrongSearch(activeWordSearch, mode === "word");
 
   const QUICK_PROMPTS = [
     "O que é graça?",
@@ -98,6 +105,8 @@ const Explore = () => {
     "Por que existem 4 evangelhos?",
     "O que é o Reino de Deus?",
   ];
+
+  const QUICK_WORDS = ["amor", "graça", "fé", "Senhor", "espírito"];
 
   const handleAsk = (text: string) => {
     const q = text.trim();
