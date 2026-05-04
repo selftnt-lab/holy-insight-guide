@@ -196,50 +196,188 @@ const Explore = () => {
           )}
         </motion.div>
 
-        <motion.form
+        <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleAsk(query);
-          }}
           className="mt-5"
         >
-          <div className="relative">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Pergunte qualquer coisa sobre a Bíblia..."
-              className="h-11 rounded-full border-border/60 bg-card/60 pl-9 pr-12 text-sm shadow-sm focus-visible:ring-accent"
-            />
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!query.trim()}
-              aria-label="Perguntar ao tutor"
-              className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
-            >
-              <Sparkles size={15} />
-            </Button>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {QUICK_PROMPTS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setQuery(p)}
-                className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          <Tabs value={mode} onValueChange={(v) => setMode(v as "ask" | "word")}>
+            <TabsList className="grid w-full grid-cols-2 rounded-full">
+              <TabsTrigger value="ask" className="rounded-full text-xs">
+                <Sparkles size={13} className="mr-1.5" />
+                Pergunta livre
+              </TabsTrigger>
+              <TabsTrigger value="word" className="rounded-full text-xs">
+                <Languages size={13} className="mr-1.5" />
+                Palavra / Strong
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="ask" className="mt-3">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAsk(query);
+                }}
               >
-                {p}
-              </button>
-            ))}
-          </div>
-        </motion.form>
+                <div className="relative">
+                  <Search
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Pergunte qualquer coisa sobre a Bíblia..."
+                    className="h-11 rounded-full border-border/60 bg-card/60 pl-9 pr-12 text-sm shadow-sm focus-visible:ring-accent"
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={!query.trim()}
+                    aria-label="Perguntar ao tutor"
+                    className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
+                  >
+                    <Sparkles size={15} />
+                  </Button>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {QUICK_PROMPTS.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setQuery(p)}
+                      className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="word" className="mt-3">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const t = wordQuery.trim();
+                  if (!t) return;
+                  if (/^[GH]\d{1,5}$/i.test(t)) {
+                    setStrongDetailCode(t.toUpperCase());
+                  } else {
+                    setActiveWordSearch(t);
+                  }
+                }}
+              >
+                <div className="relative">
+                  <Search
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    value={wordQuery}
+                    onChange={(e) => setWordQuery(e.target.value)}
+                    placeholder='Buscar "amor" ou "G3056"...'
+                    className="h-11 rounded-full border-border/60 bg-card/60 pl-9 pr-12 text-sm shadow-sm focus-visible:ring-accent"
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={!wordQuery.trim()}
+                    aria-label="Buscar palavra"
+                    className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
+                  >
+                    <ArrowRight size={15} />
+                  </Button>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {QUICK_WORDS.map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => {
+                        setWordQuery(w);
+                        setActiveWordSearch(w);
+                      }}
+                      className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      {w}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground/80">
+                  Busca em palavras já estudadas no app. Toque em palavras
+                  durante a leitura para alimentar a base.
+                </p>
+
+                {searchLoading && (
+                  <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 size={14} className="animate-spin" />
+                    Buscando ocorrências...
+                  </div>
+                )}
+                {searchError && !searchLoading && (
+                  <p className="mt-4 text-sm text-destructive">{searchError}</p>
+                )}
+                {searchData && !searchLoading && (
+                  <div className="mt-4">
+                    {searchData.results.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Nenhum resultado para "{searchData.query}". Tente outra
+                        palavra ou explore um capítulo para mapear novas
+                        palavras.
+                      </p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {searchData.results.map((g) => (
+                          <li key={g.strong_code}>
+                            <button
+                              onClick={() => setStrongDetailCode(g.strong_code)}
+                              className="w-full rounded-xl border border-border bg-card/50 p-3 text-left transition-colors hover:bg-muted/50"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                  {g.entry?.original && (
+                                    <p className="font-serif text-lg leading-tight text-foreground">
+                                      {g.entry.original}
+                                      {g.entry.transliteration && (
+                                        <span className="ml-2 text-xs italic text-muted-foreground">
+                                          {g.entry.transliteration}
+                                        </span>
+                                      )}
+                                    </p>
+                                  )}
+                                  {g.entry?.short_definition && (
+                                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                      {g.entry.short_definition}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex shrink-0 flex-col items-end gap-1">
+                                  <Badge
+                                    variant="secondary"
+                                    className="font-mono text-[10px]"
+                                  >
+                                    {g.strong_code}
+                                  </Badge>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {g.count}{" "}
+                                    {g.count === 1 ? "ocor." : "ocors."}
+                                  </span>
+                                </div>
+                              </div>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </form>
+            </TabsContent>
+          </Tabs>
+        </motion.div>
 
         <div className="mt-4 flex justify-end">
           <Button
