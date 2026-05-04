@@ -51,7 +51,9 @@ const WordStudyPanel = ({
   word,
   wordIndex,
   onAskTutor,
+  onNavigate,
 }: Props) => {
+  const [strongDetailCode, setStrongDetailCode] = useState<string | null>(null);
   const { data, loading, error } = useWordStudy({
     bookSlug,
     chapter,
