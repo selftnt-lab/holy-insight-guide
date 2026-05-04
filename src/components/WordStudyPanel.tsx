@@ -136,9 +136,19 @@ const WordStudyPanel = ({
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="font-mono text-xs">
-                  {data.strong_code}
-                </Badge>
+                <button
+                  type="button"
+                  onClick={() => setStrongDetailCode(data.strong_code)}
+                  className="rounded-full focus:outline-none focus:ring-2 focus:ring-accent"
+                  aria-label={`Ver detalhes do código ${data.strong_code}`}
+                >
+                  <Badge
+                    variant="secondary"
+                    className="cursor-pointer font-mono text-xs hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {data.strong_code} ↗
+                  </Badge>
+                </button>
                 <Badge variant="outline" className="text-xs capitalize">
                   <Languages size={12} className="mr-1" />
                   {data.language === "hebrew"
