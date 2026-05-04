@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Sparkles, Volume2, AlertCircle, Languages } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import {
@@ -10,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useWordStudy } from "@/hooks/useWordStudy";
+import StrongDetailSheet from "@/components/StrongDetailSheet";
 
 interface Props {
   open: boolean;
