@@ -49,12 +49,8 @@ export const useStrongDetail = (code: string | null, enabled: boolean) => {
     setLoading(true);
     setError(null);
     setData(null);
-    supabase.functions
-      .invoke("strong-lookup", { method: "GET" as any, body: undefined as any, headers: {} as any })
-      .then(() => {}) // placeholder; we'll use direct fetch below
-      .catch(() => {});
 
-    // Use direct fetch since invoke doesn't easily support GET query strings
+    // Direct fetch to support GET query string
     const url = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/strong-lookup?code=${encodeURIComponent(code)}`;
     supabase.auth.getSession().then(({ data: s }) => {
       const token = s.session?.access_token;
