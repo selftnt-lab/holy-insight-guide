@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, RefreshCw, MapPin, User, Lightbulb, HelpCircle, BookOpen, Search, Sparkles } from "lucide-react";
+import { Loader2, RefreshCw, MapPin, User, Lightbulb, HelpCircle, BookOpen, Search, Sparkles, Languages, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import AiChat, { type TopicContext } from "@/components/AiChat";
+import StrongDetailSheet from "@/components/StrongDetailSheet";
 import { useAuth } from "@/hooks/useAuth";
+import { useStrongSearch } from "@/hooks/useStrongSearch";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProgress } from "@/lib/reading-progress";
 import { getBookBySlug } from "@/lib/bible-books";
