@@ -320,6 +320,11 @@ const Reading = () => {
           setActiveWord(null);
           setChatTopic(t);
         }}
+        onNavigate={(slug, ch) => {
+          setActiveWord(null);
+          setBookSlug(slug);
+          setChapter(ch);
+        }}
       />
     </div>
   );

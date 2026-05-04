@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Sparkles, Volume2, AlertCircle, Languages } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import {
@@ -10,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useWordStudy } from "@/hooks/useWordStudy";
+import StrongDetailSheet from "@/components/StrongDetailSheet";
 
 interface Props {
   open: boolean;
@@ -26,6 +28,7 @@ interface Props {
     description: string;
     initialPrompt: string;
   }) => void;
+  onNavigate?: (bookSlug: string, chapter: number) => void;
 }
 
 const speak = (text: string, lang = "el-GR") => {
@@ -48,7 +51,9 @@ const WordStudyPanel = ({
   word,
   wordIndex,
   onAskTutor,
+  onNavigate,
 }: Props) => {
+  const [strongDetailCode, setStrongDetailCode] = useState<string | null>(null);
   const { data, loading, error } = useWordStudy({
     bookSlug,
     chapter,
@@ -131,9 +136,19 @@ const WordStudyPanel = ({
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="font-mono text-xs">
-                  {data.strong_code}
-                </Badge>
+                <button
+                  type="button"
+                  onClick={() => setStrongDetailCode(data.strong_code)}
+                  className="rounded-full focus:outline-none focus:ring-2 focus:ring-accent"
+                  aria-label={`Ver detalhes do código ${data.strong_code}`}
+                >
+                  <Badge
+                    variant="secondary"
+                    className="cursor-pointer font-mono text-xs hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {data.strong_code} ↗
+                  </Badge>
+                </button>
                 <Badge variant="outline" className="text-xs capitalize">
                   <Languages size={12} className="mr-1" />
                   {data.language === "hebrew"
@@ -208,23 +223,43 @@ const WordStudyPanel = ({
               </div>
             </section>
 
-            <Button
-              variant="default"
-              className="w-full gap-2 rounded-full"
-              onClick={() =>
-                onAskTutor?.({
-                  topicName: `${data.original} (${data.strong_code})`,
-                  description: `${word} — ${data.short_definition}`,
-                  initialPrompt: `Aprofunde o estudo da palavra "${data.original}" (${data.transliteration}, ${data.strong_code}) no contexto de ${bookName} ${chapter}:${verse}: "${verseText}". Foque em aspectos linguísticos e literários, sem vieses doutrinários.`,
-                })
-              }
-            >
-              <Sparkles size={16} />
-              Aprofundar com Tutor IA
-            </Button>
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full gap-2 rounded-full"
+                onClick={() => setStrongDetailCode(data.strong_code)}
+              >
+                Ver outras ocorrências
+              </Button>
+              <Button
+                variant="default"
+                className="w-full gap-2 rounded-full"
+                onClick={() =>
+                  onAskTutor?.({
+                    topicName: `${data.original} (${data.strong_code})`,
+                    description: `${word} — ${data.short_definition}`,
+                    initialPrompt: `Aprofunde o estudo da palavra "${data.original}" (${data.transliteration}, ${data.strong_code}) no contexto de ${bookName} ${chapter}:${verse}: "${verseText}". Foque em aspectos linguísticos e literários, sem vieses doutrinários.`,
+                  })
+                }
+              >
+                <Sparkles size={16} />
+                Aprofundar com Tutor IA
+              </Button>
+            </div>
           </div>
         )}
       </SheetContent>
+
+      <StrongDetailSheet
+        open={!!strongDetailCode}
+        code={strongDetailCode}
+        onClose={() => setStrongDetailCode(null)}
+        onNavigate={(slug, ch) => {
+          setStrongDetailCode(null);
+          onClose();
+          onNavigate?.(slug, ch);
+        }}
+      />
     </Sheet>
   );
 };
