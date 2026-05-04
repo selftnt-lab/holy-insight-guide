@@ -28,6 +28,7 @@ interface Props {
     description: string;
     initialPrompt: string;
   }) => void;
+  onNavigate?: (bookSlug: string, chapter: number) => void;
 }
 
 const speak = (text: string, lang = "el-GR") => {
