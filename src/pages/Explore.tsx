@@ -379,79 +379,90 @@ const Explore = () => {
           </Tabs>
         </motion.div>
 
-        <div className="mt-4 flex justify-end">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => loadCards(true)}
-            disabled={loading || refreshing}
-            className="gap-1.5 text-xs"
-          >
-            <RefreshCw
-              size={12}
-              className={refreshing ? "animate-spin" : ""}
-            />
-            Atualizar
-          </Button>
-        </div>
+        {mode === "ask" && (
+          <>
+            <div className="mt-4 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => loadCards(true)}
+                disabled={loading || refreshing}
+                className="gap-1.5 text-xs"
+              >
+                <RefreshCw
+                  size={12}
+                  className={refreshing ? "animate-spin" : ""}
+                />
+                Atualizar
+              </Button>
+            </div>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-20 text-sm text-muted-foreground">
-            <Loader2 size={20} className="animate-spin" />
-            Preparando sugestões para o seu capítulo...
-          </div>
-        ) : (
-          <div className="mt-2 grid grid-cols-2 gap-3">
-            {cards.map((card, i) => {
-              const meta = TYPE_META[card.type] ?? TYPE_META.tema;
-              const Icon = meta.Icon;
-              return (
-                <motion.div
-                  key={`${card.title}-${i}`}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06 }}
-                >
-                  <Card
-                    role="button"
-                    tabIndex={0}
-                    onClick={() =>
-                      setTopic({
-                        topicName: card.title,
-                        description: card.description,
-                        initialPrompt: card.prompt,
-                      })
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        setTopic({
-                          topicName: card.title,
-                          description: card.description,
-                          initialPrompt: card.prompt,
-                        });
-                      }
-                    }}
-                    className={`relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br ${card.gradient} p-4 text-white shadow-md cursor-pointer transition-transform active:scale-[0.97] h-44 flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-accent`}
-                  >
-                    <div className="flex items-center gap-1 self-start rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm">
-                      <Icon size={10} />
-                      {meta.label}
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold leading-tight">
-                        {card.title}
-                      </h3>
-                      <p className="mt-1 text-[11px] leading-snug opacity-80">
-                        {card.description}
-                      </p>
-                    </div>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center gap-2 py-20 text-sm text-muted-foreground">
+                <Loader2 size={20} className="animate-spin" />
+                Preparando sugestões para o seu capítulo...
+              </div>
+            ) : (
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                {cards.map((card, i) => {
+                  const meta = TYPE_META[card.type] ?? TYPE_META.tema;
+                  const Icon = meta.Icon;
+                  return (
+                    <motion.div
+                      key={`${card.title}-${i}`}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.06 }}
+                    >
+                      <Card
+                        role="button"
+                        tabIndex={0}
+                        onClick={() =>
+                          setTopic({
+                            topicName: card.title,
+                            description: card.description,
+                            initialPrompt: card.prompt,
+                          })
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            setTopic({
+                              topicName: card.title,
+                              description: card.description,
+                              initialPrompt: card.prompt,
+                            });
+                          }
+                        }}
+                        className={`relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br ${card.gradient} p-4 text-white shadow-md cursor-pointer transition-transform active:scale-[0.97] h-44 flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-accent`}
+                      >
+                        <div className="flex items-center gap-1 self-start rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm">
+                          <Icon size={10} />
+                          {meta.label}
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold leading-tight">
+                            {card.title}
+                          </h3>
+                          <p className="mt-1 text-[11px] leading-snug opacity-80">
+                            {card.description}
+                          </p>
+                        </div>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      <StrongDetailSheet
+        open={!!strongDetailCode}
+        code={strongDetailCode}
+        onClose={() => setStrongDetailCode(null)}
+      />
+
 
       <AnimatePresence>
         {topic && <AiChat onClose={() => setTopic(null)} topic={topic} />}
