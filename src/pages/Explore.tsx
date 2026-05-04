@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, RefreshCw, MapPin, User, Lightbulb, HelpCircle, BookOpen, Search, Sparkles } from "lucide-react";
+import { Loader2, RefreshCw, MapPin, User, Lightbulb, HelpCircle, BookOpen, Search, Sparkles, Languages, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import AiChat, { type TopicContext } from "@/components/AiChat";
+import StrongDetailSheet from "@/components/StrongDetailSheet";
 import { useAuth } from "@/hooks/useAuth";
+import { useStrongSearch } from "@/hooks/useStrongSearch";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProgress } from "@/lib/reading-progress";
 import { getBookBySlug } from "@/lib/bible-books";
@@ -87,6 +91,13 @@ const Explore = () => {
   const [chapter, setChapter] = useState<number>(1);
   const [chaptersReadCount, setChaptersReadCount] = useState(0);
   const [query, setQuery] = useState("");
+  const [mode, setMode] = useState<"ask" | "word">("ask");
+  const [wordQuery, setWordQuery] = useState("");
+  const [activeWordSearch, setActiveWordSearch] = useState<string | null>(null);
+  const [strongDetailCode, setStrongDetailCode] = useState<string | null>(null);
+
+  const { data: searchData, loading: searchLoading, error: searchError } =
+    useStrongSearch(activeWordSearch, mode === "word");
 
   const QUICK_PROMPTS = [
     "O que é graça?",
@@ -94,6 +105,8 @@ const Explore = () => {
     "Por que existem 4 evangelhos?",
     "O que é o Reino de Deus?",
   ];
+
+  const QUICK_WORDS = ["amor", "graça", "fé", "Senhor", "espírito"];
 
   const handleAsk = (text: string) => {
     const q = text.trim();
@@ -183,124 +196,273 @@ const Explore = () => {
           )}
         </motion.div>
 
-        <motion.form
+        <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleAsk(query);
-          }}
           className="mt-5"
         >
-          <div className="relative">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Pergunte qualquer coisa sobre a Bíblia..."
-              className="h-11 rounded-full border-border/60 bg-card/60 pl-9 pr-12 text-sm shadow-sm focus-visible:ring-accent"
-            />
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!query.trim()}
-              aria-label="Perguntar ao tutor"
-              className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
-            >
-              <Sparkles size={15} />
-            </Button>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {QUICK_PROMPTS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setQuery(p)}
-                className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          <Tabs value={mode} onValueChange={(v) => setMode(v as "ask" | "word")}>
+            <TabsList className="grid w-full grid-cols-2 rounded-full">
+              <TabsTrigger value="ask" className="rounded-full text-xs">
+                <Sparkles size={13} className="mr-1.5" />
+                Pergunta livre
+              </TabsTrigger>
+              <TabsTrigger value="word" className="rounded-full text-xs">
+                <Languages size={13} className="mr-1.5" />
+                Palavra / Strong
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="ask" className="mt-3">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAsk(query);
+                }}
               >
-                {p}
-              </button>
-            ))}
-          </div>
-        </motion.form>
-
-        <div className="mt-4 flex justify-end">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => loadCards(true)}
-            disabled={loading || refreshing}
-            className="gap-1.5 text-xs"
-          >
-            <RefreshCw
-              size={12}
-              className={refreshing ? "animate-spin" : ""}
-            />
-            Atualizar
-          </Button>
-        </div>
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-20 text-sm text-muted-foreground">
-            <Loader2 size={20} className="animate-spin" />
-            Preparando sugestões para o seu capítulo...
-          </div>
-        ) : (
-          <div className="mt-2 grid grid-cols-2 gap-3">
-            {cards.map((card, i) => {
-              const meta = TYPE_META[card.type] ?? TYPE_META.tema;
-              const Icon = meta.Icon;
-              return (
-                <motion.div
-                  key={`${card.title}-${i}`}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06 }}
-                >
-                  <Card
-                    role="button"
-                    tabIndex={0}
-                    onClick={() =>
-                      setTopic({
-                        topicName: card.title,
-                        description: card.description,
-                        initialPrompt: card.prompt,
-                      })
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        setTopic({
-                          topicName: card.title,
-                          description: card.description,
-                          initialPrompt: card.prompt,
-                        });
-                      }
-                    }}
-                    className={`relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br ${card.gradient} p-4 text-white shadow-md cursor-pointer transition-transform active:scale-[0.97] h-44 flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-accent`}
+                <div className="relative">
+                  <Search
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Pergunte qualquer coisa sobre a Bíblia..."
+                    className="h-11 rounded-full border-border/60 bg-card/60 pl-9 pr-12 text-sm shadow-sm focus-visible:ring-accent"
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={!query.trim()}
+                    aria-label="Perguntar ao tutor"
+                    className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
                   >
-                    <div className="flex items-center gap-1 self-start rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm">
-                      <Icon size={10} />
-                      {meta.label}
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold leading-tight">
-                        {card.title}
-                      </h3>
-                      <p className="mt-1 text-[11px] leading-snug opacity-80">
-                        {card.description}
+                    <Sparkles size={15} />
+                  </Button>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {QUICK_PROMPTS.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setQuery(p)}
+                      className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="word" className="mt-3">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const t = wordQuery.trim();
+                  if (!t) return;
+                  if (/^[GH]\d{1,5}$/i.test(t)) {
+                    setStrongDetailCode(t.toUpperCase());
+                  } else {
+                    setActiveWordSearch(t);
+                  }
+                }}
+              >
+                <div className="relative">
+                  <Search
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    value={wordQuery}
+                    onChange={(e) => setWordQuery(e.target.value)}
+                    placeholder='Buscar "amor" ou "G3056"...'
+                    className="h-11 rounded-full border-border/60 bg-card/60 pl-9 pr-12 text-sm shadow-sm focus-visible:ring-accent"
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={!wordQuery.trim()}
+                    aria-label="Buscar palavra"
+                    className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
+                  >
+                    <ArrowRight size={15} />
+                  </Button>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {QUICK_WORDS.map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => {
+                        setWordQuery(w);
+                        setActiveWordSearch(w);
+                      }}
+                      className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      {w}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground/80">
+                  Busca em palavras já estudadas no app. Toque em palavras
+                  durante a leitura para alimentar a base.
+                </p>
+
+                {searchLoading && (
+                  <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 size={14} className="animate-spin" />
+                    Buscando ocorrências...
+                  </div>
+                )}
+                {searchError && !searchLoading && (
+                  <p className="mt-4 text-sm text-destructive">{searchError}</p>
+                )}
+                {searchData && !searchLoading && (
+                  <div className="mt-4">
+                    {searchData.results.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Nenhum resultado para "{searchData.query}". Tente outra
+                        palavra ou explore um capítulo para mapear novas
+                        palavras.
                       </p>
-                    </div>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
+                    ) : (
+                      <ul className="space-y-2">
+                        {searchData.results.map((g) => (
+                          <li key={g.strong_code}>
+                            <button
+                              onClick={() => setStrongDetailCode(g.strong_code)}
+                              className="w-full rounded-xl border border-border bg-card/50 p-3 text-left transition-colors hover:bg-muted/50"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                  {g.entry?.original && (
+                                    <p className="font-serif text-lg leading-tight text-foreground">
+                                      {g.entry.original}
+                                      {g.entry.transliteration && (
+                                        <span className="ml-2 text-xs italic text-muted-foreground">
+                                          {g.entry.transliteration}
+                                        </span>
+                                      )}
+                                    </p>
+                                  )}
+                                  {g.entry?.short_definition && (
+                                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                      {g.entry.short_definition}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex shrink-0 flex-col items-end gap-1">
+                                  <Badge
+                                    variant="secondary"
+                                    className="font-mono text-[10px]"
+                                  >
+                                    {g.strong_code}
+                                  </Badge>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {g.count}{" "}
+                                    {g.count === 1 ? "ocor." : "ocors."}
+                                  </span>
+                                </div>
+                              </div>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </form>
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+
+        {mode === "ask" && (
+          <>
+            <div className="mt-4 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => loadCards(true)}
+                disabled={loading || refreshing}
+                className="gap-1.5 text-xs"
+              >
+                <RefreshCw
+                  size={12}
+                  className={refreshing ? "animate-spin" : ""}
+                />
+                Atualizar
+              </Button>
+            </div>
+
+            {loading ? (
+              <div className="flex flex-col items-center justify-center gap-2 py-20 text-sm text-muted-foreground">
+                <Loader2 size={20} className="animate-spin" />
+                Preparando sugestões para o seu capítulo...
+              </div>
+            ) : (
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                {cards.map((card, i) => {
+                  const meta = TYPE_META[card.type] ?? TYPE_META.tema;
+                  const Icon = meta.Icon;
+                  return (
+                    <motion.div
+                      key={`${card.title}-${i}`}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.06 }}
+                    >
+                      <Card
+                        role="button"
+                        tabIndex={0}
+                        onClick={() =>
+                          setTopic({
+                            topicName: card.title,
+                            description: card.description,
+                            initialPrompt: card.prompt,
+                          })
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            setTopic({
+                              topicName: card.title,
+                              description: card.description,
+                              initialPrompt: card.prompt,
+                            });
+                          }
+                        }}
+                        className={`relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br ${card.gradient} p-4 text-white shadow-md cursor-pointer transition-transform active:scale-[0.97] h-44 flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-accent`}
+                      >
+                        <div className="flex items-center gap-1 self-start rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm">
+                          <Icon size={10} />
+                          {meta.label}
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold leading-tight">
+                            {card.title}
+                          </h3>
+                          <p className="mt-1 text-[11px] leading-snug opacity-80">
+                            {card.description}
+                          </p>
+                        </div>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      <StrongDetailSheet
+        open={!!strongDetailCode}
+        code={strongDetailCode}
+        onClose={() => setStrongDetailCode(null)}
+      />
+
 
       <AnimatePresence>
         {topic && <AiChat onClose={() => setTopic(null)} topic={topic} />}
