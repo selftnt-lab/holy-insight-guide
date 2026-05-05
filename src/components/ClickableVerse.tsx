@@ -3,12 +3,11 @@ import { Fragment } from "react";
 interface Props {
   text: string;
   onWordClick: (word: string, index: number) => void;
+  /** Retorna o código Strong se a palavra (por índice) já está mapeada. */
+  isMapped?: (wordIndex: number, word: string) => string | null;
 }
 
-// Tokeniza o versículo separando palavras de pontuação/espaços.
-// Mantemos um índice por palavra (ignorando tokens de pontuação).
-const ClickableVerse = ({ text, onWordClick }: Props) => {
-  // Captura sequências de letras (incluindo acentos) como palavras
+const ClickableVerse = ({ text, onWordClick, isMapped }: Props) => {
   const tokens = text.split(/(\s+|[^\p{L}\p{M}'-]+)/u).filter(Boolean);
   let wordIdx = -1;
 
@@ -19,6 +18,7 @@ const ClickableVerse = ({ text, onWordClick }: Props) => {
         if (!isWord) return <Fragment key={i}>{tok}</Fragment>;
         wordIdx += 1;
         const idx = wordIdx;
+        const mapped = isMapped?.(idx, tok) ?? null;
         return (
           <button
             key={i}
@@ -27,7 +27,12 @@ const ClickableVerse = ({ text, onWordClick }: Props) => {
               e.stopPropagation();
               onWordClick(tok, idx);
             }}
-            className="rounded px-0.5 transition-colors hover:bg-accent/15 hover:text-accent focus:bg-accent/15 focus:text-accent focus:outline-none"
+            title={mapped ? `Estudo disponível · ${mapped}` : undefined}
+            className={
+              mapped
+                ? "rounded px-0.5 underline decoration-accent/60 decoration-dotted underline-offset-4 transition-colors hover:bg-accent/15 hover:text-accent focus:bg-accent/15 focus:text-accent focus:outline-none"
+                : "rounded px-0.5 transition-colors hover:bg-accent/15 hover:text-accent focus:bg-accent/15 focus:text-accent focus:outline-none"
+            }
           >
             {tok}
           </button>
