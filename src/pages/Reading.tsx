@@ -17,6 +17,7 @@ import ClickableVerse from "@/components/ClickableVerse";
 import WordStudyPanel from "@/components/WordStudyPanel";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
+import { useChapterWordMap } from "@/hooks/useChapterWordMap";
 import { fetchProgress, saveProgress } from "@/lib/reading-progress";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -40,6 +41,16 @@ const Reading = () => {
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
   const { data, loading, error } = useBibleChapter(bookSlug, chapter);
+  const { data: wordMap } = useChapterWordMap(bookSlug, chapter);
+
+  // index: `${verse}:${wordIndex}` -> strong_code
+  const mappedIndex = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const w of wordMap) {
+      if (w.strong_code) m.set(`${w.verse}:${w.word_index}`, w.strong_code);
+    }
+    return m;
+  }, [wordMap]);
 
   // Hydrate from DB if no URL params
   useEffect(() => {
@@ -222,6 +233,7 @@ const Reading = () => {
                 </button>
                 <ClickableVerse
                   text={v.text}
+                  isMapped={(wi) => mappedIndex.get(`${v.verse}:${wi}`) ?? null}
                   onWordClick={(word, wordIndex) =>
                     setActiveWord({
                       verse: v.verse,
