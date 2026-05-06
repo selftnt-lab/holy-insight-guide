@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
