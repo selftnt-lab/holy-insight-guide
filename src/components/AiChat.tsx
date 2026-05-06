@@ -273,32 +273,38 @@ const AiChat = ({ onClose, context, topic, initialMessages, readOnly }: Props) =
         <div ref={endRef} />
       </div>
 
-      <div className="border-t border-border bg-background px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3">
-        <form
-          className="flex items-center gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            send();
-          }}
-        >
-          <Input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Digite sua pergunta..."
-            className="rounded-full"
-            disabled={isLoading}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            className="shrink-0 rounded-full"
-            disabled={!input.trim() || isLoading}
+      {readOnly ? (
+        <div className="border-t border-border bg-muted/40 px-4 py-3 text-center text-xs text-muted-foreground">
+          Visualização do histórico — somente leitura
+        </div>
+      ) : (
+        <div className="border-t border-border bg-background px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3">
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              send();
+            }}
           >
-            <Send size={18} />
-          </Button>
-        </form>
-      </div>
+            <Input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Digite sua pergunta..."
+              className="rounded-full"
+              disabled={isLoading}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              className="shrink-0 rounded-full"
+              disabled={!input.trim() || isLoading}
+            >
+              <Send size={18} />
+            </Button>
+          </form>
+        </div>
+      )}
     </motion.div>
   );
 };
