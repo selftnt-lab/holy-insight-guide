@@ -30,11 +30,14 @@ interface Props {
   onClose: () => void;
   context?: ChatContext;
   topic?: TopicContext;
+  initialMessages?: Message[];
+  readOnly?: boolean;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
-const AiChat = ({ onClose, context, topic }: Props) => {
+const AiChat = ({ onClose, context, topic, initialMessages, readOnly }: Props) => {
+  const { user } = useAuth();
   const greeting = topic
     ? `Olá! 👋 Vamos conversar sobre **${topic.topicName}**.${topic.description ? ` ${topic.description}` : ""} O que você quer saber?`
     : context
