@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -232,6 +232,22 @@ const Profile = () => {
               <Switch checked={theme === "dark"} onCheckedChange={toggle} />
             </div>
           </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.32 }}
+          className="mt-3"
+        >
+          <Button
+            variant="outline"
+            className="w-full rounded-xl justify-start"
+            onClick={() => navigate("/chat-history")}
+          >
+            <MessageSquare size={18} className="mr-2" />
+            Histórico do Tutor IA
+          </Button>
         </motion.div>
 
         <motion.div

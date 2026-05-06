@@ -5,6 +5,8 @@ import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Message {
   role: "user" | "assistant";
@@ -28,32 +30,59 @@ interface Props {
   onClose: () => void;
   context?: ChatContext;
   topic?: TopicContext;
+  initialMessages?: Message[];
+  readOnly?: boolean;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
-const AiChat = ({ onClose, context, topic }: Props) => {
+const AiChat = ({ onClose, context, topic, initialMessages, readOnly }: Props) => {
+  const { user } = useAuth();
   const greeting = topic
     ? `Olá! 👋 Vamos conversar sobre **${topic.topicName}**.${topic.description ? ` ${topic.description}` : ""} O que você quer saber?`
     : context
     ? `Olá! 👋 Estou aqui para ajudar com **${context.bookName} ${context.chapter}**. Sobre o que você quer saber?`
     : "Olá! 👋 Qual parte da Bíblia você gostaria que eu explicasse?";
 
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: greeting },
-  ]);
-  const [input, setInput] = useState(topic?.initialPrompt ?? "");
+  const [messages, setMessages] = useState<Message[]>(
+    initialMessages && initialMessages.length > 0
+      ? initialMessages
+      : [{ role: "assistant", content: greeting }]
+  );
+  const [input, setInput] = useState(readOnly ? "" : topic?.initialPrompt ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesRef = useRef<Message[]>(messages);
   const { toast } = useToast();
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    if (!readOnly) inputRef.current?.focus();
+  }, [readOnly]);
+
+  useEffect(() => {
+    return () => {
+      if (readOnly || !user) return;
+      const finalMsgs = messagesRef.current.filter((m) => !m.isError);
+      const hasUserMsg = finalMsgs.some((m) => m.role === "user");
+      if (!hasUserMsg) return;
+      const title = topic?.topicName ?? (context ? `${context.bookName} ${context.chapter}` : "Conversa livre");
+      void supabase.from("chat_history").insert({
+        user_id: user.id,
+        title,
+        context: (context ?? (topic ? { topicName: topic.topicName } : null)) as never,
+        messages: finalMsgs.map(({ role, content }) => ({ role, content })) as never,
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const send = async () => {
@@ -244,32 +273,38 @@ const AiChat = ({ onClose, context, topic }: Props) => {
         <div ref={endRef} />
       </div>
 
-      <div className="border-t border-border bg-background px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3">
-        <form
-          className="flex items-center gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            send();
-          }}
-        >
-          <Input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Digite sua pergunta..."
-            className="rounded-full"
-            disabled={isLoading}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            className="shrink-0 rounded-full"
-            disabled={!input.trim() || isLoading}
+      {readOnly ? (
+        <div className="border-t border-border bg-muted/40 px-4 py-3 text-center text-xs text-muted-foreground">
+          Visualização do histórico — somente leitura
+        </div>
+      ) : (
+        <div className="border-t border-border bg-background px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3">
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              send();
+            }}
           >
-            <Send size={18} />
-          </Button>
-        </form>
-      </div>
+            <Input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Digite sua pergunta..."
+              className="rounded-full"
+              disabled={isLoading}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              className="shrink-0 rounded-full"
+              disabled={!input.trim() || isLoading}
+            >
+              <Send size={18} />
+            </Button>
+          </form>
+        </div>
+      )}
     </motion.div>
   );
 };
