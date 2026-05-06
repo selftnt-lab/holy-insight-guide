@@ -12,6 +12,7 @@ import Reading from "@/pages/Reading";
 import Explore from "@/pages/Explore";
 import Profile from "@/pages/Profile";
 import Auth from "@/pages/Auth";
+import ChatHistory from "@/pages/ChatHistory";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
