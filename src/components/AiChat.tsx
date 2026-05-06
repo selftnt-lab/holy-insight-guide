@@ -44,21 +44,45 @@ const AiChat = ({ onClose, context, topic, initialMessages, readOnly }: Props) =
     ? `Olá! 👋 Estou aqui para ajudar com **${context.bookName} ${context.chapter}**. Sobre o que você quer saber?`
     : "Olá! 👋 Qual parte da Bíblia você gostaria que eu explicasse?";
 
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: greeting },
-  ]);
-  const [input, setInput] = useState(topic?.initialPrompt ?? "");
+  const [messages, setMessages] = useState<Message[]>(
+    initialMessages && initialMessages.length > 0
+      ? initialMessages
+      : [{ role: "assistant", content: greeting }]
+  );
+  const [input, setInput] = useState(readOnly ? "" : topic?.initialPrompt ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesRef = useRef<Message[]>(messages);
   const { toast } = useToast();
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    if (!readOnly) inputRef.current?.focus();
+  }, [readOnly]);
+
+  useEffect(() => {
+    return () => {
+      if (readOnly || !user) return;
+      const finalMsgs = messagesRef.current.filter((m) => !m.isError);
+      const hasUserMsg = finalMsgs.some((m) => m.role === "user");
+      if (!hasUserMsg) return;
+      const title = topic?.topicName ?? (context ? `${context.bookName} ${context.chapter}` : "Conversa livre");
+      void supabase.from("chat_history").insert({
+        user_id: user.id,
+        title,
+        context: (context ?? (topic ? { topicName: topic.topicName } : null)) as never,
+        messages: finalMsgs.map(({ role, content }) => ({ role, content })) as never,
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const send = async () => {
