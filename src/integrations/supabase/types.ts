@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_history: {
+        Row: {
+          context: Json | null
+          created_at: string
+          id: string
+          messages: Json
+          title: string
+          user_id: string
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          messages?: Json
+          title?: string
+          user_id: string
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          messages?: Json
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       explore_suggestions: {
         Row: {
           book_slug: string
