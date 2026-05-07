@@ -10,7 +10,7 @@ const AppHeader = () => {
       <img
         src={novusInsightLogo}
         alt="NOVUS Insight - Estudo Bíblico"
-        className="h-10 w-auto rounded-md"
+        className="h-10 w-auto rounded-md object-scale-down"
       />
     </header>
   );
