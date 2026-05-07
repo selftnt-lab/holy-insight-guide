@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
+import AppFooter from "@/components/AppFooter";
 import Dashboard from "@/pages/Dashboard";
 import Reading from "@/pages/Reading";
 import Explore from "@/pages/Explore";
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/chat-history" element={<ProtectedRoute><ChatHistory /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <AppFooter />
             <BottomNav />
           </AuthProvider>
         </BrowserRouter>
