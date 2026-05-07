@@ -11,6 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveFirstName, type ProfileNameSource } from "@/lib/user-name";
 import AiChat from "@/components/AiChat";
+import SacredDivider from "@/components/SacredDivider";
+import novusLogo from "@/assets/novus-ai-logo.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -57,10 +59,14 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <p className="text-sm text-muted-foreground">📖 Guia Bíblico</p>
-          <h1 className="mt-1 text-2xl font-bold text-foreground">
-            {greeting}, <span className="text-primary">{readerName}</span>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+            Holy Insight · Guia Bíblico
+          </p>
+          <h1 className="mt-2 font-serif text-3xl font-semibold leading-tight text-foreground">
+            {greeting},<br />
+            <span className="text-primary">{readerName}</span>
           </h1>
+          <SacredDivider className="mt-5" />
         </motion.div>
 
         <motion.div
