@@ -12,7 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { resolveFirstName, type ProfileNameSource } from "@/lib/user-name";
 import AiChat from "@/components/AiChat";
 import SacredDivider from "@/components/SacredDivider";
-import novusLogo from "@/assets/novus-ai-logo.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();

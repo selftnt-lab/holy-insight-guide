@@ -172,13 +172,13 @@ const Reading = () => {
           animate={{ opacity: 1 }}
           className="mb-6"
         >
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             {book.name} · Capítulo {chapter}
           </p>
-          <h1 className="mt-1 font-serif text-2xl font-bold text-foreground">
+          <h1 className="mt-2 font-serif text-3xl font-semibold text-foreground">
             {data?.reference || `${book.name} ${chapter}`}
           </h1>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="mt-1 text-xs italic text-muted-foreground">
             Almeida Revista e Corrigida
           </p>
         </motion.div>
