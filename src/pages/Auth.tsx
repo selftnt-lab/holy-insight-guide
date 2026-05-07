@@ -104,10 +104,12 @@ const Auth = () => {
         className="w-full max-w-md"
       >
         <div className="flex flex-col items-center mb-8">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
-            <BookOpen size={28} />
-          </div>
-          <h1 className="mt-4 text-2xl font-bold text-foreground">Guia Bíblico</h1>
+          <img
+            src={novusInsightLogo}
+            alt="NOVUS Insight - Estudo Bíblico"
+            className="h-28 w-28 rounded-2xl shadow-lg"
+          />
+          <h1 className="mt-4 font-serif text-2xl font-bold text-foreground">Guia Bíblico</h1>
           <p className="text-sm text-muted-foreground">Seu tutor para estudar a Bíblia</p>
         </div>
 
