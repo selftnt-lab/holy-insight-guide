@@ -107,7 +107,7 @@ const Auth = () => {
           <img
             src={novusInsightLogo}
             alt="NOVUS Insight - Estudo Bíblico"
-            className="h-28 w-28 rounded-2xl shadow-lg"
+            className="h-40 w-auto object-scale-down"
           />
           <h1 className="mt-4 font-serif text-2xl font-bold text-foreground">Guia Bíblico</h1>
           <p className="text-sm text-muted-foreground">Seu tutor para estudar a Bíblia</p>
