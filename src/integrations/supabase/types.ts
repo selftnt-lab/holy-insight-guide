@@ -136,9 +136,9 @@ export type Database = {
       }
       reading_plans: {
         Row: {
+          books_filter: string
           category: string
           created_at: string
-          days: Json
           description: string
           duration_days: number
           id: string
@@ -146,9 +146,9 @@ export type Database = {
           slug: string
         }
         Insert: {
+          books_filter?: string
           category?: string
           created_at?: string
-          days: Json
           description: string
           duration_days: number
           id?: string
@@ -156,9 +156,9 @@ export type Database = {
           slug: string
         }
         Update: {
+          books_filter?: string
           category?: string
           created_at?: string
-          days?: Json
           description?: string
           duration_days?: number
           id?: string
