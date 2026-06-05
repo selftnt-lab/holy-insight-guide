@@ -1,6 +1,7 @@
 import { Home, BookOpen, Compass, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import novusLogo from "@/assets/novus-ai-logo.png";
 
 const tabs = [
   { path: "/", icon: Home, label: "Início" },
@@ -34,6 +35,14 @@ const BottomNav = () => {
             </button>
           );
         })}
+      </div>
+      <div className="flex items-center justify-center gap-2 py-1 text-[10px] text-muted-foreground">
+        <span>Um produto</span>
+        <img
+          src={novusLogo}
+          alt="NOVUS.AI"
+          className="h-3.5 w-auto opacity-90 dark:brightness-0 dark:invert"
+        />
       </div>
     </nav>
   );
