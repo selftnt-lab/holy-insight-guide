@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { touchStreak } from "@/lib/streak";
 
 export interface ReadingProgress {
   bookSlug: string;
@@ -48,6 +49,9 @@ export const saveProgress = async (
     .eq("user_id", userId);
 
   if (error) console.error("saveProgress error", error);
+
+  // Best-effort streak bump (idempotent same-day)
+  touchStreak(userId).catch((e) => console.error("streak touch failed", e));
 
   return { bookSlug, chapter, chaptersRead };
 };

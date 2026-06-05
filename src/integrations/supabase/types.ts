@@ -134,6 +134,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reading_plans: {
+        Row: {
+          books_filter: string
+          category: string
+          created_at: string
+          description: string
+          duration_days: number
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          books_filter?: string
+          category?: string
+          created_at?: string
+          description: string
+          duration_days: number
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          books_filter?: string
+          category?: string
+          created_at?: string
+          description?: string
+          duration_days?: number
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       reading_progress: {
         Row: {
           book_slug: string
@@ -141,6 +174,9 @@ export type Database = {
           chapters_read: string[]
           created_at: string
           id: string
+          last_read_date: string | null
+          longest_streak: number
+          streak_count: number
           updated_at: string
           user_id: string
         }
@@ -150,6 +186,9 @@ export type Database = {
           chapters_read?: string[]
           created_at?: string
           id?: string
+          last_read_date?: string | null
+          longest_streak?: number
+          streak_count?: number
           updated_at?: string
           user_id: string
         }
@@ -159,6 +198,9 @@ export type Database = {
           chapters_read?: string[]
           created_at?: string
           id?: string
+          last_read_date?: string | null
+          longest_streak?: number
+          streak_count?: number
           updated_at?: string
           user_id?: string
         }
@@ -199,6 +241,50 @@ export type Database = {
           transliteration?: string | null
         }
         Relationships: []
+      }
+      user_plan_progress: {
+        Row: {
+          completed_at: string | null
+          completed_days: number[]
+          current_day: number
+          id: string
+          is_active: boolean
+          plan_id: string
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_days?: number[]
+          current_day?: number
+          id?: string
+          is_active?: boolean
+          plan_id: string
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_days?: number[]
+          current_day?: number
+          id?: string
+          is_active?: boolean
+          plan_id?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_plan_progress_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "reading_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       verse_word_map: {
         Row: {

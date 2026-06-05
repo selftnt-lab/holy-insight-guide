@@ -14,6 +14,7 @@ import Explore from "@/pages/Explore";
 import Profile from "@/pages/Profile";
 import Auth from "@/pages/Auth";
 import ChatHistory from "@/pages/ChatHistory";
+import Plans from "@/pages/Plans";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/chat-history" element={<ProtectedRoute><ChatHistory /></ProtectedRoute>} />
+              <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <BottomNav />
