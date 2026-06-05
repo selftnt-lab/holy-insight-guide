@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Play, BookOpen, ChevronRight, Sparkles } from "lucide-react";
+import { Play, BookOpen, ChevronRight, Sparkles, CalendarCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { resolveFirstName, type ProfileNameSource } from "@/lib/user-name";
 import AiChat from "@/components/AiChat";
 import SacredDivider from "@/components/SacredDivider";
+import VerseOfDayCard from "@/components/VerseOfDayCard";
+import StreakBadge from "@/components/StreakBadge";
 
 const Dashboard = () => {
   const navigate = useNavigate();
