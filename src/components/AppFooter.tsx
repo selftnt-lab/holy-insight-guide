@@ -6,7 +6,7 @@ const AppFooter = () => {
   if (location.pathname === "/auth") return null;
 
   return (
-    <footer className="mx-auto mb-24 mt-8 flex max-w-lg items-center justify-center gap-2 px-5 pb-2 text-xs text-muted-foreground">
+    <footer className="fixed bottom-14 left-0 right-0 z-40 flex items-center justify-center gap-2 bg-background/80 py-1.5 text-xs text-muted-foreground backdrop-blur-sm">
       <span>Um produto</span>
       <img
         src={novusLogo}
