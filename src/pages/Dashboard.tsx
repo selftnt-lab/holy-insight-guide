@@ -143,6 +143,34 @@ const Dashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.4 }}
+          className="mt-3"
+        >
+          <button
+            onClick={() => navigate("/plans")}
+            className="flex w-full items-center justify-between rounded-2xl border bg-card px-5 py-4 text-left transition-colors hover:bg-accent/10"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15 text-accent">
+                <CalendarCheck size={18} />
+              </div>
+              <div>
+                <p className="font-serif text-sm font-semibold text-foreground">
+                  Planos de leitura
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Bíblia em 1 ano, NT em 90 dias, Provérbios…
+                </p>
+              </div>
+            </div>
+            <ChevronRight size={18} className="text-muted-foreground" />
+          </button>
+        </motion.div>
+
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.4 }}
           className="mt-6 grid grid-cols-3 gap-3"
         >
