@@ -35,6 +35,7 @@ const App = () => (
               <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/chat-history" element={<ProtectedRoute><ChatHistory /></ProtectedRoute>} />
+              <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <BottomNav />
