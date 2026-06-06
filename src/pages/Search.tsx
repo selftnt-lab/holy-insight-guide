@@ -34,7 +34,9 @@ const SearchPage = () => {
 
   // Strong reuse
   const strongQuery = mode === "strong" ? query.toUpperCase() : "";
-  const { results: strongResults, loading: strongLoading } = useStrongSearch(strongQuery);
+  const { data: strongData, loading: strongLoading } = useStrongSearch(strongQuery, mode === "strong");
+  const strongResults = strongData?.results ?? [];
+
 
   useEffect(() => {
     const raw = localStorage.getItem(HISTORY_KEY);
