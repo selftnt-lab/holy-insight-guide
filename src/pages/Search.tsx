@@ -161,15 +161,22 @@ const SearchPage = () => {
                 {strongResults.map((s) => (
                   <Card key={s.strong_code} className="rounded-xl p-3">
                     <p className="font-semibold">
-                      {s.strong_code} · {s.original}
+                      {s.strong_code}
+                      {s.entry?.original ? ` · ${s.entry.original}` : ""}
                     </p>
-                    <p className="text-xs text-muted-foreground">{s.transliteration}</p>
-                    {s.short_definition && (
-                      <p className="mt-1 text-sm">{s.short_definition}</p>
+                    {s.entry?.transliteration && (
+                      <p className="text-xs text-muted-foreground">{s.entry.transliteration}</p>
                     )}
+                    {s.entry?.short_definition && (
+                      <p className="mt-1 text-sm">{s.entry.short_definition}</p>
+                    )}
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      {s.count} ocorrência(s)
+                    </p>
                   </Card>
                 ))}
               </div>
+
             )}
           </div>
         )}
