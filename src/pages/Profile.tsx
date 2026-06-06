@@ -154,7 +154,25 @@ const Profile = () => {
           ))}
         </motion.div>
 
-        {/* Interests */}
+        {/* Tabs: perfil / destaques */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+          className="mt-6"
+        >
+          <Tabs defaultValue="profile">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="profile">Perfil</TabsTrigger>
+              <TabsTrigger value="highlights">
+                <Highlighter size={14} className="mr-1" /> Destaques
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="highlights" className="mt-4">
+              <HighlightsList />
+            </TabsContent>
+            <TabsContent value="profile" className="mt-4 space-y-6">
+
         {profile?.interests && profile.interests.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
