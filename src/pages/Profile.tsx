@@ -286,7 +286,11 @@ const Profile = () => {
             Sair
           </Button>
         </motion.div>
+            </TabsContent>
+          </Tabs>
+        </motion.div>
       </div>
+
 
       {user && (
         <ProfileEditDialog
