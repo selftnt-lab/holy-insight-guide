@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle } from "lucide-react";
+import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle, Languages } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sheet,
@@ -15,9 +15,13 @@ import AiChat, { type TopicContext } from "@/components/AiChat";
 import VerseReferencesSheet from "@/components/VerseReferencesSheet";
 import ClickableVerse from "@/components/ClickableVerse";
 import WordStudyPanel from "@/components/WordStudyPanel";
+import VerseActionSheet from "@/components/VerseActionSheet";
+import TranslationComparison from "@/components/TranslationComparison";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { useChapterWordMap } from "@/hooks/useChapterWordMap";
+import { useChapterHighlights } from "@/hooks/useChapterHighlights";
+import { getHighlightBg } from "@/lib/highlight-colors";
 import { fetchProgress, saveProgress } from "@/lib/reading-progress";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -38,12 +42,15 @@ const Reading = () => {
     wordIndex: number;
   } | null>(null);
   const [chatTopic, setChatTopic] = useState<TopicContext | null>(null);
+  const [actionVerse, setActionVerse] = useState<{ verse: number; text: string } | null>(null);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareVerse, setCompareVerse] = useState<number | undefined>(undefined);
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
   const { data, loading, error } = useBibleChapter(bookSlug, chapter);
   const { data: wordMap } = useChapterWordMap(bookSlug, chapter);
+  const { upsert, remove, byVerse } = useChapterHighlights(bookSlug, chapter);
 
-  // index: `${verse}:${wordIndex}` -> strong_code
   const mappedIndex = useMemo(() => {
     const m = new Map<string, string>();
     for (const w of wordMap) {
@@ -52,7 +59,6 @@ const Reading = () => {
     return m;
   }, [wordMap]);
 
-  // Hydrate from DB if no URL params
   useEffect(() => {
     if (!user || hydrated) return;
     if (!params.get("book")) {
@@ -72,11 +78,23 @@ const Reading = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [bookSlug, chapter, setParams, user, hydrated]);
 
-  const goPrev = () => {
-    if (chapter > 1) setChapter(chapter - 1);
+  const goPrev = () => chapter > 1 && setChapter(chapter - 1);
+  const goNext = () => chapter < book.chapters && setChapter(chapter + 1);
+
+  // Long press handling
+  const pressTimer = useRef<number | null>(null);
+  const pressMoved = useRef(false);
+  const startPress = (verse: number, text: string) => {
+    pressMoved.current = false;
+    pressTimer.current = window.setTimeout(() => {
+      setActionVerse({ verse, text });
+    }, 450);
   };
-  const goNext = () => {
-    if (chapter < book.chapters) setChapter(chapter + 1);
+  const cancelPress = () => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
   };
 
   const fullText = data
@@ -164,14 +182,23 @@ const Reading = () => {
               </div>
             </SheetContent>
           </Sheet>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              setCompareVerse(undefined);
+              setCompareOpen(true);
+            }}
+            className="rounded-full"
+            aria-label="Comparar traduções"
+          >
+            <Languages size={16} />
+          </Button>
         </motion.div>
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mb-6"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             {book.name} · Capítulo {chapter}
           </p>
@@ -179,11 +206,10 @@ const Reading = () => {
             {data?.reference || `${book.name} ${chapter}`}
           </h1>
           <p className="mt-1 text-xs italic text-muted-foreground">
-            Almeida Revista e Corrigida
+            Almeida Revista e Corrigida · toque e segure para destacar
           </p>
         </motion.div>
 
-        {/* Content */}
         {loading && (
           <div className="space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -218,56 +244,61 @@ const Reading = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            {data.verses.map((v) => (
-              <p
-                key={v.verse}
-                className="rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90"
-              >
-                <button
-                  type="button"
-                  onClick={() => setActiveVerse({ verse: v.verse, text: v.text })}
-                  className="mr-1 align-super text-xs font-sans font-bold text-accent hover:underline focus:outline-none focus:underline"
-                  aria-label={`Ver referências cruzadas do versículo ${v.verse}`}
+            {data.verses.map((v) => {
+              const hl = byVerse(v.verse);
+              return (
+                <p
+                  key={v.verse}
+                  onPointerDown={() => startPress(v.verse, v.text)}
+                  onPointerUp={cancelPress}
+                  onPointerLeave={cancelPress}
+                  onPointerCancel={cancelPress}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setActionVerse({ verse: v.verse, text: v.text });
+                  }}
+                  className={`rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} select-none`}
                 >
-                  {v.verse}
-                </button>
-                <ClickableVerse
-                  text={v.text}
-                  isMapped={(wi) => mappedIndex.get(`${v.verse}:${wi}`) ?? null}
-                  onWordClick={(word, wordIndex) =>
-                    setActiveWord({
-                      verse: v.verse,
-                      text: v.text,
-                      word,
-                      wordIndex,
-                    })
-                  }
-                />
-              </p>
-            ))}
+                  <button
+                    type="button"
+                    onClick={() => setActiveVerse({ verse: v.verse, text: v.text })}
+                    className="mr-1 align-super text-xs font-sans font-bold text-accent hover:underline focus:outline-none focus:underline"
+                    aria-label={`Ver referências cruzadas do versículo ${v.verse}`}
+                  >
+                    {v.verse}
+                  </button>
+                  <ClickableVerse
+                    text={v.text}
+                    isMapped={(wi) => mappedIndex.get(`${v.verse}:${wi}`) ?? null}
+                    onWordClick={(word, wordIndex) =>
+                      setActiveWord({
+                        verse: v.verse,
+                        text: v.text,
+                        word,
+                        wordIndex,
+                      })
+                    }
+                  />
+                  {hl?.note && (
+                    <span className="mt-1 block text-xs italic text-muted-foreground border-l-2 border-accent/40 pl-2">
+                      {hl.note}
+                    </span>
+                  )}
+                </p>
+              );
+            })}
           </motion.div>
         )}
 
-        {/* Pagination */}
         {data && !loading && (
           <div className="mt-8 flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={goPrev}
-              disabled={chapter <= 1}
-              className="rounded-full"
-            >
+            <Button variant="outline" onClick={goPrev} disabled={chapter <= 1} className="rounded-full">
               <ChevronLeft size={16} className="mr-1" /> Anterior
             </Button>
             <span className="text-sm text-muted-foreground">
               {chapter} / {book.chapters}
             </span>
-            <Button
-              variant="outline"
-              onClick={goNext}
-              disabled={chapter >= book.chapters}
-              className="rounded-full"
-            >
+            <Button variant="outline" onClick={goNext} disabled={chapter >= book.chapters} className="rounded-full">
               Próximo <ChevronRight size={16} className="ml-1" />
             </Button>
           </div>
@@ -290,19 +321,10 @@ const Reading = () => {
         {showChat && (
           <AiChat
             onClose={() => setShowChat(false)}
-            context={
-              data
-                ? { bookName: book.name, chapter, text: fullText }
-                : undefined
-            }
+            context={data ? { bookName: book.name, chapter, text: fullText } : undefined}
           />
         )}
-        {chatTopic && (
-          <AiChat
-            onClose={() => setChatTopic(null)}
-            topic={chatTopic}
-          />
-        )}
+        {chatTopic && <AiChat onClose={() => setChatTopic(null)} topic={chatTopic} />}
       </AnimatePresence>
 
       <VerseReferencesSheet
@@ -337,6 +359,38 @@ const Reading = () => {
           setBookSlug(slug);
           setChapter(ch);
         }}
+      />
+
+      <VerseActionSheet
+        open={!!actionVerse}
+        onClose={() => setActionVerse(null)}
+        bookName={book.name}
+        chapter={chapter}
+        verse={actionVerse?.verse ?? 0}
+        text={actionVerse?.text ?? ""}
+        existing={actionVerse ? byVerse(actionVerse.verse) : undefined}
+        onUpsert={async (patch) => {
+          if (actionVerse) await upsert(actionVerse.verse, patch);
+        }}
+        onRemove={async () => {
+          if (actionVerse) await remove(actionVerse.verse);
+        }}
+        onCompareTranslations={() => {
+          if (actionVerse) {
+            setCompareVerse(actionVerse.verse);
+            setActionVerse(null);
+            setCompareOpen(true);
+          }
+        }}
+      />
+
+      <TranslationComparison
+        open={compareOpen}
+        onClose={() => setCompareOpen(false)}
+        bookSlug={bookSlug}
+        bookName={book.name}
+        chapter={chapter}
+        focusVerse={compareVerse}
       />
     </div>
   );

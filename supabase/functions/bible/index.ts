@@ -76,7 +76,9 @@ const SLUG_TO_PT: Record<string, string> = {
   "revelation": "apocalipse",
 };
 
-const cache = new Map<string, { data: any; ts: number }>();
+const ALLOWED_TRANSLATIONS = new Set(["almeida", "kjv", "web", "asv"]);
+
+const cache = new Map<string, { data: unknown; ts: number }>();
 const TTL = 1000 * 60 * 60 * 24; // 24h
 
 serve(async (req) => {
@@ -87,6 +89,8 @@ serve(async (req) => {
     const url = new URL(req.url);
     const book = (url.searchParams.get("book") || "").trim().toLowerCase();
     const chapter = (url.searchParams.get("chapter") || "1").trim();
+    let translation = (url.searchParams.get("translation") || "almeida").trim().toLowerCase();
+    if (!ALLOWED_TRANSLATIONS.has(translation)) translation = "almeida";
 
     if (!book) {
       return new Response(
@@ -95,7 +99,7 @@ serve(async (req) => {
       );
     }
 
-    const key = `${book}:${chapter}`;
+    const key = `${book}:${chapter}:${translation}`;
     const cached = cache.get(key);
     if (cached && Date.now() - cached.ts < TTL) {
       return new Response(JSON.stringify(cached.data), {
@@ -103,8 +107,9 @@ serve(async (req) => {
       });
     }
 
-    const ptName = SLUG_TO_PT[book] || book;
-    const apiUrl = `https://bible-api.com/${encodeURIComponent(ptName)}+${encodeURIComponent(chapter)}?translation=almeida`;
+    // Almeida needs PT names; English translations accept the English slug as-is.
+    const bookName = translation === "almeida" ? (SLUG_TO_PT[book] || book) : book;
+    const apiUrl = `https://bible-api.com/${encodeURIComponent(bookName)}+${encodeURIComponent(chapter)}?translation=${translation}`;
     const res = await fetch(apiUrl);
 
     if (!res.ok) {
@@ -119,8 +124,8 @@ serve(async (req) => {
     const data = await res.json();
     const result = {
       reference: data.reference,
-      translation: data.translation_name || "Almeida",
-      verses: (data.verses || []).map((v: any) => ({
+      translation: data.translation_name || translation,
+      verses: (data.verses || []).map((v: { verse: number; text?: string }) => ({
         verse: v.verse,
         text: (v.text || "").trim(),
       })),

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,9 @@ import { fetchProgress } from "@/lib/reading-progress";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
+import HighlightsList from "@/components/HighlightsList";
 import { resolveFirstName } from "@/lib/user-name";
+
 
 interface ProfileRow {
   display_name: string | null;
@@ -151,7 +154,25 @@ const Profile = () => {
           ))}
         </motion.div>
 
-        {/* Interests */}
+        {/* Tabs: perfil / destaques */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+          className="mt-6"
+        >
+          <Tabs defaultValue="profile">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="profile">Perfil</TabsTrigger>
+              <TabsTrigger value="highlights">
+                <Highlighter size={14} className="mr-1" /> Destaques
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="highlights" className="mt-4">
+              <HighlightsList />
+            </TabsContent>
+            <TabsContent value="profile" className="mt-4 space-y-6">
+
         {profile?.interests && profile.interests.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -265,7 +286,11 @@ const Profile = () => {
             Sair
           </Button>
         </motion.div>
+            </TabsContent>
+          </Tabs>
+        </motion.div>
       </div>
+
 
       {user && (
         <ProfileEditDialog
