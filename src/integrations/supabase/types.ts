@@ -86,6 +86,7 @@ export type Database = {
           gender: string | null
           id: string
           interests: string[] | null
+          preferred_translations: string[]
           tradition: string | null
           updated_at: string
           user_id: string
@@ -107,6 +108,7 @@ export type Database = {
           gender?: string | null
           id?: string
           interests?: string[] | null
+          preferred_translations?: string[]
           tradition?: string | null
           updated_at?: string
           user_id: string
@@ -128,6 +130,7 @@ export type Database = {
           gender?: string | null
           id?: string
           interests?: string[] | null
+          preferred_translations?: string[]
           tradition?: string | null
           updated_at?: string
           user_id?: string
@@ -285,6 +288,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      verse_highlights: {
+        Row: {
+          book_slug: string
+          chapter: number
+          color: string
+          created_at: string
+          id: string
+          note: string | null
+          tags: string[]
+          updated_at: string
+          user_id: string
+          verse: number
+        }
+        Insert: {
+          book_slug: string
+          chapter: number
+          color?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          tags?: string[]
+          updated_at?: string
+          user_id: string
+          verse: number
+        }
+        Update: {
+          book_slug?: string
+          chapter?: number
+          color?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          tags?: string[]
+          updated_at?: string
+          user_id?: string
+          verse?: number
+        }
+        Relationships: []
       }
       verse_word_map: {
         Row: {
