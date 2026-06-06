@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,9 @@ import { fetchProgress } from "@/lib/reading-progress";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
+import HighlightsList from "@/components/HighlightsList";
 import { resolveFirstName } from "@/lib/user-name";
+
 
 interface ProfileRow {
   display_name: string | null;
