@@ -325,9 +325,18 @@ const Reading = () => {
           >
             {data.verses.map((v) => {
               const hl = byVerse(v.verse);
+              const isActive =
+                audio.currentVerse === v.verse &&
+                audio.target?.bookSlug === bookSlug &&
+                audio.target?.chapter === chapter;
               return (
                 <p
                   key={v.verse}
+                  ref={(el) => {
+                    if (el) verseRefs.current.set(v.verse, el);
+                    else verseRefs.current.delete(v.verse);
+                  }}
+                  data-verse={v.verse}
                   onPointerDown={() => startPress(v.verse, v.text)}
                   onPointerUp={cancelPress}
                   onPointerLeave={cancelPress}
@@ -336,7 +345,7 @@ const Reading = () => {
                     e.preventDefault();
                     setActionVerse({ verse: v.verse, text: v.text });
                   }}
-                  className={`rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} select-none`}
+                  className={`reading-prose rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} ${isActive ? "verse-active" : ""} select-none`}
                 >
                   <button
                     type="button"
