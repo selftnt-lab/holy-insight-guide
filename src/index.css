@@ -128,3 +128,11 @@
   background: hsl(var(--accent) / 0.12);
   box-shadow: inset 3px 0 0 hsl(var(--accent));
 }
+
+/* Hide app chrome in immersive reading */
+body.chrome-hidden header,
+body.chrome-hidden nav.fixed {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}

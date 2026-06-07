@@ -130,6 +130,13 @@ const Reading = () => {
     });
   };
 
+  // Toggle chrome hidden class on body so header/nav can react
+  useEffect(() => {
+    const hidden = immersive && !chromeVisible;
+    document.body.classList.toggle("chrome-hidden", hidden);
+    return () => document.body.classList.remove("chrome-hidden");
+  }, [immersive, chromeVisible]);
+
   const goPrev = () => chapter > 1 && setChapter(chapter - 1);
   const goNext = () => chapter < book.chapters && setChapter(chapter + 1);
 
