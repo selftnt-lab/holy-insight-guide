@@ -281,6 +281,9 @@ const Profile = () => {
               </div>
             </Card>
           )}
+        </motion.div>
+
+
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
