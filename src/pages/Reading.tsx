@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle, Languages } from "lucide-react";
+import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle, Languages, Maximize2, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sheet,
@@ -17,6 +17,7 @@ import ClickableVerse from "@/components/ClickableVerse";
 import WordStudyPanel from "@/components/WordStudyPanel";
 import VerseActionSheet from "@/components/VerseActionSheet";
 import TranslationComparison from "@/components/TranslationComparison";
+import ReadingAudioControls from "@/components/ReadingAudioControls";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { useChapterWordMap } from "@/hooks/useChapterWordMap";
@@ -24,6 +25,7 @@ import { useChapterHighlights } from "@/hooks/useChapterHighlights";
 import { getHighlightBg } from "@/lib/highlight-colors";
 import { fetchProgress, saveProgress } from "@/lib/reading-progress";
 import { useAuth } from "@/hooks/useAuth";
+import { useAudioPlayer } from "@/contexts/AudioPlayerProvider";
 
 const Reading = () => {
   const [params, setParams] = useSearchParams();
@@ -45,6 +47,11 @@ const Reading = () => {
   const [actionVerse, setActionVerse] = useState<{ verse: number; text: string } | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareVerse, setCompareVerse] = useState<number | undefined>(undefined);
+  const [immersive, setImmersive] = useState(false);
+  const [chromeVisible, setChromeVisible] = useState(true);
+  const verseRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
+  const audio = useAudioPlayer();
+  const initialVerseParam = params.get("verse");
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
   const { data, loading, error } = useBibleChapter(bookSlug, chapter);
