@@ -105,3 +105,26 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
+
+/* Immersive reading mode */
+[data-immersive="true"] {
+  --background: 36 30% 94%;
+  --foreground: 24 35% 18%;
+  --muted-foreground: 24 15% 40%;
+}
+.dark [data-immersive="true"] {
+  --background: 222 25% 7%;
+  --foreground: 38 22% 88%;
+  --muted-foreground: 38 10% 60%;
+}
+[data-immersive="true"] .reading-prose {
+  font-size: 1.2rem;
+  line-height: 1.95;
+  letter-spacing: 0.005em;
+}
+
+/* Verse currently being narrated */
+.verse-active {
+  background: hsl(var(--accent) / 0.12);
+  box-shadow: inset 3px 0 0 hsl(var(--accent));
+}
