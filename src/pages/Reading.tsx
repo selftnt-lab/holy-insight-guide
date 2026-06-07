@@ -154,7 +154,15 @@ const Reading = () => {
     : "";
 
   return (
-    <div className="min-h-screen pb-28">
+    <div
+      className="min-h-screen pb-28 bg-background text-foreground transition-colors"
+      data-immersive={immersive ? "true" : undefined}
+      onClick={(e) => {
+        if (!immersive) return;
+        // Only toggle chrome when clicking the empty container (not interactive children)
+        if (e.target === e.currentTarget) setChromeVisible((v) => !v);
+      }}
+    >
       <div className="mx-auto max-w-lg px-5 pt-10">
         {/* Selectors */}
         <motion.div
@@ -247,7 +255,26 @@ const Reading = () => {
           >
             <Languages size={16} />
           </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleImmersive}
+            className="rounded-full"
+            aria-label={immersive ? "Sair do modo imersivo" : "Modo imersivo"}
+          >
+            {immersive ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </Button>
         </motion.div>
+
+        {/* Audio controls */}
+        <div className="mb-4 flex items-center justify-end">
+          <ReadingAudioControls
+            bookSlug={bookSlug}
+            bookName={book.name}
+            chapter={chapter}
+          />
+        </div>
 
         {/* Header */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
