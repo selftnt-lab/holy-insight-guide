@@ -81,9 +81,54 @@ const Reading = () => {
 
   useEffect(() => {
     if (user && hydrated) saveProgress(user.id, bookSlug, chapter);
-    setParams({ book: bookSlug, chapter: String(chapter) }, { replace: true });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [bookSlug, chapter, setParams, user, hydrated]);
+    const next: Record<string, string> = { book: bookSlug, chapter: String(chapter) };
+    if (initialVerseParam) next.verse = initialVerseParam;
+    setParams(next, { replace: true });
+    if (!initialVerseParam) window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [bookSlug, chapter, setParams, user, hydrated, initialVerseParam]);
+
+  // Load user preference for immersive mode
+  useEffect(() => {
+    const v = localStorage.getItem("reading.immersive");
+    if (v === "true") setImmersive(true);
+  }, []);
+
+  // Scroll to ?verse= once data is loaded
+  const didJumpRef = useRef(false);
+  useEffect(() => {
+    if (didJumpRef.current || !data || !initialVerseParam) return;
+    const v = Number(initialVerseParam);
+    const el = verseRefs.current.get(v);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      didJumpRef.current = true;
+    }
+  }, [data, initialVerseParam]);
+
+  // Auto-scroll to currently narrated verse
+  useEffect(() => {
+    if (
+      !audio.currentVerse ||
+      audio.target?.bookSlug !== bookSlug ||
+      audio.target?.chapter !== chapter
+    )
+      return;
+    const el = verseRefs.current.get(audio.currentVerse);
+    if (el) {
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+    }
+  }, [audio.currentVerse, audio.target, bookSlug, chapter]);
+
+  const toggleImmersive = () => {
+    setImmersive((p) => {
+      const next = !p;
+      localStorage.setItem("reading.immersive", String(next));
+      if (next) setChromeVisible(false);
+      else setChromeVisible(true);
+      return next;
+    });
+  };
 
   const goPrev = () => chapter > 1 && setChapter(chapter - 1);
   const goNext = () => chapter < book.chapters && setChapter(chapter + 1);
