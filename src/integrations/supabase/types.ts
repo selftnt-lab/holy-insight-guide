@@ -87,6 +87,8 @@ export type Database = {
           id: string
           interests: string[] | null
           preferred_translations: string[]
+          preferred_voice_uri: string | null
+          reading_immersive_mode: boolean
           tradition: string | null
           updated_at: string
           user_id: string
@@ -109,6 +111,8 @@ export type Database = {
           id?: string
           interests?: string[] | null
           preferred_translations?: string[]
+          preferred_voice_uri?: string | null
+          reading_immersive_mode?: boolean
           tradition?: string | null
           updated_at?: string
           user_id: string
@@ -131,6 +135,8 @@ export type Database = {
           id?: string
           interests?: string[] | null
           preferred_translations?: string[]
+          preferred_voice_uri?: string | null
+          reading_immersive_mode?: boolean
           tradition?: string | null
           updated_at?: string
           user_id?: string

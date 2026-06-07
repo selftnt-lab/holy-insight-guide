@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle, Languages } from "lucide-react";
+import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle, Languages, Maximize2, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sheet,
@@ -17,6 +17,7 @@ import ClickableVerse from "@/components/ClickableVerse";
 import WordStudyPanel from "@/components/WordStudyPanel";
 import VerseActionSheet from "@/components/VerseActionSheet";
 import TranslationComparison from "@/components/TranslationComparison";
+import ReadingAudioControls from "@/components/ReadingAudioControls";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { useChapterWordMap } from "@/hooks/useChapterWordMap";
@@ -24,6 +25,7 @@ import { useChapterHighlights } from "@/hooks/useChapterHighlights";
 import { getHighlightBg } from "@/lib/highlight-colors";
 import { fetchProgress, saveProgress } from "@/lib/reading-progress";
 import { useAuth } from "@/hooks/useAuth";
+import { useAudioPlayer } from "@/contexts/AudioPlayerProvider";
 
 const Reading = () => {
   const [params, setParams] = useSearchParams();
@@ -45,6 +47,11 @@ const Reading = () => {
   const [actionVerse, setActionVerse] = useState<{ verse: number; text: string } | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareVerse, setCompareVerse] = useState<number | undefined>(undefined);
+  const [immersive, setImmersive] = useState(false);
+  const [chromeVisible, setChromeVisible] = useState(true);
+  const verseRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
+  const audio = useAudioPlayer();
+  const initialVerseParam = params.get("verse");
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
   const { data, loading, error } = useBibleChapter(bookSlug, chapter);
@@ -74,9 +81,61 @@ const Reading = () => {
 
   useEffect(() => {
     if (user && hydrated) saveProgress(user.id, bookSlug, chapter);
-    setParams({ book: bookSlug, chapter: String(chapter) }, { replace: true });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [bookSlug, chapter, setParams, user, hydrated]);
+    const next: Record<string, string> = { book: bookSlug, chapter: String(chapter) };
+    if (initialVerseParam) next.verse = initialVerseParam;
+    setParams(next, { replace: true });
+    if (!initialVerseParam) window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [bookSlug, chapter, setParams, user, hydrated, initialVerseParam]);
+
+  // Load user preference for immersive mode
+  useEffect(() => {
+    const v = localStorage.getItem("reading.immersive");
+    if (v === "true") setImmersive(true);
+  }, []);
+
+  // Scroll to ?verse= once data is loaded
+  const didJumpRef = useRef(false);
+  useEffect(() => {
+    if (didJumpRef.current || !data || !initialVerseParam) return;
+    const v = Number(initialVerseParam);
+    const el = verseRefs.current.get(v);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      didJumpRef.current = true;
+    }
+  }, [data, initialVerseParam]);
+
+  // Auto-scroll to currently narrated verse
+  useEffect(() => {
+    if (
+      !audio.currentVerse ||
+      audio.target?.bookSlug !== bookSlug ||
+      audio.target?.chapter !== chapter
+    )
+      return;
+    const el = verseRefs.current.get(audio.currentVerse);
+    if (el) {
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+    }
+  }, [audio.currentVerse, audio.target, bookSlug, chapter]);
+
+  const toggleImmersive = () => {
+    setImmersive((p) => {
+      const next = !p;
+      localStorage.setItem("reading.immersive", String(next));
+      if (next) setChromeVisible(false);
+      else setChromeVisible(true);
+      return next;
+    });
+  };
+
+  // Toggle chrome hidden class on body so header/nav can react
+  useEffect(() => {
+    const hidden = immersive && !chromeVisible;
+    document.body.classList.toggle("chrome-hidden", hidden);
+    return () => document.body.classList.remove("chrome-hidden");
+  }, [immersive, chromeVisible]);
 
   const goPrev = () => chapter > 1 && setChapter(chapter - 1);
   const goNext = () => chapter < book.chapters && setChapter(chapter + 1);
@@ -102,7 +161,15 @@ const Reading = () => {
     : "";
 
   return (
-    <div className="min-h-screen pb-28">
+    <div
+      className="min-h-screen pb-28 bg-background text-foreground transition-colors"
+      data-immersive={immersive ? "true" : undefined}
+      onClick={(e) => {
+        if (!immersive) return;
+        // Only toggle chrome when clicking the empty container (not interactive children)
+        if (e.target === e.currentTarget) setChromeVisible((v) => !v);
+      }}
+    >
       <div className="mx-auto max-w-lg px-5 pt-10">
         {/* Selectors */}
         <motion.div
@@ -195,7 +262,26 @@ const Reading = () => {
           >
             <Languages size={16} />
           </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleImmersive}
+            className="rounded-full"
+            aria-label={immersive ? "Sair do modo imersivo" : "Modo imersivo"}
+          >
+            {immersive ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </Button>
         </motion.div>
+
+        {/* Audio controls */}
+        <div className="mb-4 flex items-center justify-end">
+          <ReadingAudioControls
+            bookSlug={bookSlug}
+            bookName={book.name}
+            chapter={chapter}
+          />
+        </div>
 
         {/* Header */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
@@ -246,9 +332,18 @@ const Reading = () => {
           >
             {data.verses.map((v) => {
               const hl = byVerse(v.verse);
+              const isActive =
+                audio.currentVerse === v.verse &&
+                audio.target?.bookSlug === bookSlug &&
+                audio.target?.chapter === chapter;
               return (
                 <p
                   key={v.verse}
+                  ref={(el) => {
+                    if (el) verseRefs.current.set(v.verse, el);
+                    else verseRefs.current.delete(v.verse);
+                  }}
+                  data-verse={v.verse}
                   onPointerDown={() => startPress(v.verse, v.text)}
                   onPointerUp={cancelPress}
                   onPointerLeave={cancelPress}
@@ -257,7 +352,7 @@ const Reading = () => {
                     e.preventDefault();
                     setActionVerse({ verse: v.verse, text: v.text });
                   }}
-                  className={`rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} select-none`}
+                  className={`reading-prose rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} ${isActive ? "verse-active" : ""} select-none`}
                 >
                   <button
                     type="button"

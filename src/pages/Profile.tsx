@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2 } from "lucide-react";
+import { useAudioPlayer } from "@/contexts/AudioPlayerProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -53,6 +54,8 @@ const LEVEL_LABEL: Record<string, string> = {
 
 const Profile = () => {
   const { theme, toggle } = useTheme();
+  const { voices, voiceURI, setVoiceURI } = useAudioPlayer();
+  const ptVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith("pt"));
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileRow | null>(null);
@@ -253,7 +256,34 @@ const Profile = () => {
               <Switch checked={theme === "dark"} onCheckedChange={toggle} />
             </div>
           </Card>
+
+          {ptVoices.length > 0 && (
+            <Card className="mt-3 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <Volume2 size={18} className="mt-0.5" />
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-foreground">
+                    Voz da narração
+                  </label>
+                  <select
+                    value={voiceURI ?? ""}
+                    onChange={(e) => setVoiceURI(e.target.value || null)}
+                    className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="">Automática (português)</option>
+                    {ptVoices.map((v) => (
+                      <option key={v.voiceURI} value={v.voiceURI}>
+                        {v.name} ({v.lang})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </Card>
+          )}
         </motion.div>
+
+
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}

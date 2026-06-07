@@ -17,6 +17,8 @@ import ChatHistory from "@/pages/ChatHistory";
 import Plans from "@/pages/Plans";
 import Search from "@/pages/Search";
 import NotFound from "@/pages/NotFound";
+import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
+import MiniAudioPlayer from "@/components/MiniAudioPlayer";
 
 
 const queryClient = new QueryClient();
@@ -29,20 +31,22 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <AppHeader />
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/reading" element={<ProtectedRoute><Reading /></ProtectedRoute>} />
-              <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/chat-history" element={<ProtectedRoute><ChatHistory /></ProtectedRoute>} />
-              <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
-              <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-
-            </Routes>
-            <BottomNav />
+            <AudioPlayerProvider>
+              <AppHeader />
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/reading" element={<ProtectedRoute><Reading /></ProtectedRoute>} />
+                <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/chat-history" element={<ProtectedRoute><ChatHistory /></ProtectedRoute>} />
+                <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
+                <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <MiniAudioPlayer />
+              <BottomNav />
+            </AudioPlayerProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
