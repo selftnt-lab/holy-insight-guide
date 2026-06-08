@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { resolveFirstName, type ProfileNameSource } from "@/lib/user-name";
 import AiChat from "@/components/AiChat";
 import SacredDivider from "@/components/SacredDivider";
-import VerseOfDayCard from "@/components/VerseOfDayCard";
+import DevotionalCard from "@/components/DevotionalCard";
 import StreakBadge from "@/components/StreakBadge";
 
 const Dashboard = () => {
@@ -72,8 +72,9 @@ const Dashboard = () => {
 
         <div className="mt-6 space-y-4">
           <StreakBadge />
-          <VerseOfDayCard />
+          <DevotionalCard />
         </div>
+
 
 
         <motion.div

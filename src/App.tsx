@@ -16,6 +16,7 @@ import Auth from "@/pages/Auth";
 import ChatHistory from "@/pages/ChatHistory";
 import Plans from "@/pages/Plans";
 import Search from "@/pages/Search";
+import Journal from "@/pages/Journal";
 import NotFound from "@/pages/NotFound";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
 import MiniAudioPlayer from "@/components/MiniAudioPlayer";
@@ -42,6 +43,7 @@ const App = () => (
                 <Route path="/chat-history" element={<ProtectedRoute><ChatHistory /></ProtectedRoute>} />
                 <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
                 <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+                <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MiniAudioPlayer />
