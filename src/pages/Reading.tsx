@@ -499,6 +499,15 @@ const Reading = () => {
         chapter={chapter}
         focusVerse={compareVerse}
       />
+
+      <StudySheet
+        open={showStudy}
+        onClose={() => setShowStudy(false)}
+        bookSlug={bookSlug}
+        bookName={book.name}
+        chapter={chapter}
+        fullText={fullText}
+      />
     </div>
   );
 };
