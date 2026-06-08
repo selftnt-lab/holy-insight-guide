@@ -210,6 +210,7 @@ export type Database = {
           category: string
           created_at: string
           created_by: string | null
+          custom_days: Json | null
           description: string
           duration_days: number
           id: string
@@ -222,6 +223,7 @@ export type Database = {
           category?: string
           created_at?: string
           created_by?: string | null
+          custom_days?: Json | null
           description: string
           duration_days: number
           id?: string
@@ -234,6 +236,7 @@ export type Database = {
           category?: string
           created_at?: string
           created_by?: string | null
+          custom_days?: Json | null
           description?: string
           duration_days?: number
           id?: string
