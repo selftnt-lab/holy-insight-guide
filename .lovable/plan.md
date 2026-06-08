@@ -1,120 +1,126 @@
-## Fase 3 — Áudio e leitura assistida
+# Fase 4 — Estudo guiado por IA
 
-Transforma a tela de leitura num leitor imersivo: narração por voz, acompanhamento visual sincronizado, controles de ritmo e um modo noturno refinado.
+Transforma a leitura passiva em estudo dirigido. Quatro recursos que usam Lovable AI para gerar conteúdo doutrinariamente alinhado (já temos o system prompt confessional 1689 na função `chat`).
 
 ---
 
-### 1. Narrador com Web Speech API
+## 1. Resumo de capítulo (companion de leitura)
 
 **O que o usuário ganha:**
-- Botão de play no header da leitura inicia a narração do capítulo inteiro.
-- Voz portuguesa selecionada automaticamente (preferindo `pt-BR`, com fallback `pt-PT`/default).
-- Seletor de voz no perfil — lista as vozes PT disponíveis no dispositivo.
-- Funciona offline e sem chave/API, instantâneo.
+- Botão **"Estudar com IA"** no header da `Reading.tsx` abre um Sheet lateral.
+- Sheet mostra 4 abas: **Contexto**, **Temas**, **Esboço**, **Aplicação** — geradas com base no texto carregado.
+- Cache por usuário+capítulo: nunca regenera o mesmo capítulo, abre instantâneo na 2ª visita.
 
 **Técnico:**
-- Novo hook `useSpeechSynthesis` encapsulando `window.speechSynthesis`, `SpeechSynthesisUtterance`, fila por versículo (1 utterance por verso para permitir highlight sincronizado).
-- Provider global `AudioPlayerProvider` (React context) controla estado: `playing`, `currentBook`, `currentChapter`, `currentVerse`, `rate`, `voiceURI`, `queue`.
-- Persistência leve em `localStorage` (voz preferida, velocidade).
+- Nova edge function `chapter-study` que recebe `{ bookSlug, chapter, text }` e retorna JSON estruturado `{ context, themes, outline, application }`.
+- Tabela `chapter_studies (user_id, book_slug, chapter, content jsonb, created_at)` com RLS por usuário e UNIQUE(user_id, book_slug, chapter).
+- Hook `useChapterStudy(bookSlug, chapter)` que consulta a tabela primeiro; se vazio, chama a função e salva.
 
 ---
 
-### 2. Auto-scroll sincronizado e highlight do versículo atual
+## 2. Perguntas reflexivas + diário de respostas
 
 **O que o usuário ganha:**
-- Versículo sendo lido ganha destaque sutil (background `accent/10` + borda lateral).
-- Página rola suavemente para manter o versículo ativo centralizado.
-- Ao terminar o capítulo, oferece "Continuar para o próximo".
+- Aba **"Reflexão"** dentro do mesmo Sheet de estudo: 4–6 perguntas reflexivas geradas a partir do capítulo.
+- Cada pergunta tem campo de resposta livre (autosave); ícone de check quando respondida.
+- Página `/profile` ganha link **"Meu diário"** que lista as respostas agrupadas por capítulo.
 
 **Técnico:**
-- Cada `<p data-verse={n}>` em `Reading.tsx` ganha `ref` registrada num map.
-- `useEffect` observa `currentVerse` do provider e chama `scrollIntoView({ block: "center", behavior: "smooth" })`.
-- `onend` da utterance avança índice; `onerror` para a fila com toast.
-- Respeitar `prefers-reduced-motion` (scroll sem animação).
+- A mesma função `chapter-study` retorna também `questions: string[]` no JSON.
+- Tabela `reflection_answers (user_id, book_slug, chapter, question_index, question text, answer text, updated_at)`. RLS por usuário; UNIQUE(user_id, book_slug, chapter, question_index).
+- Autosave com debounce 800ms; toast discreto ao salvar.
 
 ---
 
-### 3. Mini-player persistente
+## 3. Devocional diário personalizado
 
 **O que o usuário ganha:**
-- Barra flutuante acima do `BottomNav` quando há áudio tocando.
-- Mostra "Livro 3 — v.12", play/pause, próximo/anterior versículo, fechar.
-- Continua tocando ao navegar para Explore/Perfil; toque na barra volta à leitura no versículo atual.
+- Card no Dashboard **"Devocional de hoje"** com: versículo do dia (já temos), meditação curta (3–4 frases), 1 pergunta reflexiva, sugestão de oração.
+- Gerado uma vez por dia por usuário; mesmo dia = mesmo conteúdo.
+- Botão **"Marcar como feito"** que adiciona ao streak.
 
 **Técnico:**
-- Novo componente `MiniAudioPlayer.tsx` renderizado dentro do `AppFooter`/raiz do App, lendo do `AudioPlayerProvider`.
-- `Link` para `/reading?book=<slug>&chapter=<n>&verse=<v>` — `Reading.tsx` passa a aceitar `?verse=` para abrir já posicionado.
-- Esconder quando rota for `/auth`.
+- Edge function `daily-devotional` recebe `{ date, verseRef, verseText }` e retorna `{ meditation, question, prayer }`.
+- Tabela `daily_devotionals (user_id, date, verse_ref, content jsonb, completed_at)`. RLS por usuário; UNIQUE(user_id, date).
+- Substitui (ou complementa) o `VerseOfDayCard` atual com um card mais rico.
 
 ---
 
-### 4. Controle de velocidade
+## 4. Planos temáticos gerados por IA
 
 **O que o usuário ganha:**
-- Popover ao lado do play com presets **0.75x · 1x · 1.25x · 1.5x · 2x**.
-- Mudança aplica imediatamente (cancela e retoma utterance no versículo atual com novo `rate`).
-- Velocidade salva entre sessões.
+- Na página `/plans`, novo botão **"Criar plano personalizado"**.
+- Diálogo pede: tema (ex.: "ansiedade", "graça", "liderança"), duração (7/14/21/30 dias), nível (iniciante/intermediário/avançado).
+- IA gera um plano com leituras diárias (livro+capítulo+versículos) e uma reflexão curta por dia.
+- Plano salvo aparece na lista de planos do usuário; progresso usa o `user_plan_progress` existente.
 
 **Técnico:**
-- `rate` no provider, persistido em `localStorage`.
-- Helper `restartFromVerse(n)` reprograma a fila para retomar sem perder posição.
+- Edge function `generate-plan` retorna `{ title, description, days: [{ day, reference, reflection }] }` validado via schema.
+- Insere em `reading_plans` (já existe) com `user_id` preenchido e flag `ai_generated boolean default false` (nova coluna).
+- Reaproveita componentes existentes de `Plans.tsx`.
 
 ---
 
-### 5. Modo leitura noturna refinado
-
-**O que o usuário ganha:**
-- Novo toggle "Modo imersivo" no header da leitura (ícone de lua/sol cheio).
-- Aplica: fundo `sepia/dark` dedicado, fonte serif maior (`text-lg → text-xl`), line-height generoso, esconde `BottomNav` e `AppHeader` (overlay sutil que reaparece no tap).
-- Preferência salva no perfil (`reading_immersive_mode boolean`).
-
-**Técnico:**
-- Tokens novos em `index.css`: `--reading-bg`, `--reading-fg`, `--reading-muted` para light/dark/sepia.
-- Classe `data-immersive` no `<main>` da `Reading.tsx` aplica overrides.
-- Tap em área neutra alterna visibilidade do chrome (`useState` local).
-- Coluna `reading_immersive_mode boolean default false` em `profiles` (migration leve).
-
----
-
-### Arquivos
+## Arquivos
 
 ```text
 src/
-  hooks/
-    useSpeechSynthesis.ts          (novo)
-  contexts/
-    AudioPlayerProvider.tsx        (novo — context + estado global)
   components/
-    MiniAudioPlayer.tsx            (novo)
-    ReadingAudioControls.tsx       (novo — botão play + popover velocidade no header da leitura)
+    StudySheet.tsx                   (novo — Sheet lateral com 4 abas + reflexão)
+    DevotionalCard.tsx               (novo — substitui/aumenta VerseOfDayCard no Dashboard)
+    CreatePlanDialog.tsx             (novo — wizard de criação de plano)
+  hooks/
+    useChapterStudy.ts               (novo)
+    useDailyDevotional.ts            (novo)
+    useReflectionAnswers.ts          (novo)
   pages/
-    Reading.tsx                    edita: refs por versículo, highlight, scroll, suporte ?verse=, modo imersivo
-    Profile.tsx                    edita: seletor de voz PT + toggle modo imersivo persistente
-  App.tsx                          edita: envolve em <AudioPlayerProvider>, monta <MiniAudioPlayer />
-  index.css                        edita: tokens --reading-* + classes data-immersive
+    Reading.tsx                      edita: botão "Estudar com IA" + integração StudySheet
+    Dashboard.tsx                    edita: troca VerseOfDayCard por DevotionalCard
+    Plans.tsx                        edita: botão "Criar plano personalizado"
+    Profile.tsx                      edita: link "Meu diário de reflexões"
+    Journal.tsx                      (novo — lista de respostas agrupadas)
+  App.tsx                            edita: rota /journal
+
+supabase/functions/
+  chapter-study/index.ts             (novo)
+  daily-devotional/index.ts          (novo)
+  generate-plan/index.ts             (novo)
+
 supabase/migrations/
-  <timestamp>_reading_immersive_mode.sql   (novo — ALTER TABLE profiles)
+  <timestamp>_ai_study_tables.sql    (novo)
 ```
 
-### Banco
+## Banco (migração única)
 
-- `ALTER TABLE profiles ADD COLUMN reading_immersive_mode boolean DEFAULT false;`
-- `ALTER TABLE profiles ADD COLUMN preferred_voice_uri text;`
+```text
+chapter_studies      (user_id, book_slug, chapter, content jsonb)
+reflection_answers   (user_id, book_slug, chapter, question_index, question, answer)
+daily_devotionals    (user_id, date, verse_ref, content jsonb, completed_at)
+reading_plans        ADD COLUMN ai_generated boolean DEFAULT false
+```
 
-Sem novas RLS — `profiles` já tem políticas adequadas.
+- RLS: cada tabela com policy `auth.uid() = user_id` para SELECT/INSERT/UPDATE/DELETE.
+- GRANTs para `authenticated` e `service_role` (edge functions).
+- UNIQUE constraints para cache idempotente.
 
-### Considerações
+## Modelo de IA
 
-- Web Speech precisa de gesture do usuário para iniciar — sempre disparado a partir de click no botão de play.
-- Algumas vozes PT-BR só existem em iOS/Android nativos; fallback gracioso quando não há voz PT.
-- `speechSynthesis` no Safari iOS tem bug com utterances muito longas — por isso enfileiramos por versículo (curtos).
-- Em segundo plano (aba inativa), a maioria dos navegadores pausa; aceitamos esse comportamento nesta fase.
+- `google/gemini-2.5-flash` para `chapter-study` e `generate-plan` (resposta longa estruturada).
+- `google/gemini-2.5-flash-lite` para `daily-devotional` (curto, alto volume).
+- Todas as funções reaproveitam o **system prompt confessional 1689** já presente em `supabase/functions/chat/index.ts` (vamos extrair para `supabase/functions/_shared/system-prompt.ts`).
+- Saída estruturada via `response_format: { type: "json_schema" }` quando o gateway aceitar, com fallback para parse de JSON cru.
 
-### Ordem de entrega
+## Considerações
 
-1. Migration (`reading_immersive_mode` + `preferred_voice_uri`).
-2. `useSpeechSynthesis` + `AudioPlayerProvider` + integração no `App.tsx`.
-3. `ReadingAudioControls` e refs/highlight/scroll na `Reading.tsx`.
-4. `MiniAudioPlayer` no rodapé global.
-5. Modo imersivo (tokens + toggle + tap-to-hide).
-6. Ajustes no Perfil (voz + modo padrão).
+- **Custo:** cache agressivo em DB garante 1 chamada por capítulo por usuário e 1 por dia (devocional). Planos só geram sob ação explícita.
+- **Latência:** Sheet abre com skeleton; resposta típica 2–5s. Mostra "Gerando estudo do capítulo..." com spinner.
+- **Erros 429/402:** tratados com toast ("Tente novamente em alguns segundos" / "Créditos esgotados").
+- **Privacidade:** respostas do diário são por usuário, nunca expostas a outros (RLS estrita).
+
+## Ordem de entrega
+
+1. Migration (`chapter_studies`, `reflection_answers`, `daily_devotionals`, `reading_plans.ai_generated`) + extração do system prompt compartilhado.
+2. Edge function `chapter-study` + `useChapterStudy` + `StudySheet` (abas Contexto/Temas/Esboço/Aplicação) + botão na `Reading.tsx`.
+3. Aba **Reflexão** no StudySheet + `useReflectionAnswers` + página `Journal.tsx`.
+4. Edge function `daily-devotional` + `DevotionalCard` substituindo no Dashboard.
+5. Edge function `generate-plan` + `CreatePlanDialog` em `Plans.tsx`.
