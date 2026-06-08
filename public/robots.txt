@@ -12,3 +12,6 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://holy-insight-guide.lovable.app/sitemap.xml
+
