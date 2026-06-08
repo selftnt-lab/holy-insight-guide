@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2 } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText } from "lucide-react";
 import { useAudioPlayer } from "@/contexts/AudioPlayerProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
@@ -289,7 +289,7 @@ const Profile = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.32 }}
-          className="mt-3"
+          className="mt-3 space-y-2"
         >
           <Button
             variant="outline"
@@ -299,7 +299,16 @@ const Profile = () => {
             <MessageSquare size={18} className="mr-2" />
             Histórico do Tutor IA
           </Button>
+          <Button
+            variant="outline"
+            className="w-full rounded-xl justify-start"
+            onClick={() => navigate("/journal")}
+          >
+            <NotebookText size={18} className="mr-2" />
+            Meu diário de reflexões
+          </Button>
         </motion.div>
+
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}

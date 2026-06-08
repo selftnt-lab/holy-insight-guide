@@ -1,0 +1,1 @@
+ALTER TABLE public.reading_plans ADD COLUMN IF NOT EXISTS custom_days jsonb;

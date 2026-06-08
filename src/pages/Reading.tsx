@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle, Languages, Maximize2, Minimize2 } from "lucide-react";
+import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle, Languages, Maximize2, Minimize2, GraduationCap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sheet,
@@ -18,6 +18,7 @@ import WordStudyPanel from "@/components/WordStudyPanel";
 import VerseActionSheet from "@/components/VerseActionSheet";
 import TranslationComparison from "@/components/TranslationComparison";
 import ReadingAudioControls from "@/components/ReadingAudioControls";
+import StudySheet from "@/components/StudySheet";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { useChapterWordMap } from "@/hooks/useChapterWordMap";
@@ -33,6 +34,7 @@ const Reading = () => {
   const [bookSlug, setBookSlug] = useState(params.get("book") || "genesis");
   const [chapter, setChapter] = useState(Number(params.get("chapter")) || 1);
   const [showChat, setShowChat] = useState(false);
+  const [showStudy, setShowStudy] = useState(false);
   const [bookSheetOpen, setBookSheetOpen] = useState(false);
   const [chapterSheetOpen, setChapterSheetOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -274,14 +276,24 @@ const Reading = () => {
           </Button>
         </motion.div>
 
-        {/* Audio controls */}
-        <div className="mb-4 flex items-center justify-end">
+        {/* Audio + Study controls */}
+        <div className="mb-4 flex items-center justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowStudy(true)}
+            className="rounded-full gap-1.5"
+          >
+            <GraduationCap size={14} />
+            Estudar com IA
+          </Button>
           <ReadingAudioControls
             bookSlug={bookSlug}
             bookName={book.name}
             chapter={chapter}
           />
         </div>
+
 
         {/* Header */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
@@ -486,6 +498,15 @@ const Reading = () => {
         bookName={book.name}
         chapter={chapter}
         focusVerse={compareVerse}
+      />
+
+      <StudySheet
+        open={showStudy}
+        onClose={() => setShowStudy(false)}
+        bookSlug={bookSlug}
+        bookName={book.name}
+        chapter={chapter}
+        fullText={fullText}
       />
     </div>
   );

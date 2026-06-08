@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      chapter_studies: {
+        Row: {
+          book_slug: string
+          chapter: number
+          content: Json
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          book_slug: string
+          chapter: number
+          content: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          book_slug?: string
+          chapter?: number
+          content?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_history: {
         Row: {
           context: Json | null
@@ -38,6 +68,36 @@ export type Database = {
           messages?: Json
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      daily_devotionals: {
+        Row: {
+          completed_at: string | null
+          content: Json
+          created_at: string
+          date: string
+          id: string
+          user_id: string
+          verse_ref: string
+        }
+        Insert: {
+          completed_at?: string | null
+          content: Json
+          created_at?: string
+          date: string
+          id?: string
+          user_id: string
+          verse_ref: string
+        }
+        Update: {
+          completed_at?: string | null
+          content?: Json
+          created_at?: string
+          date?: string
+          id?: string
+          user_id?: string
+          verse_ref?: string
         }
         Relationships: []
       }
@@ -145,9 +205,12 @@ export type Database = {
       }
       reading_plans: {
         Row: {
+          ai_generated: boolean
           books_filter: string
           category: string
           created_at: string
+          created_by: string | null
+          custom_days: Json | null
           description: string
           duration_days: number
           id: string
@@ -155,9 +218,12 @@ export type Database = {
           slug: string
         }
         Insert: {
+          ai_generated?: boolean
           books_filter?: string
           category?: string
           created_at?: string
+          created_by?: string | null
+          custom_days?: Json | null
           description: string
           duration_days: number
           id?: string
@@ -165,9 +231,12 @@ export type Database = {
           slug: string
         }
         Update: {
+          ai_generated?: boolean
           books_filter?: string
           category?: string
           created_at?: string
+          created_by?: string | null
+          custom_days?: Json | null
           description?: string
           duration_days?: number
           id?: string
@@ -210,6 +279,42 @@ export type Database = {
           last_read_date?: string | null
           longest_streak?: number
           streak_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reflection_answers: {
+        Row: {
+          answer: string
+          book_slug: string
+          chapter: number
+          created_at: string
+          id: string
+          question: string
+          question_index: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer?: string
+          book_slug: string
+          chapter: number
+          created_at?: string
+          id?: string
+          question: string
+          question_index: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          book_slug?: string
+          chapter?: number
+          created_at?: string
+          id?: string
+          question?: string
+          question_index?: number
           updated_at?: string
           user_id?: string
         }

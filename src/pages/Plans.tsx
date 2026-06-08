@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Check, ChevronRight, Loader2, Plus, Trash2, BookOpen } from "lucide-react";
+import { Calendar, Check, ChevronRight, Loader2, Plus, Trash2, BookOpen, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import SacredDivider from "@/components/SacredDivider";
+import CreatePlanDialog from "@/components/CreatePlanDialog";
 import {
   fetchPlans,
   fetchUserPlans,
@@ -149,9 +150,11 @@ const Plans = () => {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
+  const [createOpen, setCreateOpen] = useState(false);
+
   const reload = async () => {
     if (!user) return;
-    const [p, u] = await Promise.all([fetchPlans(), fetchUserPlans(user.id)]);
+    const [p, u] = await Promise.all([fetchPlans(user.id), fetchUserPlans(user.id)]);
     setPlans(p);
     setUserPlans(u);
     setLoading(false);
@@ -210,7 +213,30 @@ const Plans = () => {
             <span className="text-primary">um dia de cada vez</span>
           </h1>
           <SacredDivider className="mt-5" />
+
+          <Button
+            onClick={() => setCreateOpen(true)}
+            variant="outline"
+            className="mt-5 w-full justify-start gap-2 rounded-2xl border-accent/30 bg-accent/5 py-6 text-left hover:bg-accent/10"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/20 text-accent">
+              <Sparkles size={16} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Criar plano personalizado</p>
+              <p className="text-xs font-normal text-muted-foreground">
+                Diga um tema, a IA monta um plano sob medida.
+              </p>
+            </div>
+          </Button>
         </motion.div>
+
+        <CreatePlanDialog
+          open={createOpen}
+          onClose={() => setCreateOpen(false)}
+          onCreated={reload}
+        />
+
 
         {loading ? (
           <div className="mt-10 flex justify-center">
