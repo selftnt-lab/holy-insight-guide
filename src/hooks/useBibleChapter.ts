@@ -20,9 +20,16 @@ export const useBibleChapter = (bookSlug: string, chapter: number) => {
 
   useEffect(() => {
     let cancelled = false;
+    if (!bookSlug || !chapter) {
+      setLoading(false);
+      setData(null);
+      setError(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     setData(null);
+
 
     const url = `${BIBLE_URL}?book=${encodeURIComponent(bookSlug)}&chapter=${chapter}`;
     fetch(url, {
