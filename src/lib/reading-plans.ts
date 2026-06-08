@@ -10,6 +10,11 @@ export interface PlanDay {
   day: number;
   refs: PlanRef[];
 }
+export interface CustomPlanDay {
+  day: number;
+  reference: string;
+  reflection?: string;
+}
 export interface ReadingPlan {
   id: string;
   slug: string;
@@ -18,6 +23,9 @@ export interface ReadingPlan {
   duration_days: number;
   category: string;
   books_filter: string; // "all" | "NT" | "AT" | "<bookSlug>"
+  ai_generated?: boolean;
+  created_by?: string | null;
+  custom_days?: CustomPlanDay[] | null;
 }
 export interface UserPlanProgress {
   id: string;
