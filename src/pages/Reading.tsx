@@ -258,22 +258,31 @@ const Reading = () => {
                 <SheetTitle>{book.name} — Capítulo</SheetTitle>
               </SheetHeader>
               <div className="mt-4 grid grid-cols-6 gap-2 overflow-y-auto h-[calc(60vh-80px)]">
-                {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => {
-                      setChapter(n);
-                      setChapterSheetOpen(false);
-                    }}
-                    className={`aspect-square rounded-lg text-sm font-medium transition-colors ${
-                      n === chapter
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted hover:bg-muted/70"
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
+                {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => {
+                  const read = chaptersRead.has(n);
+                  return (
+                    <button
+                      key={n}
+                      onClick={() => {
+                        setChapter(n);
+                        setChapterSheetOpen(false);
+                      }}
+                      className={`relative aspect-square rounded-lg text-sm font-medium transition-colors ${
+                        n === chapter
+                          ? "bg-primary text-primary-foreground"
+                          : read
+                          ? "bg-accent/15 text-foreground hover:bg-accent/25"
+                          : "bg-muted hover:bg-muted/70"
+                      }`}
+                      aria-label={`Capítulo ${n}${read ? " (já lido)" : ""}`}
+                    >
+                      {n}
+                      {read && n !== chapter && (
+                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-accent" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </SheetContent>
           </Sheet>
