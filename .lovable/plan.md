@@ -1,126 +1,111 @@
-# Fase 4 — Estudo guiado por IA
+# Análise do estado atual
 
-Transforma a leitura passiva em estudo dirigido. Quatro recursos que usam Lovable AI para gerar conteúdo doutrinariamente alinhado (já temos o system prompt confessional 1689 na função `chat`).
+App já completo até a **Fase 4** com:
+- Leitura, áudio, destaques, busca, comparação de traduções, Strong, referências cruzadas.
+- Tutor IA (`/functions/chat`) + estudo de capítulo, devocional diário, reflexões/Journal, planos por IA.
+- Gamificação básica (streak, progresso, planos).
+- SEO inicial (sitemap, robots).
 
----
-
-## 1. Resumo de capítulo (companion de leitura)
-
-**O que o usuário ganha:**
-- Botão **"Estudar com IA"** no header da `Reading.tsx` abre um Sheet lateral.
-- Sheet mostra 4 abas: **Contexto**, **Temas**, **Esboço**, **Aplicação** — geradas com base no texto carregado.
-- Cache por usuário+capítulo: nunca regenera o mesmo capítulo, abre instantâneo na 2ª visita.
-
-**Técnico:**
-- Nova edge function `chapter-study` que recebe `{ bookSlug, chapter, text }` e retorna JSON estruturado `{ context, themes, outline, application }`.
-- Tabela `chapter_studies (user_id, book_slug, chapter, content jsonb, created_at)` com RLS por usuário e UNIQUE(user_id, book_slug, chapter).
-- Hook `useChapterStudy(bookSlug, chapter)` que consulta a tabela primeiro; se vazio, chama a função e salva.
+Pontos de atrito que valem a próxima fase:
+1. **Tutor IA expõe rótulos doutrinários** ("Batista Reformada 1689", lista de autores, "No Holy Insight Guide, seguimos…") no system prompt e nas respostas formatadas. O usuário pediu para remover essas menções nominais — o agente deve **responder com a mesma teologia, sem nomeá-la**.
+2. System prompt está **duplicado** entre `chat/index.ts` (hardcoded) e `_shared/system-prompt.ts` (resumido). As funções de estudo/devocional/plano usam o resumido; o chat ignora o compartilhado.
+3. Falta consistência confessional nas demais funções de IA (`chapter-study`, `daily-devotional`, `generate-plan`, `word-study`, `cross-references`, `explore-suggestions`) — algumas não importam o prompt compartilhado.
+4. Sem **PWA / install prompt**, sem manifest rico — app é mobile-first mas não instalável como nativo.
+5. Dashboard sem **continuar de onde parou** com destaque (já existe progresso, mas o card pode evoluir).
+6. Busca não tem **histórico recente** persistente nem filtros por Testamento.
 
 ---
 
-## 2. Perguntas reflexivas + diário de respostas
+# Plano — Fase 5: Refinamento doutrinário + Polimento
 
-**O que o usuário ganha:**
-- Aba **"Reflexão"** dentro do mesmo Sheet de estudo: 4–6 perguntas reflexivas geradas a partir do capítulo.
-- Cada pergunta tem campo de resposta livre (autosave); ícone de check quando respondida.
-- Página `/profile` ganha link **"Meu diário"** que lista as respostas agrupadas por capítulo.
+## 1. Sanitização do tutor IA (prioridade do usuário)
 
-**Técnico:**
-- A mesma função `chapter-study` retorna também `questions: string[]` no JSON.
-- Tabela `reflection_answers (user_id, book_slug, chapter, question_index, question text, answer text, updated_at)`. RLS por usuário; UNIQUE(user_id, book_slug, chapter, question_index).
-- Autosave com debounce 800ms; toast discreto ao salvar.
+**Objetivo:** o agente continua doutrinariamente alinhado, mas **nunca cita por nome** Confissão de 1689, "Batista Reformada", Spurgeon, Piper, MacArthur, Grudem, Carvalho, Maxwell, nem usa a frase "No Holy Insight Guide, seguimos…".
+
+**Como:**
+- Reescrever `supabase/functions/_shared/system-prompt.ts` para uma versão única, completa, **sem rótulos confessionais nominais**. Mantém:
+  - Autoridade da Escritura (66 livros, inerrante, suficiente).
+  - Hermenêutica histórico-gramatical, cristocêntrica, analogia da fé.
+  - Soteriologia monergista (graça, fé, Cristo, Escritura, glória de Deus) descrita por conteúdo, sem batismo de rótulos.
+  - Tom pastoral, recusa de relativismo, formato de resposta, segurança pastoral, política de recusa — tudo sem nomear escolas ou autores.
+  - Regra explícita: **"Não nomeie tradições, confissões, denominações ou autores como fonte. Ensine pelo conteúdo bíblico em si."**
+- `supabase/functions/chat/index.ts`: remover o bloco hardcoded e importar `CONFESSIONAL_SYSTEM_PROMPT` do shared. Mantém a injeção de contexto (capítulo/tópico) e fallback de modelo.
+- Auditar `chapter-study`, `daily-devotional`, `generate-plan` para garantir que: (a) importam o shared atualizado; (b) instruções locais não reintroduzem rótulos.
+- Auditar `word-study`, `cross-references`, `explore-suggestions` — adicionar o mesmo prompt compartilhado quando produzirem conteúdo doutrinário/devocional.
+- Front-end: nenhuma alteração de texto visível por padrão (o nome do app continua no header do chat). Confirmar que `AiChat.tsx` não exibe rótulo confessional.
+
+## 2. Consolidação do sistema de IA
+
+- Centralizar a chamada ao gateway em `supabase/functions/_shared/ai.ts` (helper `callLovableAI(model, payload)` com fallback 5xx, mapeamento 429/402). Refatorar as 6 funções para usá-lo — reduz duplicação e garante tratamento de erro uniforme.
+- Adicionar logging conciso (`console.log` com função + status) para facilitar debug no painel.
+
+## 3. UX — Dashboard e leitura
+
+- **Card "Continuar leitura"**: mostra último livro/capítulo lido com botão direto (usa `reading-progress.ts` já existente). Substitui ou acompanha o `DevotionalCard`.
+- **Atalho de teclado** na `Reading.tsx`: ← / → para capítulo anterior/próximo (desktop).
+- **Indicador de capítulo lido** no seletor de capítulos (check verde nos já lidos).
+
+## 4. Busca e descoberta
+
+- **Histórico de busca recente** em `localStorage` (últimas 8 buscas) exibido como chips abaixo do input em `Search.tsx`.
+- **Filtro AT/NT** simples em `Search.tsx`.
+
+## 5. PWA / instalável
+
+- `public/manifest.webmanifest` com ícones (reaproveitar favicon existente, gerar 192/512 se faltar), nome, theme color, display standalone.
+- `<link rel="manifest">` em `index.html` + `theme-color` meta.
+- Sem service worker complexo nesta fase (evitar cache stale do Vite dev) — só manifest para "Adicionar à tela inicial".
+
+## 6. Acessibilidade e polimento
+
+- Audit rápido: foco visível em todos os botões da `Reading.tsx`, contraste do tema escuro nos cards de estudo, `aria-label` no player de áudio e no botão "Estudar com IA".
+- Skeleton consistente no `StudySheet` enquanto a IA gera (já existe, validar).
 
 ---
 
-## 3. Devocional diário personalizado
-
-**O que o usuário ganha:**
-- Card no Dashboard **"Devocional de hoje"** com: versículo do dia (já temos), meditação curta (3–4 frases), 1 pergunta reflexiva, sugestão de oração.
-- Gerado uma vez por dia por usuário; mesmo dia = mesmo conteúdo.
-- Botão **"Marcar como feito"** que adiciona ao streak.
-
-**Técnico:**
-- Edge function `daily-devotional` recebe `{ date, verseRef, verseText }` e retorna `{ meditation, question, prayer }`.
-- Tabela `daily_devotionals (user_id, date, verse_ref, content jsonb, completed_at)`. RLS por usuário; UNIQUE(user_id, date).
-- Substitui (ou complementa) o `VerseOfDayCard` atual com um card mais rico.
-
----
-
-## 4. Planos temáticos gerados por IA
-
-**O que o usuário ganha:**
-- Na página `/plans`, novo botão **"Criar plano personalizado"**.
-- Diálogo pede: tema (ex.: "ansiedade", "graça", "liderança"), duração (7/14/21/30 dias), nível (iniciante/intermediário/avançado).
-- IA gera um plano com leituras diárias (livro+capítulo+versículos) e uma reflexão curta por dia.
-- Plano salvo aparece na lista de planos do usuário; progresso usa o `user_plan_progress` existente.
-
-**Técnico:**
-- Edge function `generate-plan` retorna `{ title, description, days: [{ day, reference, reflection }] }` validado via schema.
-- Insere em `reading_plans` (já existe) com `user_id` preenchido e flag `ai_generated boolean default false` (nova coluna).
-- Reaproveita componentes existentes de `Plans.tsx`.
-
----
-
-## Arquivos
+## Detalhes técnicos
 
 ```text
-src/
-  components/
-    StudySheet.tsx                   (novo — Sheet lateral com 4 abas + reflexão)
-    DevotionalCard.tsx               (novo — substitui/aumenta VerseOfDayCard no Dashboard)
-    CreatePlanDialog.tsx             (novo — wizard de criação de plano)
-  hooks/
-    useChapterStudy.ts               (novo)
-    useDailyDevotional.ts            (novo)
-    useReflectionAnswers.ts          (novo)
-  pages/
-    Reading.tsx                      edita: botão "Estudar com IA" + integração StudySheet
-    Dashboard.tsx                    edita: troca VerseOfDayCard por DevotionalCard
-    Plans.tsx                        edita: botão "Criar plano personalizado"
-    Profile.tsx                      edita: link "Meu diário de reflexões"
-    Journal.tsx                      (novo — lista de respostas agrupadas)
-  App.tsx                            edita: rota /journal
-
 supabase/functions/
-  chapter-study/index.ts             (novo)
-  daily-devotional/index.ts          (novo)
-  generate-plan/index.ts             (novo)
+  _shared/
+    system-prompt.ts        reescreve: sem rótulos nominais
+    ai.ts                   novo: callLovableAI() com fallback + erros
+  chat/index.ts             remove prompt hardcoded, usa shared
+  chapter-study/index.ts    refatora p/ usar shared/ai.ts
+  daily-devotional/index.ts idem
+  generate-plan/index.ts    idem
+  word-study/index.ts       garante prompt compartilhado quando aplicável
+  cross-references/index.ts idem
+  explore-suggestions/index.ts idem
 
-supabase/migrations/
-  <timestamp>_ai_study_tables.sql    (novo)
+src/
+  pages/
+    Dashboard.tsx           edita: card "Continuar leitura"
+    Reading.tsx             edita: atalhos ← →, check em capítulos lidos
+    Search.tsx              edita: histórico recente + filtro AT/NT
+  components/
+    ContinueReadingCard.tsx novo
+  lib/
+    search-history.ts       novo (localStorage)
+
+public/
+  manifest.webmanifest      novo
+index.html                  edita: link manifest + theme-color
 ```
 
-## Banco (migração única)
-
-```text
-chapter_studies      (user_id, book_slug, chapter, content jsonb)
-reflection_answers   (user_id, book_slug, chapter, question_index, question, answer)
-daily_devotionals    (user_id, date, verse_ref, content jsonb, completed_at)
-reading_plans        ADD COLUMN ai_generated boolean DEFAULT false
-```
-
-- RLS: cada tabela com policy `auth.uid() = user_id` para SELECT/INSERT/UPDATE/DELETE.
-- GRANTs para `authenticated` e `service_role` (edge functions).
-- UNIQUE constraints para cache idempotente.
-
-## Modelo de IA
-
-- `google/gemini-2.5-flash` para `chapter-study` e `generate-plan` (resposta longa estruturada).
-- `google/gemini-2.5-flash-lite` para `daily-devotional` (curto, alto volume).
-- Todas as funções reaproveitam o **system prompt confessional 1689** já presente em `supabase/functions/chat/index.ts` (vamos extrair para `supabase/functions/_shared/system-prompt.ts`).
-- Saída estruturada via `response_format: { type: "json_schema" }` quando o gateway aceitar, com fallback para parse de JSON cru.
-
-## Considerações
-
-- **Custo:** cache agressivo em DB garante 1 chamada por capítulo por usuário e 1 por dia (devocional). Planos só geram sob ação explícita.
-- **Latência:** Sheet abre com skeleton; resposta típica 2–5s. Mostra "Gerando estudo do capítulo..." com spinner.
-- **Erros 429/402:** tratados com toast ("Tente novamente em alguns segundos" / "Créditos esgotados").
-- **Privacidade:** respostas do diário são por usuário, nunca expostas a outros (RLS estrita).
+Sem migrations nesta fase (nenhuma mudança de schema).
 
 ## Ordem de entrega
 
-1. Migration (`chapter_studies`, `reflection_answers`, `daily_devotionals`, `reading_plans.ai_generated`) + extração do system prompt compartilhado.
-2. Edge function `chapter-study` + `useChapterStudy` + `StudySheet` (abas Contexto/Temas/Esboço/Aplicação) + botão na `Reading.tsx`.
-3. Aba **Reflexão** no StudySheet + `useReflectionAnswers` + página `Journal.tsx`.
-4. Edge function `daily-devotional` + `DevotionalCard` substituindo no Dashboard.
-5. Edge function `generate-plan` + `CreatePlanDialog` em `Plans.tsx`.
+1. Reescrita do `system-prompt.ts` + refator do `chat/index.ts` (entrega o pedido explícito do usuário).
+2. `_shared/ai.ts` + refator das funções de IA.
+3. Dashboard `ContinueReadingCard` + atalhos de teclado em Reading.
+4. Search: histórico recente + filtro AT/NT.
+5. PWA manifest.
+6. Pequenos ajustes a11y.
+
+## Considerações
+
+- **Sem regressão doutrinária:** o conteúdo continua o mesmo; só a forma de citar muda. Test manual: perguntar "qual confissão vocês seguem?" → o tutor responde sobre os princípios sem nomear escola.
+- **Sem mudança visível de UI no chat** além de respostas mais "limpas" de jargão denominacional.
+- **Custo zero adicional** — apenas reorganização do prompt e features client-side.
