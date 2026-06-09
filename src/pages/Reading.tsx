@@ -59,6 +59,19 @@ const Reading = () => {
   const { data, loading, error } = useBibleChapter(bookSlug, chapter);
   const { data: wordMap } = useChapterWordMap(bookSlug, chapter);
   const { upsert, remove, byVerse } = useChapterHighlights(bookSlug, chapter);
+  const [chaptersRead, setChaptersRead] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (!user) return;
+    fetchProgress(user.id).then((p) => {
+      const set = new Set<number>();
+      for (const tag of p.chaptersRead) {
+        const [slug, n] = tag.split(":");
+        if (slug === bookSlug) set.add(Number(n));
+      }
+      setChaptersRead(set);
+    });
+  }, [user, bookSlug, chapter]);
 
   const mappedIndex = useMemo(() => {
     const m = new Map<string, string>();
@@ -141,6 +154,19 @@ const Reading = () => {
 
   const goPrev = () => chapter > 1 && setChapter(chapter - 1);
   const goNext = () => chapter < book.chapters && setChapter(chapter + 1);
+
+  // Keyboard shortcuts: ← / → para navegar entre capítulos (desktop)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowLeft") goPrev();
+      else if (e.key === "ArrowRight") goNext();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [chapter, book.chapters]);
 
   // Long press handling
   const pressTimer = useRef<number | null>(null);
