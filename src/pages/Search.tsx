@@ -184,7 +184,7 @@ const SearchPage = () => {
         {/* Text results */}
         {mode === "text" && (
           <div className="mt-6">
-            <div className="mb-3 flex items-center gap-2">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
               <label className="text-xs text-muted-foreground">Livro:</label>
               <select
                 value={textBookSlug}
@@ -194,11 +194,20 @@ const SearchPage = () => {
                 }}
                 className="rounded-md border bg-background px-2 py-1 text-sm"
               >
-                {BIBLE_BOOKS.map((b) => (
-                  <option key={b.slug} value={b.slug}>
-                    {b.name}
-                  </option>
-                ))}
+                <optgroup label="Antigo Testamento">
+                  {BIBLE_BOOKS.filter((b) => b.testament === "AT").map((b) => (
+                    <option key={b.slug} value={b.slug}>
+                      {b.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Novo Testamento">
+                  {BIBLE_BOOKS.filter((b) => b.testament === "NT").map((b) => (
+                    <option key={b.slug} value={b.slug}>
+                      {b.name}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </div>
 
