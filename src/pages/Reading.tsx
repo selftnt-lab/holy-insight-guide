@@ -59,6 +59,19 @@ const Reading = () => {
   const { data, loading, error } = useBibleChapter(bookSlug, chapter);
   const { data: wordMap } = useChapterWordMap(bookSlug, chapter);
   const { upsert, remove, byVerse } = useChapterHighlights(bookSlug, chapter);
+  const [chaptersRead, setChaptersRead] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (!user) return;
+    fetchProgress(user.id).then((p) => {
+      const set = new Set<number>();
+      for (const tag of p.chaptersRead) {
+        const [slug, n] = tag.split(":");
+        if (slug === bookSlug) set.add(Number(n));
+      }
+      setChaptersRead(set);
+    });
+  }, [user, bookSlug, chapter]);
 
   const mappedIndex = useMemo(() => {
     const m = new Map<string, string>();
@@ -141,6 +154,19 @@ const Reading = () => {
 
   const goPrev = () => chapter > 1 && setChapter(chapter - 1);
   const goNext = () => chapter < book.chapters && setChapter(chapter + 1);
+
+  // Keyboard shortcuts: ← / → para navegar entre capítulos (desktop)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowLeft") goPrev();
+      else if (e.key === "ArrowRight") goNext();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [chapter, book.chapters]);
 
   // Long press handling
   const pressTimer = useRef<number | null>(null);
@@ -232,22 +258,31 @@ const Reading = () => {
                 <SheetTitle>{book.name} — Capítulo</SheetTitle>
               </SheetHeader>
               <div className="mt-4 grid grid-cols-6 gap-2 overflow-y-auto h-[calc(60vh-80px)]">
-                {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => {
-                      setChapter(n);
-                      setChapterSheetOpen(false);
-                    }}
-                    className={`aspect-square rounded-lg text-sm font-medium transition-colors ${
-                      n === chapter
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted hover:bg-muted/70"
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
+                {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => {
+                  const read = chaptersRead.has(n);
+                  return (
+                    <button
+                      key={n}
+                      onClick={() => {
+                        setChapter(n);
+                        setChapterSheetOpen(false);
+                      }}
+                      className={`relative aspect-square rounded-lg text-sm font-medium transition-colors ${
+                        n === chapter
+                          ? "bg-primary text-primary-foreground"
+                          : read
+                          ? "bg-accent/15 text-foreground hover:bg-accent/25"
+                          : "bg-muted hover:bg-muted/70"
+                      }`}
+                      aria-label={`Capítulo ${n}${read ? " (já lido)" : ""}`}
+                    >
+                      {n}
+                      {read && n !== chapter && (
+                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-accent" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </SheetContent>
           </Sheet>

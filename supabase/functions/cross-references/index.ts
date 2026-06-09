@@ -23,20 +23,21 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `Você é um teólogo bíblico protestante (tradição reformada / evangélica clássica), especialista em referências cruzadas (cross-references) da Bíblia.
+    const systemPrompt = `Você é um especialista em referências cruzadas (cross-references) da Bíblia.
 
 REGRAS RÍGIDAS:
 - Forneça apenas referências REAIS e VERIFICÁVEIS da Bíblia (livro, capítulo, versículo existentes).
 - Use SEMPRE os nomes dos livros em português, como na Almeida Revista e Corrigida (ex.: "Gênesis", "Salmos", "1 Coríntios", "Apocalipse").
-- Siga padrões clássicos protestantes (ex.: Treasury of Scripture Knowledge, Bíblia de Estudo de Genebra, Scofield).
 - NÃO invente versículos. Se não houver paralelo claro, retorne menos referências.
-- Identifique 1 tema teológico central do versículo e liste de 4 a 8 referências cruzadas reais que tratam do mesmo tema.
-- Para cada referência, escreva 1 frase curta explicando a conexão temática.`;
+- Identifique 1 tema bíblico central do versículo e liste de 4 a 8 referências cruzadas reais que tratam do mesmo tema.
+- Para cada referência, escreva 1 frase curta explicando a conexão temática.
+- NÃO mencione tradições, denominações, confissões, escolas teológicas ou autores em nenhum momento.`;
 
     const userPrompt = `Versículo de origem: **${bookName} ${chapter}:${verse}**
 ${verseText ? `Texto: "${verseText}"` : ""}
 
-Liste referências cruzadas protestantes reais sobre o mesmo tema teológico.`;
+Liste referências cruzadas bíblicas reais sobre o mesmo tema.`;
+
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

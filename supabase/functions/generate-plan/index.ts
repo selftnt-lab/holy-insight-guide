@@ -32,7 +32,7 @@ Responda APENAS JSON:
   ]
 }
 
-Use referências bíblicas reais e variadas (AT e NT). Reflexões pastorais, alinhadas à fé reformada confessional.`;
+Use referências bíblicas reais e variadas (AT e NT). Reflexões pastorais e bíblicas, sem nomear tradições, denominações ou autores.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

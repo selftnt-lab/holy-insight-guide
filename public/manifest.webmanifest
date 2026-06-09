@@ -1,0 +1,19 @@
+{
+  "name": "Holy Insight Guide",
+  "short_name": "Holy Insight",
+  "description": "Guia bíblico de bolso: leitura, estudo com IA e devocional diário.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
