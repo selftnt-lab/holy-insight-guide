@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { CONFESSIONAL_SYSTEM_PROMPT } from "../_shared/system-prompt.ts";
+import { callLovableAI, extractToolCallArgs, jsonResponse } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,25 +29,20 @@ interface CardOut {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS")
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { bookName, bookSlug, chapter } = await req.json();
-
     if (!bookName || !bookSlug || !chapter) {
-      return new Response(
-        JSON.stringify({ error: "Parâmetros obrigatórios ausentes." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: "Parâmetros obrigatórios ausentes." }, 400, corsHeaders);
     }
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // 1) Cache hit?
+    // Cache hit
     const { data: cached } = await supabase
       .from("explore_suggestions")
       .select("cards")
@@ -54,129 +51,100 @@ serve(async (req) => {
       .maybeSingle();
 
     if (cached?.cards) {
-      return new Response(JSON.stringify({ cards: cached.cards, cached: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ cards: cached.cards, cached: true }, 200, corsHeaders);
     }
 
-    // 2) Generate via Lovable AI
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
+    const userPrompt = `Livro: ${bookName}
+Capítulo: ${chapter}
 
-    const systemPrompt = `Você é um teólogo cristão protestante que prepara material de estudo bíblico devocional. Dado um livro e capítulo, gere 6 cards interativos para um app de leitura bíblica. Os cards devem estar DIRETAMENTE conectados ao conteúdo do capítulo informado e ajudar o leitor a explorar o texto em profundidade. Use linguagem clara, acessível, em português brasileiro. Mantenha a teologia em padrão protestante histórico (sola scriptura, sola fide).`;
+Gere 6 cards variando entre estes tipos:
+- "lugar": local geográfico ou cidade mencionada/relacionada
+- "personagem": pessoa importante que aparece no capítulo
+- "tema": tema teológico central do trecho
+- "pergunta": pergunta provocativa para reflexão
 
-    const userPrompt = `Livro: ${bookName}\nCapítulo: ${chapter}\n\nGere 6 cards variando entre estes tipos:\n- "lugar": local geográfico ou cidade mencionada/relacionada\n- "personagem": pessoa importante que aparece no capítulo\n- "tema": tema teológico central do trecho\n- "pergunta": pergunta provocativa para reflexão\n\nDistribua de forma equilibrada (idealmente 1-2 de cada tipo, conforme o capítulo permite).`;
+Distribua de forma equilibrada (idealmente 1-2 de cada tipo, conforme o capítulo permite).
+Os cards devem estar diretamente conectados ao conteúdo do capítulo informado e ajudar o leitor a explorar o texto em profundidade. Linguagem clara, acessível, em português brasileiro.`;
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "generate_cards",
-              description: "Retorna 6 cards de exploração contextual",
-              parameters: {
-                type: "object",
-                properties: {
-                  cards: {
-                    type: "array",
-                    minItems: 6,
-                    maxItems: 6,
-                    items: {
-                      type: "object",
-                      properties: {
-                        type: {
-                          type: "string",
-                          enum: ["lugar", "personagem", "tema", "pergunta"],
-                        },
-                        title: {
-                          type: "string",
-                          description: "Título curto, 1-3 palavras",
-                        },
-                        description: {
-                          type: "string",
-                          description: "Descrição em 1 frase curta (máx 90 caracteres)",
-                        },
-                        prompt: {
-                          type: "string",
-                          description:
-                            "Pergunta ou pedido completo que será enviado ao Tutor IA quando o usuário tocar no card",
-                        },
+    const ai = await callLovableAI({
+      model: "google/gemini-2.5-flash",
+      fallbackModel: "google/gemini-2.5-flash-lite",
+      messages: [
+        { role: "system", content: CONFESSIONAL_SYSTEM_PROMPT },
+        { role: "user", content: userPrompt },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "generate_cards",
+            description: "Retorna 6 cards de exploração contextual",
+            parameters: {
+              type: "object",
+              properties: {
+                cards: {
+                  type: "array",
+                  minItems: 6,
+                  maxItems: 6,
+                  items: {
+                    type: "object",
+                    properties: {
+                      type: {
+                        type: "string",
+                        enum: ["lugar", "personagem", "tema", "pergunta"],
                       },
-                      required: ["type", "title", "description", "prompt"],
-                      additionalProperties: false,
+                      title: { type: "string", description: "Título curto, 1-3 palavras" },
+                      description: {
+                        type: "string",
+                        description: "Descrição em 1 frase curta (máx 90 caracteres)",
+                      },
+                      prompt: {
+                        type: "string",
+                        description:
+                          "Pergunta ou pedido completo que será enviado ao Tutor IA quando o usuário tocar no card",
+                      },
                     },
+                    required: ["type", "title", "description", "prompt"],
+                    additionalProperties: false,
                   },
                 },
-                required: ["cards"],
-                additionalProperties: false,
               },
+              required: ["cards"],
+              additionalProperties: false,
             },
           },
-        ],
-        tool_choice: { type: "function", function: { name: "generate_cards" } },
-      }),
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "generate_cards" } },
     });
 
-    if (!aiRes.ok) {
-      if (aiRes.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Limite de requisições atingido. Tente em instantes." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (aiRes.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos de IA esgotados." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const t = await aiRes.text();
-      console.error("AI gateway error:", aiRes.status, t);
-      return new Response(
-        JSON.stringify({ error: "Erro ao gerar sugestões." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!ai.ok) return jsonResponse({ error: ai.error }, ai.status, corsHeaders);
+
+    const aiJson = await ai.response.json();
+    const args = extractToolCallArgs<{ cards: Array<Omit<CardOut, "gradient">> }>(aiJson);
+    if (!args?.cards) {
+      return jsonResponse({ error: "IA não retornou cards estruturados." }, 500, corsHeaders);
     }
 
-    const aiJson = await aiRes.json();
-    const toolCall = aiJson.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) throw new Error("IA não retornou cards estruturados");
-
-    const args = JSON.parse(toolCall.function.arguments);
-    const rawCards: Array<Omit<CardOut, "gradient">> = args.cards;
-
-    const cards: CardOut[] = rawCards.slice(0, 6).map((c, i) => ({
+    const cards: CardOut[] = args.cards.slice(0, 6).map((c, i) => ({
       ...c,
       gradient: GRADIENTS[i % GRADIENTS.length],
     }));
 
-    // 3) Cache (best-effort)
     await supabase
       .from("explore_suggestions")
       .upsert(
         { book_slug: bookSlug, chapter, cards },
-        { onConflict: "book_slug,chapter" }
+        { onConflict: "book_slug,chapter" },
       );
 
-    return new Response(JSON.stringify({ cards, cached: false }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ cards, cached: false }, 200, corsHeaders);
   } catch (e) {
     console.error("explore-suggestions error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    return jsonResponse(
+      { error: e instanceof Error ? e.message : "Erro desconhecido" },
+      500,
+      corsHeaders,
     );
   }
 });
