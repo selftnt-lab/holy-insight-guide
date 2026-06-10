@@ -23,6 +23,8 @@ import Licenses from "@/pages/legal/Licenses";
 import NotFound from "@/pages/NotFound";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
 import MiniAudioPlayer from "@/components/MiniAudioPlayer";
+import AppFooter from "@/components/AppFooter";
+
 
 
 const queryClient = new QueryClient();
