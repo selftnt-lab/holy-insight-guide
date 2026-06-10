@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -100,24 +102,74 @@ serve(async (req) => {
     }
 
     const key = `${book}:${chapter}:${translation}`;
-    const cached = cache.get(key);
-    if (cached && Date.now() - cached.ts < TTL) {
-      return new Response(JSON.stringify(cached.data), {
+    const memCached = cache.get(key);
+    if (memCached && Date.now() - memCached.ts < TTL) {
+      return new Response(JSON.stringify(memCached.data), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // DB cache (cross-user, persistent)
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const chapterNum = parseInt(chapter, 10);
+    if (Number.isFinite(chapterNum) && chapterNum > 0) {
+      const { data: dbCached } = await supabase
+        .from("bible_chapter_cache")
+        .select("payload")
+        .eq("translation", translation)
+        .eq("book_slug", book)
+        .eq("chapter", chapterNum)
+        .maybeSingle();
+      if (dbCached?.payload) {
+        cache.set(key, { data: dbCached.payload, ts: Date.now() });
+        return new Response(JSON.stringify(dbCached.payload), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Almeida needs PT names; English translations accept the English slug as-is.
     const bookName = translation === "almeida" ? (SLUG_TO_PT[book] || book) : book;
     const apiUrl = `https://bible-api.com/${encodeURIComponent(bookName)}+${encodeURIComponent(chapter)}?translation=${translation}`;
-    const res = await fetch(apiUrl);
+
+    // Fetch com 1 retry e timeout
+    const fetchWithTimeout = async (): Promise<Response> => {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 15000);
+      try {
+        return await fetch(apiUrl, { signal: ctrl.signal });
+      } finally {
+        clearTimeout(to);
+      }
+    };
+
+    let res: Response;
+    try {
+      res = await fetchWithTimeout();
+      if (!res.ok && res.status >= 500) {
+        await new Promise((r) => setTimeout(r, 600));
+        res = await fetchWithTimeout();
+      }
+    } catch (e) {
+      console.error("bible-api network error:", e, "url:", apiUrl);
+      return new Response(
+        JSON.stringify({
+          error:
+            "Não foi possível carregar este capítulo no momento. Tente novamente em instantes.",
+        }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     if (!res.ok) {
-      const t = await res.text();
+      const t = await res.text().catch(() => "");
       console.error("bible-api error:", res.status, t, "url:", apiUrl);
       return new Response(
         JSON.stringify({ error: "Não foi possível carregar este capítulo." }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -132,6 +184,25 @@ serve(async (req) => {
     };
 
     cache.set(key, { data: result, ts: Date.now() });
+
+    // Persiste em DB (best-effort)
+    if (Number.isFinite(chapterNum) && chapterNum > 0) {
+      supabase
+        .from("bible_chapter_cache")
+        .upsert(
+          {
+            translation,
+            book_slug: book,
+            chapter: chapterNum,
+            payload: result,
+            fetched_at: new Date().toISOString(),
+          },
+          { onConflict: "translation,book_slug,chapter" },
+        )
+        .then(({ error }) => {
+          if (error) console.warn("bible cache upsert error:", error.message);
+        });
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
