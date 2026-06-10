@@ -17,6 +17,9 @@ import ChatHistory from "@/pages/ChatHistory";
 import Plans from "@/pages/Plans";
 import Search from "@/pages/Search";
 import Journal from "@/pages/Journal";
+import Terms from "@/pages/legal/Terms";
+import Privacy from "@/pages/legal/Privacy";
+import Licenses from "@/pages/legal/Licenses";
 import NotFound from "@/pages/NotFound";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
 import MiniAudioPlayer from "@/components/MiniAudioPlayer";
@@ -44,6 +47,9 @@ const App = () => (
                 <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
                 <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
                 <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
+                <Route path="/legal/termos" element={<Terms />} />
+                <Route path="/legal/privacidade" element={<Privacy />} />
+                <Route path="/legal/licencas" element={<Licenses />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MiniAudioPlayer />
