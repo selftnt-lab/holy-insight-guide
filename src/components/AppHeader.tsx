@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import rcBibleLogo from "@/assets/rc-bible-logo.png";
+import rcBibleLogo from "@/assets/rc-bible-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 
 const AppHeader = () => {
@@ -11,7 +11,7 @@ const AppHeader = () => {
   return (
     <header className="relative flex items-center justify-center px-5 py-1.5">
       <img
-        src={rcBibleLogo}
+        src={rcBibleLogo.url}
         alt="RC Bible - Renovada Church"
         className="h-24 w-auto object-scale-down"
       />
