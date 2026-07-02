@@ -1,40 +1,80 @@
-# Holy Insight Guide — Estado e Roadmap
 
-## Fase 6 — Auditoria e Ajustes Finais (concluída)
+# Reestruturação Visual — RC Bible
 
-### Auditoria realizada
-- Frontend, edge functions, RLS, prompts de IA, fontes de dados e fluxo de auth revisados.
-- Nenhum mock ou dado fabricado: texto bíblico via bible-api.com (Almeida domínio público + 3 EN), IA via Lovable AI Gateway com schemas estruturados, léxico em tabela própria.
-- Identificadas e corrigidas as inconsistências doutrinárias remanescentes (prompt de exploração ainda nomeava escola teológica).
+Escopo estritamente visual: troca de logo e refino da paleta Light/Dark. **Nenhuma alteração** em rotas, componentes, botões, layout ou conteúdo textual.
 
-### Traduções bíblicas
-Mantemos exclusivamente traduções em **domínio público** para distribuição legal sem necessidade de licenciamento:
-- Almeida (João Ferreira de Almeida — clássica)
-- King James Version
-- World English Bible
-- American Standard Version (1901)
+## 1. Substituição da logo
 
-Versões como ARA, ARC moderna, NVI, NVT e NAA exigem licenciamento comercial das respectivas detentoras e **não** foram incluídas. Decisão registrada em `src/pages/legal/Licenses.tsx`.
+A logo atual "NOVUS Insight" será substituída pela **RC Bible / Renovada Church** (imagem anexa com o símbolo de raízes/ramos).
 
-### Entregas
-1. **Sanitização completa do tutor IA**: `explore-suggestions`, `cross-references`, `word-study`, `chat`, `chapter-study`, `daily-devotional`, `generate-plan` usam o mesmo `CONFESSIONAL_SYSTEM_PROMPT` neutro (sem nomear confissões, denominações ou autores) e/ou instruções técnicas específicas sem rótulos.
-2. **Helper unificado de IA**: `supabase/functions/_shared/ai.ts` centraliza chamada ao gateway, fallback de modelo em 5xx, mapeamento 429/402, timeout e extração de JSON/tool-call.
-3. **Cache persistente de capítulos**: nova tabela `bible_chapter_cache` (RLS, leitura pública) + retry com backoff em `bible/index.ts`. Reduz custo e latência entre cold starts.
-4. **Política de planos**: `reading_plans` agora retorna planos curados publicamente, mas planos gerados por IA ficam visíveis apenas para o criador.
-5. **Páginas legais**: `/legal/termos`, `/legal/privacidade`, `/legal/licencas`, com links no rodapé.
-6. **Tutor sem menções nominais**: regra explícita no prompt e nas instruções por função.
+Arquivos afetados (apenas troca do `src` da imagem, sem alterar tamanhos, classes ou posicionamento):
 
-### Arquivos alterados/criados
-- `supabase/functions/_shared/ai.ts` (novo)
-- `supabase/functions/explore-suggestions/index.ts` (sanitizado + helper)
-- `supabase/functions/cross-references/index.ts` (sanitizado + helper)
-- `supabase/functions/bible/index.ts` (DB cache + retry + timeout)
-- `src/pages/legal/Terms.tsx`, `Privacy.tsx`, `Licenses.tsx` (novos)
-- `src/App.tsx` (rotas /legal/*)
-- `src/components/AppFooter.tsx` (links legais)
-- migração: `bible_chapter_cache` + ajuste de policy em `reading_plans`
+- `src/assets/novus-insight-logo.png` → substituído pela nova logo RC Bible (arquivo `rc-bible-logo.png`)
+- `src/components/AppHeader.tsx` — mantém `h-20 w-auto object-scale-down`, apenas o `import` e `alt="RC Bible - Renovada Church"`
+- `src/pages/Auth.tsx` — mesma troca de import + alt
+- `index.html` — atualiza `<title>`, `meta description`, `og:title`, `og:description`, `apple-touch-icon` referências textuais de "NOVUS Insight" → "RC Bible"
+- `public/manifest.webmanifest` — `name` / `short_name` para "RC Bible"
+- **Favicon**: gerar `public/favicon.png` a partir do símbolo da logo e remover `public/favicon.ico`
 
-### Próximos passos sugeridos
-- Smoke tests Deno cobrindo `chat`, `chapter-study`, `bible`.
-- Lazy-load (`React.lazy`) dos sheets pesados em `Reading.tsx`.
-- og:image dedicada para compartilhamento social.
+**Rodapé "Um produto NOVUS.AI" permanece intocado** (é a assinatura da produtora, não a marca do app). Arquivos `AppFooter.tsx` e `BottomNav.tsx` continuam usando `novus-ai-logo.png`.
+
+## 2. Refino Light/Dark (paleta RC Bible)
+
+A imagem de referência mostra um dark **preto profundo com branco puro** (estética Apple-like, monocromática). Vou refinar os tokens em `src/index.css` mantendo a **estrutura de tokens semânticos existente** — nenhum componente precisa mudar.
+
+### Dark mode (destaque — combina com o mock)
+```
+--background:  0 0% 4%          /* preto profundo #0a0a0a */
+--card:        0 0% 8%          /* #141414 */
+--popover:     0 0% 8%
+--foreground:  0 0% 98%         /* branco */
+--muted:       0 0% 12%
+--muted-foreground: 0 0% 65%
+--primary:     0 0% 98%         /* branco (CTAs) */
+--primary-foreground: 0 0% 6%
+--accent:      210 15% 75%      /* cinza-azulado suave para hover/destaque */
+--border:      0 0% 16%
+--ring:        0 0% 40%
+--gradient-sacred: linear-gradient(135deg, hsl(0 0% 8%), hsl(0 0% 14%))
+```
+
+### Light mode (mantido coerente, mas afinado)
+```
+--background:  0 0% 99%         /* branco puro-off */
+--foreground:  0 0% 8%
+--card:        0 0% 100%
+--muted:       0 0% 96%
+--muted-foreground: 0 0% 40%
+--primary:     0 0% 8%          /* preto (CTAs) */
+--primary-foreground: 0 0% 98%
+--accent:      210 20% 45%
+--border:      0 0% 90%
+--ring:        0 0% 20%
+```
+
+### Toggle Light/Dark
+Já existe `ThemeProvider` funcional (`src/components/ThemeProvider.tsx`) com persistência em `localStorage`. **Nada muda** — só refino de tokens.
+
+## 3. O que NÃO será alterado
+
+- Nenhuma estrutura de página, rota, ou componente
+- Nenhum botão, ícone ou posição de elemento
+- Nenhum texto do app (exceto `alt`/meta com "NOVUS Insight" → "RC Bible")
+- Fontes (Lora + Inter) permanecem
+- Rodapé "Um produto NOVUS.AI" permanece
+- Edge functions, hooks, banco: intocados
+
+## Detalhes técnicos
+
+- Upload `user-uploads://Gemini_Generated_Image_wbn275wbn275wbn2.png` (versão completa com "RC BIBLE / RENOVADA CHURCH") vira `src/assets/rc-bible-logo.png` (usada no header e login).
+- `user-uploads://images.png` (só o símbolo) vira `public/favicon.png`.
+- Substituição via `code--copy` — sem lovable-assets, pois já é convenção do projeto usar imports diretos de `src/assets/`.
+- Após edições em `index.html` / `manifest.webmanifest`, nenhum deploy de função necessário.
+
+## Entregáveis
+
+1. Nova logo RC Bible em `src/assets/rc-bible-logo.png`
+2. Novo favicon em `public/favicon.png` (+ remoção do `.ico`)
+3. Tokens de `index.css` refinados (Light + Dark)
+4. Imports e `alt`s atualizados em `AppHeader.tsx` e `Auth.tsx`
+5. Metadata textual atualizada em `index.html` e `manifest.webmanifest`
