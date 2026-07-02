@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import rcBibleLogo from "@/assets/rc-bible-logo.png";
+import rcBibleLogo from "@/assets/rc-bible-logo.png.asset.json";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,7 +105,7 @@ const Auth = () => {
       >
         <div className="flex flex-col items-center mb-8">
           <img
-            src={rcBibleLogo}
+            src={rcBibleLogo.url}
             alt="RC Bible - Renovada Church"
             className="h-40 w-auto object-scale-down"
           />
