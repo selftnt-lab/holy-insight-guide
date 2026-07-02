@@ -1,19 +1,20 @@
 {
-  "name": "Holy Insight Guide",
-  "short_name": "Holy Insight",
-  "description": "Guia bíblico de bolso: leitura, estudo com IA e devocional diário.",
+  "name": "RC Bible — Renovada Church",
+  "short_name": "RC Bible",
+  "description": "Guia bíblico de bolso da Renovada Church com leitura, estudo com IA e devocional diário.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
