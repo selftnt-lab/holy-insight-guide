@@ -60,12 +60,12 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-            Holy Insight · Guia Bíblico
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+            RC Bible · Guia Bíblico
           </p>
-          <h1 className="mt-2 font-serif text-3xl font-semibold leading-tight text-foreground">
+          <h1 className="mt-3 font-serif text-4xl font-normal leading-[1.05] text-foreground">
             {greeting},<br />
-            <span className="text-primary">{readerName}</span>
+            <span className="uppercase tracking-tight">{readerName}</span>
           </h1>
           <SacredDivider className="mt-5" />
         </motion.div>
