@@ -9,7 +9,7 @@ const AppHeader = () => {
   if (location.pathname === "/auth") return null;
 
   return (
-    <header className="relative flex items-center justify-center px-5 py-1.5">
+    <header className="relative flex items-center justify-center border-b border-border/60 px-5 py-1.5">
       <img
         src={rcBibleLogo.url}
         alt="RC Bible - Renovada Church"
