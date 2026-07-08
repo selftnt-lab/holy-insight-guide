@@ -20,6 +20,14 @@ import TranslationComparison from "@/components/TranslationComparison";
 import ReadingAudioControls from "@/components/ReadingAudioControls";
 import StudySheet from "@/components/StudySheet";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
+import { BIBLE_TRANSLATIONS, getStoredTranslation, setStoredTranslation } from "@/lib/bible-translations";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { useChapterWordMap } from "@/hooks/useChapterWordMap";
 import { useChapterHighlights } from "@/hooks/useChapterHighlights";
