@@ -32,7 +32,7 @@ const MiniAudioPlayer = () => {
   };
 
   return (
-    <div className="fixed bottom-[88px] left-0 right-0 z-40 px-3 pointer-events-none">
+    <div className="fixed left-0 right-0 z-[55] px-3 pointer-events-none" style={{ bottom: "calc(6.5rem + env(safe-area-inset-bottom))" }}>
       <div className="mx-auto flex max-w-lg items-center gap-2 rounded-full border border-border bg-card/95 px-3 py-2 shadow-lg backdrop-blur-xl pointer-events-auto">
         <button
           onClick={onReader ? undefined : openReading}

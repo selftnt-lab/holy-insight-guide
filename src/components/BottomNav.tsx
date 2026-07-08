@@ -1,5 +1,5 @@
 import { Home, BookOpen, Compass, User } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import novusLogo from "@/assets/novus-ai-logo.png";
 
@@ -17,7 +17,7 @@ const BottomNav = () => {
   if (location.pathname === "/auth") return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/80 backdrop-blur-xl safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/90 backdrop-blur-xl safe-bottom">
       <div className="mx-auto flex max-w-lg items-center justify-around py-2">
         {tabs.map(({ path, icon: Icon, label }) => {
           const active = location.pathname === path;
@@ -36,13 +36,21 @@ const BottomNav = () => {
           );
         })}
       </div>
-      <div className="flex items-center justify-center gap-2 py-1 text-[10px] text-muted-foreground">
-        <span>Um produto</span>
-        <img
-          src={novusLogo}
-          alt="NOVUS.AI"
-          className="h-3.5 w-auto opacity-90 dark:brightness-0 dark:invert"
-        />
+      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 border-t border-border/50 px-3 py-1 text-[10px] text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span>Um produto</span>
+          <img
+            src={novusLogo}
+            alt="NOVUS.AI"
+            className="h-3 w-auto opacity-90 dark:brightness-0 dark:invert"
+          />
+        </span>
+        <span aria-hidden className="opacity-50">·</span>
+        <Link to="/legal/termos" className="hover:text-foreground">Termos</Link>
+        <span aria-hidden className="opacity-50">·</span>
+        <Link to="/legal/privacidade" className="hover:text-foreground">Privacidade</Link>
+        <span aria-hidden className="opacity-50">·</span>
+        <Link to="/legal/licencas" className="hover:text-foreground">Licenças</Link>
       </div>
     </nav>
   );

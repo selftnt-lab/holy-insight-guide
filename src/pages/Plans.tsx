@@ -201,7 +201,7 @@ const Plans = () => {
   const available = plans.filter((p) => !progressByPlan.has(p.id));
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-32">
       <div className="mx-auto max-w-lg px-5 pt-12">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
