@@ -94,6 +94,24 @@ serve(async (req) => {
       systemContent += `\n\nO usuário quer aprender sobre **${topic.topicName}**${topic.description ? ` — ${topic.description}` : ""}. Forneça contexto bíblico, histórico e cultural sobre este tema.`;
     }
 
+    // RAG: retrieve grounded material from admin-curated knowledge base
+    const lastUser = [...messages].reverse().find((m: { role: string }) => m.role === "user");
+    const queryText = [
+      topic?.topicName,
+      ctx?.bookName ? `${ctx.bookName} ${ctx.chapter ?? ""}` : "",
+      typeof lastUser?.content === "string" ? lastUser.content : "",
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    if (queryText) {
+      const kb = await retrieveKnowledge(queryText, LOVABLE_API_KEY);
+      if (kb) {
+        systemContent += `\n\n## BASE DE CONHECIMENTO APROVADA (fonte primária)\nUse OBRIGATORIAMENTE os trechos abaixo como base doutrinária e material de apoio quando forem relevantes à pergunta. Se contradisserem seu conhecimento genérico, os trechos abaixo prevalecem. Não cite os trechos como "documento X" — integre o conteúdo na resposta com naturalidade pastoral.\n\n"""\n${kb}\n"""`;
+      }
+    }
+
     const payload = {
       messages: [{ role: "system", content: systemContent }, ...messages],
       stream: true,
