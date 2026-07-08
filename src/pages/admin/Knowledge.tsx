@@ -280,6 +280,76 @@ const AdminKnowledge = () => {
         </Button>
       </Card>
 
+      <Card className="mb-8 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <FlaskConical size={18} className="text-accent" />
+          <h2 className="font-serif text-lg">Testar RAG</h2>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Envie uma pergunta e veja quais trechos seriam usados pela IA com os ajustes atuais.
+        </p>
+        <Textarea
+          value={testQuery}
+          onChange={(e) => setTestQuery(e.target.value)}
+          rows={3}
+          placeholder='Ex.: "O que a base ensina sobre justificação pela fé?"'
+        />
+        <Button
+          onClick={runTest}
+          disabled={testing}
+          variant="secondary"
+          className="w-full"
+        >
+          {testing ? (
+            <><Loader2 className="mr-2 animate-spin" size={16} /> Buscando...</>
+          ) : (
+            <><FlaskConical className="mr-2" size={16} /> Executar teste</>
+          )}
+        </Button>
+
+        {testResults && (
+          <div className="space-y-2 pt-2">
+            <div className="rounded-md bg-muted/50 p-2 text-xs">
+              <span className="font-medium">{testResults.passing}</span> de{" "}
+              <span className="font-medium">{testResults.total}</span> trechos passariam no filtro
+              (threshold {testResults.threshold.toFixed(2)}, k={testResults.match_count})
+            </div>
+            {testResults.results.length === 0 ? (
+              <p className="py-4 text-center text-xs text-muted-foreground">
+                Nenhum trecho encontrado. Adicione mais material à base.
+              </p>
+            ) : (
+              testResults.results.map((r) => (
+                <div
+                  key={r.id}
+                  className={`rounded-md border p-3 text-sm ${
+                    r.passes ? "border-accent/40 bg-accent/5" : "border-muted opacity-60"
+                  }`}
+                >
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <span className="truncate font-medium">{r.title}</span>
+                    <span className="flex shrink-0 items-center gap-1 font-mono text-xs">
+                      {r.passes ? (
+                        <Check size={12} className="text-accent" />
+                      ) : (
+                        <X size={12} className="text-muted-foreground" />
+                      )}
+                      {(r.similarity * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  {r.source && (
+                    <p className="mb-1 text-[11px] text-muted-foreground">{r.source}</p>
+                  )}
+                  <p className="line-clamp-3 text-xs text-muted-foreground">{r.content}</p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </Card>
+
+
+
 
       <Card className="mb-8 p-4 space-y-3">
         <div>
