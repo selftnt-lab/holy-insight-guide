@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Reading plans are readable by everyone" ON public.reading_plans;
