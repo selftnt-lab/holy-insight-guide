@@ -187,6 +187,64 @@ const AdminKnowledge = () => {
         Materiais em texto usados para ancorar as respostas do Tutor IA.
       </p>
 
+      <Card className="mb-8 p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <Settings2 size={18} className="text-accent" />
+          <h2 className="font-serif text-lg">Ajustes do RAG</h2>
+        </div>
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground">
+              Limite de similaridade
+            </label>
+            <span className="font-mono text-xs">{threshold.toFixed(2)}</span>
+          </div>
+          <Slider
+            value={[threshold]}
+            min={0}
+            max={1}
+            step={0.01}
+            onValueChange={(v) => setThreshold(v[0])}
+            disabled={!settingsLoaded}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Trechos abaixo deste valor são descartados. Mais alto = mais restrito.
+          </p>
+        </div>
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground">
+              Trechos por consulta (k)
+            </label>
+            <span className="font-mono text-xs">{matchCount}</span>
+          </div>
+          <Slider
+            value={[matchCount]}
+            min={1}
+            max={20}
+            step={1}
+            onValueChange={(v) => setMatchCount(v[0])}
+            disabled={!settingsLoaded}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Máximo de trechos recuperados por pergunta antes do filtro.
+          </p>
+        </div>
+        <Button
+          onClick={saveSettings}
+          disabled={savingSettings || !settingsLoaded}
+          variant="secondary"
+          className="w-full"
+        >
+          {savingSettings ? (
+            <><Loader2 className="mr-2 animate-spin" size={16} /> Salvando...</>
+          ) : (
+            <><Save className="mr-2" size={16} /> Salvar configurações</>
+          )}
+        </Button>
+      </Card>
+
+
       <Card className="mb-8 p-4 space-y-3">
         <div>
           <label className="mb-1 block text-xs font-medium text-muted-foreground">
