@@ -63,6 +63,13 @@ const Reading = () => {
   const [immersive, setImmersive] = useState(false);
   const [chromeVisible, setChromeVisible] = useState(true);
   const verseRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
+  const [flashVerse, setFlashVerse] = useState<number | null>(null);
+  const flashTimeoutRef = useRef<number | null>(null);
+  const triggerFlash = (verse: number) => {
+    if (flashTimeoutRef.current) window.clearTimeout(flashTimeoutRef.current);
+    setFlashVerse(verse);
+    flashTimeoutRef.current = window.setTimeout(() => setFlashVerse(null), 2400);
+  };
   const audio = useAudioPlayer();
   const initialVerseParam = params.get("verse");
 
