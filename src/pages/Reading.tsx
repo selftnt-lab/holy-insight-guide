@@ -416,6 +416,27 @@ const Reading = () => {
                                     });
                                     didJumpRef.current = false;
                                     setNavOpen(false);
+
+                                    // Imperative scroll: wait for the sheet's close animation
+                                    // to release the scroll lock, then retry until the node is painted.
+                                    let attempts = 0;
+                                    const tryScroll = () => {
+                                      const el = verseRefs.current.get(n);
+                                      if (el) {
+                                        const y =
+                                          el.getBoundingClientRect().top + window.scrollY - 96;
+                                        window.scrollTo({
+                                          top: Math.max(0, y),
+                                          behavior: "smooth",
+                                        });
+                                        didJumpRef.current = true;
+                                        return;
+                                      }
+                                      if (attempts++ < 40) {
+                                        requestAnimationFrame(tryScroll);
+                                      }
+                                    };
+                                    setTimeout(tryScroll, 320);
                                   }}
                                   className="aspect-square rounded-lg bg-muted text-sm font-medium transition-colors hover:bg-muted/70"
                                 >
