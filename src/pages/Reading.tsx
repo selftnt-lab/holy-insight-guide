@@ -221,87 +221,206 @@ const Reading = () => {
           animate={{ opacity: 1 }}
           className="mb-6 flex items-center gap-2"
         >
-          <Sheet open={bookSheetOpen} onOpenChange={setBookSheetOpen}>
+          <Sheet
+            open={navOpen}
+            onOpenChange={(open) => {
+              setNavOpen(open);
+              if (open) {
+                // Reset the wizard to book step whenever it reopens
+                setNavStep("book");
+                setNavBookSlug(bookSlug);
+                setNavChapter(chapter);
+              }
+            }}
+          >
             <SheetTrigger asChild>
               <Button variant="outline" className="flex-1 justify-start gap-2 rounded-full">
                 <BookOpen size={16} />
-                <span className="truncate">{book.name}</span>
+                <span className="truncate">
+                  {book.name} {chapter}
+                </span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="h-[80vh]">
-              <SheetHeader>
-                <SheetTitle>Escolha um livro</SheetTitle>
-              </SheetHeader>
-              <div className="mt-4 overflow-y-auto h-[calc(80vh-80px)]">
-                {(["AT", "NT"] as const).map((t) => (
-                  <div key={t} className="mb-4">
-                    <p className="px-2 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      {t === "AT" ? "Antigo Testamento" : "Novo Testamento"}
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {BIBLE_BOOKS.filter((b) => b.testament === t).map((b) => (
+            <SheetContent side="bottom" className="h-[85vh] p-0">
+              {(() => {
+                const navBook = getBookBySlug(navBookSlug) || book;
+                const verseCount = data?.verses.length ?? 0;
+                return (
+                  <div className="flex h-full flex-col">
+                    {/* Header with breadcrumb */}
+                    <div className="flex items-center gap-2 border-b px-5 py-4">
+                      {navStep !== "book" && (
                         <button
-                          key={b.slug}
-                          onClick={() => {
-                            setBookSlug(b.slug);
-                            setChapter(1);
-                            setBookSheetOpen(false);
-                          }}
-                          className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                            b.slug === bookSlug
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted"
+                          type="button"
+                          onClick={() =>
+                            setNavStep(navStep === "verse" ? "chapter" : "book")
+                          }
+                          className="rounded-full p-1.5 hover:bg-muted"
+                          aria-label="Voltar"
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                      )}
+                      <div className="flex-1 text-sm">
+                        <button
+                          type="button"
+                          onClick={() => setNavStep("book")}
+                          className={`transition-colors ${
+                            navStep === "book"
+                              ? "font-semibold text-foreground"
+                              : "text-muted-foreground hover:text-foreground"
                           }`}
                         >
-                          {b.name}
+                          {navStep === "book" ? "Escolha um livro" : navBook.name}
                         </button>
-                      ))}
+                        {navStep !== "book" && (
+                          <>
+                            <span className="mx-1 text-muted-foreground">·</span>
+                            <button
+                              type="button"
+                              onClick={() => setNavStep("chapter")}
+                              className={`transition-colors ${
+                                navStep === "chapter"
+                                  ? "font-semibold text-foreground"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              {navStep === "chapter"
+                                ? "Escolha um capítulo"
+                                : `Cap. ${navChapter}`}
+                            </button>
+                          </>
+                        )}
+                        {navStep === "verse" && (
+                          <>
+                            <span className="mx-1 text-muted-foreground">·</span>
+                            <span className="font-semibold text-foreground">
+                              Versículo
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Book step */}
+                    {navStep === "book" && (
+                      <div className="flex-1 overflow-y-auto px-5 py-4">
+                        {(["AT", "NT"] as const).map((t) => (
+                          <div key={t} className="mb-4">
+                            <p className="px-2 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                              {t === "AT" ? "Antigo Testamento" : "Novo Testamento"}
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                              {BIBLE_BOOKS.filter((b) => b.testament === t).map((b) => (
+                                <button
+                                  key={b.slug}
+                                  onClick={() => {
+                                    setNavBookSlug(b.slug);
+                                    setNavChapter(1);
+                                    setNavStep("chapter");
+                                  }}
+                                  className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                                    b.slug === navBookSlug
+                                      ? "bg-primary text-primary-foreground"
+                                      : "hover:bg-muted"
+                                  }`}
+                                >
+                                  {b.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Chapter step */}
+                    {navStep === "chapter" && (
+                      <div className="flex flex-1 flex-col overflow-hidden">
+                        <div className="grid grid-cols-6 gap-2 overflow-y-auto px-5 py-4">
+                          {Array.from({ length: navBook.chapters }, (_, i) => i + 1).map((n) => {
+                            const isCurrent =
+                              navBookSlug === bookSlug && n === chapter;
+                            const read = navBookSlug === bookSlug && chaptersRead.has(n);
+                            return (
+                              <button
+                                key={n}
+                                onClick={() => {
+                                  setNavChapter(n);
+                                  // Commit book+chapter immediately, then offer verse step
+                                  setBookSlug(navBookSlug);
+                                  setChapter(n);
+                                  setNavStep("verse");
+                                }}
+                                className={`relative aspect-square rounded-lg text-sm font-medium transition-colors ${
+                                  isCurrent
+                                    ? "bg-primary text-primary-foreground"
+                                    : read
+                                    ? "bg-accent/15 text-foreground hover:bg-accent/25"
+                                    : "bg-muted hover:bg-muted/70"
+                                }`}
+                                aria-label={`Capítulo ${n}${read ? " (já lido)" : ""}`}
+                              >
+                                {n}
+                                {read && !isCurrent && (
+                                  <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-accent" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Verse step */}
+                    {navStep === "verse" && (
+                      <div className="flex flex-1 flex-col overflow-hidden">
+                        <div className="flex-1 overflow-y-auto px-5 py-4">
+                          {loading || verseCount === 0 ? (
+                            <p className="py-8 text-center text-sm text-muted-foreground">
+                              Carregando versículos…
+                            </p>
+                          ) : (
+                            <div className="grid grid-cols-6 gap-2">
+                              {Array.from({ length: verseCount }, (_, i) => i + 1).map((n) => (
+                                <button
+                                  key={n}
+                                  onClick={() => {
+                                    setParams((prev) => {
+                                      const next = new URLSearchParams(prev);
+                                      next.set("book", bookSlug);
+                                      next.set("chapter", String(chapter));
+                                      next.set("verse", String(n));
+                                      return next;
+                                    });
+                                    didJumpRef.current = false;
+                                    setNavOpen(false);
+                                  }}
+                                  className="aspect-square rounded-lg bg-muted text-sm font-medium transition-colors hover:bg-muted/70"
+                                >
+                                  {n}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="border-t px-5 py-3">
+                          <Button
+                            variant="ghost"
+                            className="w-full rounded-full"
+                            onClick={() => setNavOpen(false)}
+                          >
+                            Ler capítulo inteiro
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </SheetContent>
           </Sheet>
 
-          <Sheet open={chapterSheetOpen} onOpenChange={setChapterSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="rounded-full">
-                Cap. {chapter}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[60vh]">
-              <SheetHeader>
-                <SheetTitle>{book.name} — Capítulo</SheetTitle>
-              </SheetHeader>
-              <div className="mt-4 grid grid-cols-6 gap-2 overflow-y-auto h-[calc(60vh-80px)]">
-                {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => {
-                  const read = chaptersRead.has(n);
-                  return (
-                    <button
-                      key={n}
-                      onClick={() => {
-                        setChapter(n);
-                        setChapterSheetOpen(false);
-                      }}
-                      className={`relative aspect-square rounded-lg text-sm font-medium transition-colors ${
-                        n === chapter
-                          ? "bg-primary text-primary-foreground"
-                          : read
-                          ? "bg-accent/15 text-foreground hover:bg-accent/25"
-                          : "bg-muted hover:bg-muted/70"
-                      }`}
-                      aria-label={`Capítulo ${n}${read ? " (já lido)" : ""}`}
-                    >
-                      {n}
-                      {read && n !== chapter && (
-                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-accent" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </SheetContent>
-          </Sheet>
 
           <Select value={translation} onValueChange={handleTranslationChange}>
             <SelectTrigger
