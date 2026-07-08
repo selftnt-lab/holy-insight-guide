@@ -24,7 +24,7 @@ import NotFound from "@/pages/NotFound";
 import AdminKnowledge from "@/pages/admin/Knowledge";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
 import MiniAudioPlayer from "@/components/MiniAudioPlayer";
-import AppFooter from "@/components/AppFooter";
+
 
 
 
