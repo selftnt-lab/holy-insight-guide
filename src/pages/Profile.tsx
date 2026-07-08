@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText, Shield } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useAudioPlayer } from "@/contexts/AudioPlayerProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
@@ -58,6 +59,7 @@ const Profile = () => {
   const ptVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith("pt"));
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { isAdmin } = useIsAdmin();
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [chaptersRead, setChaptersRead] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
@@ -316,6 +318,16 @@ const Profile = () => {
           transition={{ delay: 0.35 }}
           className="mt-6"
         >
+          {isAdmin && (
+            <Button
+              variant="outline"
+              className="mb-2 w-full rounded-xl"
+              onClick={() => navigate("/admin/knowledge")}
+            >
+              <Shield size={18} className="mr-2" />
+              Base de conhecimento (admin)
+            </Button>
+          )}
           <Button
             variant="outline"
             className="w-full rounded-xl"

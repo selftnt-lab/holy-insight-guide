@@ -21,6 +21,7 @@ import Terms from "@/pages/legal/Terms";
 import Privacy from "@/pages/legal/Privacy";
 import Licenses from "@/pages/legal/Licenses";
 import NotFound from "@/pages/NotFound";
+import AdminKnowledge from "@/pages/admin/Knowledge";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
 import MiniAudioPlayer from "@/components/MiniAudioPlayer";
 import AppFooter from "@/components/AppFooter";
@@ -49,6 +50,7 @@ const App = () => (
                 <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
                 <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
                 <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
+                <Route path="/admin/knowledge" element={<ProtectedRoute><AdminKnowledge /></ProtectedRoute>} />
                 <Route path="/legal/termos" element={<Terms />} />
                 <Route path="/legal/privacidade" element={<Privacy />} />
                 <Route path="/legal/licencas" element={<Licenses />} />
