@@ -124,17 +124,38 @@ const Reading = () => {
     if (v === "true") setImmersive(true);
   }, []);
 
-  // Scroll to ?verse= once data is loaded
+  // Scroll to ?verse= once data is loaded (retries until the verse node exists)
   const didJumpRef = useRef(false);
+  useEffect(() => {
+    // Reset jump flag whenever target verse/chapter/book changes
+    didJumpRef.current = false;
+  }, [initialVerseParam, bookSlug, chapter]);
+
   useEffect(() => {
     if (didJumpRef.current || !data || !initialVerseParam) return;
     const v = Number(initialVerseParam);
-    const el = verseRefs.current.get(v);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-      didJumpRef.current = true;
-    }
+    if (!Number.isFinite(v) || v <= 0) return;
+
+    let cancelled = false;
+    let attempts = 0;
+    const tryScroll = () => {
+      if (cancelled || didJumpRef.current) return;
+      const el = verseRefs.current.get(v);
+      if (el) {
+        // Position the verse near the top of the viewport, accounting for sticky chrome
+        const y = el.getBoundingClientRect().top + window.scrollY - 96;
+        window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+        didJumpRef.current = true;
+        return;
+      }
+      if (attempts++ < 30) requestAnimationFrame(tryScroll);
+    };
+    requestAnimationFrame(tryScroll);
+    return () => {
+      cancelled = true;
+    };
   }, [data, initialVerseParam]);
+
 
   // Auto-scroll to currently narrated verse
   useEffect(() => {
