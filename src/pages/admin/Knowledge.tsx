@@ -77,6 +77,42 @@ const AdminKnowledge = () => {
     toast.success("Configurações salvas");
   };
 
+  // RAG test panel
+  interface TestResult {
+    id: string;
+    title: string;
+    source: string | null;
+    similarity: number;
+    passes: boolean;
+    content: string;
+  }
+  const [testQuery, setTestQuery] = useState("");
+  const [testing, setTesting] = useState(false);
+  const [testResults, setTestResults] = useState<{
+    threshold: number;
+    match_count: number;
+    total: number;
+    passing: number;
+    results: TestResult[];
+  } | null>(null);
+
+  const runTest = async () => {
+    if (!testQuery.trim()) return toast.error("Digite uma pergunta");
+    setTesting(true);
+    setTestResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("kb-test", {
+        body: { query: testQuery.trim() },
+      });
+      if (error) throw error;
+      setTestResults(data);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro no teste");
+    } finally {
+      setTesting(false);
+    }
+  };
+
   const handleFile = async (f: File) => {
     if (!f.name.toLowerCase().endsWith(".txt")) {
       toast.error("Envie um arquivo .txt");
