@@ -602,7 +602,7 @@ const Reading = () => {
                     e.preventDefault();
                     setActionVerse({ verse: v.verse, text: v.text });
                   }}
-                  className={`reading-prose rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} ${isActive ? "verse-active" : ""} select-none`}
+                  className={`reading-prose rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} ${isActive ? "verse-active" : ""} ${flashVerse === v.verse ? "verse-flash" : ""} select-none`}
                 >
                   <button
                     type="button"
