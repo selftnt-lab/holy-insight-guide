@@ -105,11 +105,26 @@ serve(async (req) => {
       .join(" ")
       .trim();
 
+    let kb = "";
     if (queryText) {
-      const kb = await retrieveKnowledge(queryText, LOVABLE_API_KEY);
-      if (kb) {
-        systemContent += `\n\n## BASE DE CONHECIMENTO APROVADA (fonte primária)\nUse OBRIGATORIAMENTE os trechos abaixo como base doutrinária e material de apoio quando forem relevantes à pergunta. Se contradisserem seu conhecimento genérico, os trechos abaixo prevalecem. Não cite os trechos como "documento X" — integre o conteúdo na resposta com naturalidade pastoral.\n\n"""\n${kb}\n"""`;
-      }
+      kb = await retrieveKnowledge(queryText, LOVABLE_API_KEY);
+    }
+
+    systemContent += `\n\n## PROTOCOLO DE RESPOSTA — CLASSIFIQUE A PERGUNTA ANTES DE RESPONDER
+
+**Tipo A — Perguntas objetivas / factuais** (dados históricos, geográficos, biográficos de personagens, cronologia, idiomas originais, contexto cultural, autoria, gênero literário, referências cruzadas, significado lexical de palavras):
+→ Responda prontamente com base em conhecimento bíblico-histórico consolidado. Seja informativo e direto.
+
+**Tipo B — Aplicações teológicas / doutrinárias** (interpretação de textos, doutrina, ética cristã, aplicação prática, "o que este texto ensina sobre...", "como devo viver...", soteriologia, escatologia, eclesiologia, hermenêutica):
+→ Você DEVE se restringir ESTRITAMENTE à linha teológica da BASE DE CONHECIMENTO APROVADA abaixo.
+→ Se NÃO houver material na base cobrindo o tema, responda: "Este tema teológico específico ainda não está coberto pela base doutrinária aprovada deste app. Posso oferecer o contexto histórico/textual, mas para aplicação teológica recomendo consultar sua liderança pastoral." — e ofereça o Tipo A se aplicável.
+→ NUNCA misture teologias divergentes (ex.: se a base é reformada, não introduza pelagianismo, universalismo, hipercalvinismo, dispensacionalismo etc. como se fossem equivalentes).
+→ Se o conhecimento genérico do modelo contradizer a base, a BASE PREVALECE sem exceção.`;
+
+    if (kb) {
+      systemContent += `\n\n## BASE DE CONHECIMENTO APROVADA (fonte doutrinária primária)\nOs trechos abaixo foram curados pela liderança do app. Integre o conteúdo com naturalidade pastoral — NÃO cite como "documento X" ou "trecho Y". Para perguntas do Tipo B, estes trechos são sua ÚNICA fonte doutrinária permitida.\n\n"""\n${kb}\n"""`;
+    } else {
+      systemContent += `\n\n## BASE DE CONHECIMENTO\n(Nenhum material curado foi encontrado para esta consulta.) Para perguntas do Tipo B, aplique a regra de recusa acima.`;
     }
 
     const payload = {
