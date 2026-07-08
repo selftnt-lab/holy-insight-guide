@@ -301,6 +301,23 @@ const Reading = () => {
             </SheetContent>
           </Sheet>
 
+          <Select value={translation} onValueChange={handleTranslationChange}>
+            <SelectTrigger
+              className="w-[92px] rounded-full"
+              aria-label="Versão da Bíblia"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              {BIBLE_TRANSLATIONS.map((t) => (
+                <SelectItem key={t.code} value={t.code}>
+                  <span className="font-medium">{t.label}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">{t.full}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Button
             variant="outline"
             size="icon"
