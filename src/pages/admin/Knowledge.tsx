@@ -205,7 +205,10 @@ const AdminKnowledge = () => {
         <Button onClick={submit} disabled={submitting} className="w-full">
           {submitting ? (
             <>
-              <Loader2 className="mr-2 animate-spin" size={16} /> Indexando...
+              <Loader2 className="mr-2 animate-spin" size={16} />
+              {jobProgress && jobProgress.total > 0
+                ? `Indexando ${jobProgress.processed}/${jobProgress.total}...`
+                : "Iniciando..."}
             </>
           ) : (
             <>
