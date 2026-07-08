@@ -78,7 +78,108 @@ const SLUG_TO_PT: Record<string, string> = {
   "revelation": "apocalipse",
 };
 
-const ALLOWED_TRANSLATIONS = new Set(["almeida", "kjv", "web", "asv"]);
+const ALLOWED_TRANSLATIONS = new Set([
+  "almeida", "kjv", "web", "asv",
+  "arc", "acf", "ara", "naa", "nvi", "ntlh", "nvt", "kja",
+]);
+
+// Book order 1..66 matches the standard Protestant canon (same order as BIBLE_BOOKS).
+const SLUG_TO_BOOK_ID: Record<string, number> = {
+  "genesis": 1, "exodus": 2, "leviticus": 3, "numbers": 4, "deuteronomy": 5,
+  "joshua": 6, "judges": 7, "ruth": 8, "1 samuel": 9, "2 samuel": 10,
+  "1 kings": 11, "2 kings": 12, "1 chronicles": 13, "2 chronicles": 14,
+  "ezra": 15, "nehemiah": 16, "esther": 17, "job": 18, "psalms": 19,
+  "proverbs": 20, "ecclesiastes": 21, "song of solomon": 22, "isaiah": 23,
+  "jeremiah": 24, "lamentations": 25, "ezekiel": 26, "daniel": 27, "hosea": 28,
+  "joel": 29, "amos": 30, "obadiah": 31, "jonah": 32, "micah": 33, "nahum": 34,
+  "habakkuk": 35, "zephaniah": 36, "haggai": 37, "zechariah": 38, "malachi": 39,
+  "matthew": 40, "mark": 41, "luke": 42, "john": 43, "acts": 44, "romans": 45,
+  "1 corinthians": 46, "2 corinthians": 47, "galatians": 48, "ephesians": 49,
+  "philippians": 50, "colossians": 51, "1 thessalonians": 52, "2 thessalonians": 53,
+  "1 timothy": 54, "2 timothy": 55, "titus": 56, "philemon": 57, "hebrews": 58,
+  "james": 59, "1 peter": 60, "2 peter": 61, "1 john": 62, "2 john": 63,
+  "3 john": 64, "jude": 65, "revelation": 66,
+};
+
+const SLUG_TO_DISPLAY: Record<string, string> = {
+  "genesis": "Gênesis", "exodus": "Êxodo", "leviticus": "Levítico", "numbers": "Números",
+  "deuteronomy": "Deuteronômio", "joshua": "Josué", "judges": "Juízes", "ruth": "Rute",
+  "1 samuel": "1 Samuel", "2 samuel": "2 Samuel", "1 kings": "1 Reis", "2 kings": "2 Reis",
+  "1 chronicles": "1 Crônicas", "2 chronicles": "2 Crônicas", "ezra": "Esdras",
+  "nehemiah": "Neemias", "esther": "Ester", "job": "Jó", "psalms": "Salmos",
+  "proverbs": "Provérbios", "ecclesiastes": "Eclesiastes", "song of solomon": "Cânticos",
+  "isaiah": "Isaías", "jeremiah": "Jeremias", "lamentations": "Lamentações",
+  "ezekiel": "Ezequiel", "daniel": "Daniel", "hosea": "Oséias", "joel": "Joel",
+  "amos": "Amós", "obadiah": "Obadias", "jonah": "Jonas", "micah": "Miquéias",
+  "nahum": "Naum", "habakkuk": "Habacuque", "zephaniah": "Sofonias", "haggai": "Ageu",
+  "zechariah": "Zacarias", "malachi": "Malaquias", "matthew": "Mateus", "mark": "Marcos",
+  "luke": "Lucas", "john": "João", "acts": "Atos", "romans": "Romanos",
+  "1 corinthians": "1 Coríntios", "2 corinthians": "2 Coríntios", "galatians": "Gálatas",
+  "ephesians": "Efésios", "philippians": "Filipenses", "colossians": "Colossenses",
+  "1 thessalonians": "1 Tessalonicenses", "2 thessalonians": "2 Tessalonicenses",
+  "1 timothy": "1 Timóteo", "2 timothy": "2 Timóteo", "titus": "Tito",
+  "philemon": "Filemom", "hebrews": "Hebreus", "james": "Tiago", "1 peter": "1 Pedro",
+  "2 peter": "2 Pedro", "1 john": "1 João", "2 john": "2 João", "3 john": "3 João",
+  "jude": "Judas", "revelation": "Apocalipse",
+};
+
+// Codes accepted by bolls.life
+const BOLLS_CODES: Record<string, string> = {
+  arc: "ARC09",
+  acf: "ACF11",
+  ara: "ARA",
+  naa: "NAA",
+  nvi: "NVIPT",
+  ntlh: "NTLH",
+  nvt: "NVT",
+  kja: "KJA",
+};
+
+interface BollsVerse { verse: number; text?: string }
+
+const fetchFromBolls = async (
+  translation: string,
+  bookSlug: string,
+  chapter: number,
+): Promise<{ reference: string; translation: string; verses: { verse: number; text: string }[] } | null> => {
+  const code = BOLLS_CODES[translation];
+  const bookId = SLUG_TO_BOOK_ID[bookSlug];
+  if (!code || !bookId) return null;
+
+  const url = `https://bolls.life/get-chapter/${code}/${bookId}/${chapter}/`;
+  const ctrl = new AbortController();
+  const to = setTimeout(() => ctrl.abort(), 15000);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      signal: ctrl.signal,
+      headers: { "User-Agent": "HolyInsightGuide/1.0" },
+    });
+  } finally {
+    clearTimeout(to);
+  }
+  if (!res.ok) {
+    console.error("bolls.life error:", res.status, url);
+    return null;
+  }
+  const arr = (await res.json()) as BollsVerse[];
+  if (!Array.isArray(arr) || arr.length === 0) return null;
+
+  const display = SLUG_TO_DISPLAY[bookSlug] || bookSlug;
+  return {
+    reference: `${display} ${chapter}`,
+    translation: translation.toUpperCase(),
+    verses: arr.map((v) => ({
+      verse: v.verse,
+      // Strip Strong / footnote markup that bolls sometimes embeds
+      text: (v.text || "")
+        .replace(/<S>.*?<\/S>/g, "")
+        .replace(/<[^>]+>/g, "")
+        .replace(/\s+/g, " ")
+        .trim(),
+    })),
+  };
+};
 
 const cache = new Map<string, { data: unknown; ts: number }>();
 const TTL = 1000 * 60 * 60 * 24; // 24h
@@ -131,57 +232,72 @@ serve(async (req) => {
       }
     }
 
-    // Almeida needs PT names; English translations accept the English slug as-is.
-    const bookName = translation === "almeida" ? (SLUG_TO_PT[book] || book) : book;
-    const apiUrl = `https://bible-api.com/${encodeURIComponent(bookName)}+${encodeURIComponent(chapter)}?translation=${translation}`;
+    let result: { reference: string; translation: string; verses: { verse: number; text: string }[] } | null = null;
 
-    // Fetch com 1 retry e timeout
-    const fetchWithTimeout = async (): Promise<Response> => {
-      const ctrl = new AbortController();
-      const to = setTimeout(() => ctrl.abort(), 15000);
+    // Route Portuguese modern translations through bolls.life
+    if (BOLLS_CODES[translation] && Number.isFinite(chapterNum) && chapterNum > 0) {
       try {
-        return await fetch(apiUrl, { signal: ctrl.signal });
-      } finally {
-        clearTimeout(to);
+        result = await fetchFromBolls(translation, book, chapterNum);
+      } catch (e) {
+        console.error("bolls.life fetch error:", e);
+        result = null;
       }
-    };
+    }
 
-    let res: Response;
-    try {
-      res = await fetchWithTimeout();
-      if (!res.ok && res.status >= 500) {
-        await new Promise((r) => setTimeout(r, 600));
+    // Fallback to bible-api.com (legacy "almeida" + English versions)
+    if (!result) {
+      const legacyTranslation = BOLLS_CODES[translation] ? "almeida" : translation;
+      const bookName = legacyTranslation === "almeida" ? (SLUG_TO_PT[book] || book) : book;
+      const apiUrl = `https://bible-api.com/${encodeURIComponent(bookName)}+${encodeURIComponent(chapter)}?translation=${legacyTranslation}`;
+
+      const fetchWithTimeout = async (): Promise<Response> => {
+        const ctrl = new AbortController();
+        const to = setTimeout(() => ctrl.abort(), 15000);
+        try {
+          return await fetch(apiUrl, { signal: ctrl.signal });
+        } finally {
+          clearTimeout(to);
+        }
+      };
+
+      let res: Response;
+      try {
         res = await fetchWithTimeout();
+        if (!res.ok && res.status >= 500) {
+          await new Promise((r) => setTimeout(r, 600));
+          res = await fetchWithTimeout();
+        }
+      } catch (e) {
+        console.error("bible-api network error:", e, "url:", apiUrl);
+        return new Response(
+          JSON.stringify({
+            error:
+              "Não foi possível carregar este capítulo no momento. Tente novamente em instantes.",
+          }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
-    } catch (e) {
-      console.error("bible-api network error:", e, "url:", apiUrl);
-      return new Response(
-        JSON.stringify({
-          error:
-            "Não foi possível carregar este capítulo no momento. Tente novamente em instantes.",
-        }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        console.error("bible-api error:", res.status, t, "url:", apiUrl);
+        return new Response(
+          JSON.stringify({ error: "Não foi possível carregar este capítulo." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      const data = await res.json();
+      result = {
+        reference: data.reference,
+        translation: data.translation_name || legacyTranslation,
+        verses: (data.verses || []).map((v: { verse: number; text?: string }) => ({
+          verse: v.verse,
+          text: (v.text || "").trim(),
+        })),
+      };
     }
 
-    if (!res.ok) {
-      const t = await res.text().catch(() => "");
-      console.error("bible-api error:", res.status, t, "url:", apiUrl);
-      return new Response(
-        JSON.stringify({ error: "Não foi possível carregar este capítulo." }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    const data = await res.json();
-    const result = {
-      reference: data.reference,
-      translation: data.translation_name || translation,
-      verses: (data.verses || []).map((v: { verse: number; text?: string }) => ({
-        verse: v.verse,
-        text: (v.text || "").trim(),
-      })),
-    };
 
     cache.set(key, { data: result, ts: Date.now() });
 

@@ -20,6 +20,14 @@ import TranslationComparison from "@/components/TranslationComparison";
 import ReadingAudioControls from "@/components/ReadingAudioControls";
 import StudySheet from "@/components/StudySheet";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
+import { BIBLE_TRANSLATIONS, getStoredTranslation, setStoredTranslation } from "@/lib/bible-translations";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { useChapterWordMap } from "@/hooks/useChapterWordMap";
 import { useChapterHighlights } from "@/hooks/useChapterHighlights";
@@ -33,6 +41,7 @@ const Reading = () => {
   const { user } = useAuth();
   const [bookSlug, setBookSlug] = useState(params.get("book") || "genesis");
   const [chapter, setChapter] = useState(Number(params.get("chapter")) || 1);
+  const [translation, setTranslation] = useState<string>(() => getStoredTranslation());
   const [showChat, setShowChat] = useState(false);
   const [showStudy, setShowStudy] = useState(false);
   const [bookSheetOpen, setBookSheetOpen] = useState(false);
@@ -56,7 +65,12 @@ const Reading = () => {
   const initialVerseParam = params.get("verse");
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
-  const { data, loading, error } = useBibleChapter(bookSlug, chapter);
+  const { data, loading, error } = useBibleChapter(bookSlug, chapter, translation);
+
+  const handleTranslationChange = (code: string) => {
+    setTranslation(code);
+    setStoredTranslation(code);
+  };
   const { data: wordMap } = useChapterWordMap(bookSlug, chapter);
   const { upsert, remove, byVerse } = useChapterHighlights(bookSlug, chapter);
   const [chaptersRead, setChaptersRead] = useState<Set<number>>(new Set());
@@ -286,6 +300,23 @@ const Reading = () => {
               </div>
             </SheetContent>
           </Sheet>
+
+          <Select value={translation} onValueChange={handleTranslationChange}>
+            <SelectTrigger
+              className="w-[92px] rounded-full"
+              aria-label="Versão da Bíblia"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              {BIBLE_TRANSLATIONS.map((t) => (
+                <SelectItem key={t.code} value={t.code}>
+                  <span className="font-medium">{t.label}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">{t.full}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <Button
             variant="outline"
