@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Trash2, Upload, FileText, ArrowLeft, Settings2, Save } from "lucide-react";
+import { Loader2, Trash2, Upload, FileText, ArrowLeft, Settings2, Save, FlaskConical, Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
