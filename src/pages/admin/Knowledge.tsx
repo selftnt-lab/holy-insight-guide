@@ -53,18 +53,52 @@ const AdminKnowledge = () => {
     if (!title) setTitle(f.name.replace(/\.txt$/i, ""));
   };
 
+  const [jobProgress, setJobProgress] = useState<{
+    processed: number;
+    total: number;
+    status: string;
+  } | null>(null);
+
   const submit = async () => {
     if (!title.trim() || !content.trim()) {
       toast.error("Título e conteúdo são obrigatórios");
       return;
     }
     setSubmitting(true);
+    setJobProgress({ processed: 0, total: 0, status: "pending" });
     try {
       const { data, error } = await supabase.functions.invoke("kb-ingest", {
         body: { title: title.trim(), source: source.trim() || null, content },
       });
       if (error) throw error;
-      toast.success(`Documento indexado (${data?.chunks ?? 0} trechos)`);
+      const jobId: string | undefined = data?.job_id;
+      if (!jobId) throw new Error("Job não criado");
+
+      // Poll status
+      await new Promise<void>((resolve, reject) => {
+        const iv = setInterval(async () => {
+          const { data: j } = await supabase
+            .from("kb_ingest_jobs")
+            .select("status, processed_chunks, total_chunks, error")
+            .eq("id", jobId)
+            .maybeSingle();
+          if (!j) return;
+          setJobProgress({
+            processed: j.processed_chunks ?? 0,
+            total: j.total_chunks ?? 0,
+            status: j.status,
+          });
+          if (j.status === "completed") {
+            clearInterval(iv);
+            resolve();
+          } else if (j.status === "failed") {
+            clearInterval(iv);
+            reject(new Error(j.error ?? "Falha no processamento"));
+          }
+        }, 1500);
+      });
+
+      toast.success("Documento indexado com sucesso");
       setTitle("");
       setSource("");
       setContent("");
@@ -74,6 +108,7 @@ const AdminKnowledge = () => {
       toast.error(e instanceof Error ? e.message : "Erro ao indexar");
     } finally {
       setSubmitting(false);
+      setJobProgress(null);
     }
   };
 
@@ -170,7 +205,10 @@ const AdminKnowledge = () => {
         <Button onClick={submit} disabled={submitting} className="w-full">
           {submitting ? (
             <>
-              <Loader2 className="mr-2 animate-spin" size={16} /> Indexando...
+              <Loader2 className="mr-2 animate-spin" size={16} />
+              {jobProgress && jobProgress.total > 0
+                ? `Indexando ${jobProgress.processed}/${jobProgress.total}...`
+                : "Iniciando..."}
             </>
           ) : (
             <>
