@@ -270,6 +270,27 @@ export type Database = {
           },
         ]
       }
+      kb_settings: {
+        Row: {
+          id: boolean
+          match_count: number
+          similarity_threshold: number
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          match_count?: number
+          similarity_threshold?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          match_count?: number
+          similarity_threshold?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

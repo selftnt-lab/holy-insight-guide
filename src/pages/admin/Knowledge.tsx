@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Trash2, Upload, FileText, ArrowLeft } from "lucide-react";
+import { Loader2, Trash2, Upload, FileText, ArrowLeft, Settings2, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -28,6 +29,12 @@ const AdminKnowledge = () => {
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // RAG settings
+  const [threshold, setThreshold] = useState(0.35);
+  const [matchCount, setMatchCount] = useState(5);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -39,9 +46,36 @@ const AdminKnowledge = () => {
     setLoading(false);
   }, []);
 
+  const loadSettings = useCallback(async () => {
+    const { data } = await supabase
+      .from("kb_settings")
+      .select("similarity_threshold, match_count")
+      .eq("id", true)
+      .maybeSingle();
+    if (data) {
+      setThreshold(data.similarity_threshold ?? 0.35);
+      setMatchCount(data.match_count ?? 5);
+    }
+    setSettingsLoaded(true);
+  }, []);
+
   useEffect(() => {
-    if (isAdmin) void load();
-  }, [isAdmin, load]);
+    if (isAdmin) {
+      void load();
+      void loadSettings();
+    }
+  }, [isAdmin, load, loadSettings]);
+
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    const { error } = await supabase
+      .from("kb_settings")
+      .update({ similarity_threshold: threshold, match_count: matchCount })
+      .eq("id", true);
+    setSavingSettings(false);
+    if (error) return toast.error(error.message);
+    toast.success("Configurações salvas");
+  };
 
   const handleFile = async (f: File) => {
     if (!f.name.toLowerCase().endsWith(".txt")) {
@@ -152,6 +186,64 @@ const AdminKnowledge = () => {
       <p className="mb-6 text-sm text-muted-foreground">
         Materiais em texto usados para ancorar as respostas do Tutor IA.
       </p>
+
+      <Card className="mb-8 p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <Settings2 size={18} className="text-accent" />
+          <h2 className="font-serif text-lg">Ajustes do RAG</h2>
+        </div>
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground">
+              Limite de similaridade
+            </label>
+            <span className="font-mono text-xs">{threshold.toFixed(2)}</span>
+          </div>
+          <Slider
+            value={[threshold]}
+            min={0}
+            max={1}
+            step={0.01}
+            onValueChange={(v) => setThreshold(v[0])}
+            disabled={!settingsLoaded}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Trechos abaixo deste valor são descartados. Mais alto = mais restrito.
+          </p>
+        </div>
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground">
+              Trechos por consulta (k)
+            </label>
+            <span className="font-mono text-xs">{matchCount}</span>
+          </div>
+          <Slider
+            value={[matchCount]}
+            min={1}
+            max={20}
+            step={1}
+            onValueChange={(v) => setMatchCount(v[0])}
+            disabled={!settingsLoaded}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Máximo de trechos recuperados por pergunta antes do filtro.
+          </p>
+        </div>
+        <Button
+          onClick={saveSettings}
+          disabled={savingSettings || !settingsLoaded}
+          variant="secondary"
+          className="w-full"
+        >
+          {savingSettings ? (
+            <><Loader2 className="mr-2 animate-spin" size={16} /> Salvando...</>
+          ) : (
+            <><Save className="mr-2" size={16} /> Salvar configurações</>
+          )}
+        </Button>
+      </Card>
+
 
       <Card className="mb-8 p-4 space-y-3">
         <div>

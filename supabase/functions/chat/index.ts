@@ -10,6 +10,21 @@ async function retrieveKnowledge(query: string, apiKey: string): Promise<string>
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!SUPABASE_URL || !SERVICE_ROLE) return "";
 
+    const client = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+    // Load admin-tunable RAG settings (fallback to defaults)
+    let threshold = 0.35;
+    let matchCount = 5;
+    const { data: settings } = await client
+      .from("kb_settings")
+      .select("similarity_threshold, match_count")
+      .eq("id", true)
+      .maybeSingle();
+    if (settings) {
+      threshold = settings.similarity_threshold ?? threshold;
+      matchCount = settings.match_count ?? matchCount;
+    }
+
     const embResp = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
       method: "POST",
       headers: {
@@ -23,15 +38,14 @@ async function retrieveKnowledge(query: string, apiKey: string): Promise<string>
     const embedding = embJson.data?.[0]?.embedding;
     if (!embedding) return "";
 
-    const client = createClient(SUPABASE_URL, SERVICE_ROLE);
     const { data, error } = await client.rpc("match_kb_chunks", {
       query_embedding: embedding as unknown as string,
-      match_count: 5,
+      match_count: matchCount,
     });
     if (error || !data || data.length === 0) return "";
 
     const relevant = (data as Array<{ content: string; title: string; source: string | null; similarity: number }>)
-      .filter((r) => r.similarity > 0.35);
+      .filter((r) => r.similarity > threshold);
     if (relevant.length === 0) return "";
 
     return relevant
