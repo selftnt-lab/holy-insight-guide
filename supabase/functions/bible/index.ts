@@ -232,57 +232,72 @@ serve(async (req) => {
       }
     }
 
-    // Almeida needs PT names; English translations accept the English slug as-is.
-    const bookName = translation === "almeida" ? (SLUG_TO_PT[book] || book) : book;
-    const apiUrl = `https://bible-api.com/${encodeURIComponent(bookName)}+${encodeURIComponent(chapter)}?translation=${translation}`;
+    let result: { reference: string; translation: string; verses: { verse: number; text: string }[] } | null = null;
 
-    // Fetch com 1 retry e timeout
-    const fetchWithTimeout = async (): Promise<Response> => {
-      const ctrl = new AbortController();
-      const to = setTimeout(() => ctrl.abort(), 15000);
+    // Route Portuguese modern translations through bolls.life
+    if (BOLLS_CODES[translation] && Number.isFinite(chapterNum) && chapterNum > 0) {
       try {
-        return await fetch(apiUrl, { signal: ctrl.signal });
-      } finally {
-        clearTimeout(to);
+        result = await fetchFromBolls(translation, book, chapterNum);
+      } catch (e) {
+        console.error("bolls.life fetch error:", e);
+        result = null;
       }
-    };
+    }
 
-    let res: Response;
-    try {
-      res = await fetchWithTimeout();
-      if (!res.ok && res.status >= 500) {
-        await new Promise((r) => setTimeout(r, 600));
+    // Fallback to bible-api.com (legacy "almeida" + English versions)
+    if (!result) {
+      const legacyTranslation = BOLLS_CODES[translation] ? "almeida" : translation;
+      const bookName = legacyTranslation === "almeida" ? (SLUG_TO_PT[book] || book) : book;
+      const apiUrl = `https://bible-api.com/${encodeURIComponent(bookName)}+${encodeURIComponent(chapter)}?translation=${legacyTranslation}`;
+
+      const fetchWithTimeout = async (): Promise<Response> => {
+        const ctrl = new AbortController();
+        const to = setTimeout(() => ctrl.abort(), 15000);
+        try {
+          return await fetch(apiUrl, { signal: ctrl.signal });
+        } finally {
+          clearTimeout(to);
+        }
+      };
+
+      let res: Response;
+      try {
         res = await fetchWithTimeout();
+        if (!res.ok && res.status >= 500) {
+          await new Promise((r) => setTimeout(r, 600));
+          res = await fetchWithTimeout();
+        }
+      } catch (e) {
+        console.error("bible-api network error:", e, "url:", apiUrl);
+        return new Response(
+          JSON.stringify({
+            error:
+              "Não foi possível carregar este capítulo no momento. Tente novamente em instantes.",
+          }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
-    } catch (e) {
-      console.error("bible-api network error:", e, "url:", apiUrl);
-      return new Response(
-        JSON.stringify({
-          error:
-            "Não foi possível carregar este capítulo no momento. Tente novamente em instantes.",
-        }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        console.error("bible-api error:", res.status, t, "url:", apiUrl);
+        return new Response(
+          JSON.stringify({ error: "Não foi possível carregar este capítulo." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      const data = await res.json();
+      result = {
+        reference: data.reference,
+        translation: data.translation_name || legacyTranslation,
+        verses: (data.verses || []).map((v: { verse: number; text?: string }) => ({
+          verse: v.verse,
+          text: (v.text || "").trim(),
+        })),
+      };
     }
 
-    if (!res.ok) {
-      const t = await res.text().catch(() => "");
-      console.error("bible-api error:", res.status, t, "url:", apiUrl);
-      return new Response(
-        JSON.stringify({ error: "Não foi possível carregar este capítulo." }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    const data = await res.json();
-    const result = {
-      reference: data.reference,
-      translation: data.translation_name || translation,
-      verses: (data.verses || []).map((v: { verse: number; text?: string }) => ({
-        verse: v.verse,
-        text: (v.text || "").trim(),
-      })),
-    };
 
     cache.set(key, { data: result, ts: Date.now() });
 
