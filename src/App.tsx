@@ -57,7 +57,6 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MiniAudioPlayer />
-              <AppFooter />
               <BottomNav />
             </AudioPlayerProvider>
           </AuthProvider>
