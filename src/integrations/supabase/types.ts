@@ -220,6 +220,56 @@ export type Database = {
         }
         Relationships: []
       }
+      kb_ingest_jobs: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          error: string | null
+          id: string
+          processed_chunks: number
+          progress: number
+          status: string
+          title: string
+          total_chunks: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          error?: string | null
+          id?: string
+          processed_chunks?: number
+          progress?: number
+          status?: string
+          title: string
+          total_chunks?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          error?: string | null
+          id?: string
+          processed_chunks?: number
+          progress?: number
+          status?: string
+          title?: string
+          total_chunks?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_ingest_jobs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "kb_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
