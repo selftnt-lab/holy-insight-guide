@@ -63,6 +63,13 @@ const Reading = () => {
   const [immersive, setImmersive] = useState(false);
   const [chromeVisible, setChromeVisible] = useState(true);
   const verseRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
+  const [flashVerse, setFlashVerse] = useState<number | null>(null);
+  const flashTimeoutRef = useRef<number | null>(null);
+  const triggerFlash = (verse: number) => {
+    if (flashTimeoutRef.current) window.clearTimeout(flashTimeoutRef.current);
+    setFlashVerse(verse);
+    flashTimeoutRef.current = window.setTimeout(() => setFlashVerse(null), 2400);
+  };
   const audio = useAudioPlayer();
   const initialVerseParam = params.get("verse");
 
@@ -146,6 +153,7 @@ const Reading = () => {
         const y = el.getBoundingClientRect().top + window.scrollY - 96;
         window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
         didJumpRef.current = true;
+        triggerFlash(v);
         return;
       }
       if (attempts++ < 30) requestAnimationFrame(tryScroll);
@@ -430,6 +438,7 @@ const Reading = () => {
                                           behavior: "smooth",
                                         });
                                         didJumpRef.current = true;
+                                        triggerFlash(n);
                                         return;
                                       }
                                       if (attempts++ < 40) {
@@ -593,7 +602,7 @@ const Reading = () => {
                     e.preventDefault();
                     setActionVerse({ verse: v.verse, text: v.text });
                   }}
-                  className={`reading-prose rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} ${isActive ? "verse-active" : ""} select-none`}
+                  className={`reading-prose rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} ${isActive ? "verse-active" : ""} ${flashVerse === v.verse ? "verse-flash" : ""} select-none`}
                 >
                   <button
                     type="button"
