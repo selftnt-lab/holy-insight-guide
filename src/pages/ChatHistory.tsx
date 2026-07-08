@@ -70,7 +70,7 @@ const ChatHistory = () => {
     msgs.find((m) => m.role === "user")?.content ?? "";
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-32">
       <div className="mx-auto max-w-lg px-5 pt-12">
         <div className="mb-6 flex items-center justify-between">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
