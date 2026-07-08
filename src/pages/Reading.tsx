@@ -44,8 +44,10 @@ const Reading = () => {
   const [translation, setTranslation] = useState<string>(() => getStoredTranslation());
   const [showChat, setShowChat] = useState(false);
   const [showStudy, setShowStudy] = useState(false);
-  const [bookSheetOpen, setBookSheetOpen] = useState(false);
-  const [chapterSheetOpen, setChapterSheetOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const [navStep, setNavStep] = useState<"book" | "chapter" | "verse">("book");
+  const [navBookSlug, setNavBookSlug] = useState<string>(bookSlug);
+  const [navChapter, setNavChapter] = useState<number>(chapter);
   const [hydrated, setHydrated] = useState(false);
   const [activeVerse, setActiveVerse] = useState<{ verse: number; text: string } | null>(null);
   const [activeWord, setActiveWord] = useState<{
