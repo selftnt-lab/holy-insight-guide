@@ -270,7 +270,15 @@ const Reading = () => {
                 </span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="h-[85vh] p-0">
+            <SheetContent
+              side="bottom"
+              className="h-[85vh] p-0"
+              onCloseAutoFocus={(e) => {
+                // Prevent Radix from refocusing the trigger, which would scroll
+                // the page back to the top and cancel our jump-to-verse scroll.
+                e.preventDefault();
+              }}
+            >
               {(() => {
                 const navBook = getBookBySlug(navBookSlug) || book;
                 const verseCount = data?.verses.length ?? 0;
