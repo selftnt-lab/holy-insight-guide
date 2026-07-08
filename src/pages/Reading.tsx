@@ -438,6 +438,7 @@ const Reading = () => {
                                           behavior: "smooth",
                                         });
                                         didJumpRef.current = true;
+                                        triggerFlash(n);
                                         return;
                                       }
                                       if (attempts++ < 40) {
