@@ -1,5 +1,5 @@
-// Admin-only knowledge base ingestion: chunk + embed + persist
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+// Admin-only knowledge base ingestion: background chunk + embed + persist
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,8 +8,9 @@ const corsHeaders = {
 };
 
 const EMBED_MODEL = "google/gemini-embedding-001";
-const CHUNK_SIZE = 1200; // chars
+const CHUNK_SIZE = 1200;
 const CHUNK_OVERLAP = 150;
+const EMBED_CONCURRENCY = 5;
 
 function chunkText(text: string): string[] {
   const clean = text.replace(/\r\n/g, "\n").trim();
@@ -18,15 +19,12 @@ function chunkText(text: string): string[] {
   while (i < clean.length) {
     const end = Math.min(clean.length, i + CHUNK_SIZE);
     let slice = clean.slice(i, end);
-    // try to break on paragraph or sentence boundary
     if (end < clean.length) {
       const lastBreak = Math.max(
         slice.lastIndexOf("\n\n"),
         slice.lastIndexOf(". "),
       );
-      if (lastBreak > CHUNK_SIZE * 0.5) {
-        slice = slice.slice(0, lastBreak + 1);
-      }
+      if (lastBreak > CHUNK_SIZE * 0.5) slice = slice.slice(0, lastBreak + 1);
     }
     chunks.push(slice.trim());
     i += slice.length - CHUNK_OVERLAP;
@@ -52,6 +50,74 @@ async function embed(input: string, apiKey: string): Promise<number[]> {
   return json.data[0].embedding;
 }
 
+async function processJob(
+  admin: SupabaseClient,
+  apiKey: string,
+  jobId: string,
+  userId: string,
+  title: string,
+  source: string | null,
+  content: string,
+) {
+  try {
+    const { data: doc, error: docErr } = await admin
+      .from("kb_documents")
+      .insert({ title, source, content, created_by: userId })
+      .select("id")
+      .single();
+    if (docErr) throw docErr;
+
+    const chunks = chunkText(content);
+    await admin
+      .from("kb_ingest_jobs")
+      .update({
+        document_id: doc.id,
+        status: "processing",
+        total_chunks: chunks.length,
+      })
+      .eq("id", jobId);
+
+    let processed = 0;
+    // Process in parallel batches to stay under CPU/wall time
+    for (let i = 0; i < chunks.length; i += EMBED_CONCURRENCY) {
+      const batch = chunks.slice(i, i + EMBED_CONCURRENCY);
+      const embeddings = await Promise.all(
+        batch.map((c) => embed(c, apiKey)),
+      );
+      const rows = batch.map((c, k) => ({
+        document_id: doc.id,
+        chunk_index: i + k,
+        content: c,
+        embedding: embeddings[k] as unknown as string,
+      }));
+      const { error: chErr } = await admin.from("kb_chunks").insert(rows);
+      if (chErr) throw chErr;
+      processed += batch.length;
+      await admin
+        .from("kb_ingest_jobs")
+        .update({
+          processed_chunks: processed,
+          progress: Math.round((processed / chunks.length) * 100),
+        })
+        .eq("id", jobId);
+    }
+
+    await admin
+      .from("kb_ingest_jobs")
+      .update({ status: "completed", progress: 100 })
+      .eq("id", jobId);
+  } catch (e) {
+    console.error("kb-ingest job error:", e);
+    await admin
+      .from("kb_ingest_jobs")
+      .update({
+        status: "failed",
+        error: e instanceof Error ? e.message : "Erro desconhecido",
+      })
+      .eq("id", jobId);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS")
     return new Response(null, { headers: corsHeaders });
@@ -70,7 +136,6 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
 
-    // Identify user via their JWT
     const userClient = createClient(SUPABASE_URL, SERVICE_ROLE, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -86,7 +151,6 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // Verify admin role
     const { data: roleRow } = await admin
       .from("user_roles")
       .select("id")
@@ -94,10 +158,13 @@ Deno.serve(async (req) => {
       .eq("role", "admin")
       .maybeSingle();
     if (!roleRow) {
-      return new Response(JSON.stringify({ error: "Acesso restrito a administradores" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Acesso restrito a administradores" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const body = await req.json();
@@ -105,54 +172,56 @@ Deno.serve(async (req) => {
     const source = body.source ? String(body.source).trim() : null;
     const content = String(body.content ?? "").trim();
     if (!title || !content) {
-      return new Response(JSON.stringify({ error: "Título e conteúdo são obrigatórios" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Título e conteúdo são obrigatórios" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
     if (content.length > 5_000_000) {
-      return new Response(JSON.stringify({ error: "Documento muito grande (máx 5.000.000 caracteres). Divida em partes menores." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          error: "Documento muito grande (máx 5.000.000 caracteres).",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
-    // Insert document
-    const { data: doc, error: docErr } = await admin
-      .from("kb_documents")
-      .insert({ title, source, content, created_by: user.id })
+    // Create job record and process in background
+    const { data: job, error: jobErr } = await admin
+      .from("kb_ingest_jobs")
+      .insert({ user_id: user.id, title, status: "pending" })
       .select("id")
       .single();
-    if (docErr) throw docErr;
+    if (jobErr) throw jobErr;
 
-    const chunks = chunkText(content);
-    const rows: Array<Record<string, unknown>> = [];
-    for (let i = 0; i < chunks.length; i++) {
-      const vec = await embed(chunks[i], LOVABLE_API_KEY);
-      rows.push({
-        document_id: doc.id,
-        chunk_index: i,
-        content: chunks[i],
-        embedding: vec as unknown as string,
-      });
-    }
-
-    // Insert in batches of 20
-    for (let i = 0; i < rows.length; i += 20) {
-      const batch = rows.slice(i, i + 20);
-      const { error: chErr } = await admin.from("kb_chunks").insert(batch);
-      if (chErr) throw chErr;
-    }
+    // @ts-ignore EdgeRuntime provided by supabase edge-runtime
+    EdgeRuntime.waitUntil(
+      processJob(admin, LOVABLE_API_KEY, job.id, user.id, title, source, content),
+    );
 
     return new Response(
-      JSON.stringify({ id: doc.id, chunks: chunks.length }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      JSON.stringify({ job_id: job.id, status: "pending" }),
+      {
+        status: 202,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (e) {
     console.error("kb-ingest error:", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      JSON.stringify({
+        error: e instanceof Error ? e.message : "Erro desconhecido",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });
