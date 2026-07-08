@@ -41,6 +41,7 @@ const Reading = () => {
   const { user } = useAuth();
   const [bookSlug, setBookSlug] = useState(params.get("book") || "genesis");
   const [chapter, setChapter] = useState(Number(params.get("chapter")) || 1);
+  const [translation, setTranslation] = useState<string>(() => getStoredTranslation());
   const [showChat, setShowChat] = useState(false);
   const [showStudy, setShowStudy] = useState(false);
   const [bookSheetOpen, setBookSheetOpen] = useState(false);
