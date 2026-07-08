@@ -29,6 +29,12 @@ const AdminKnowledge = () => {
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // RAG settings
+  const [threshold, setThreshold] = useState(0.35);
+  const [matchCount, setMatchCount] = useState(5);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -40,9 +46,36 @@ const AdminKnowledge = () => {
     setLoading(false);
   }, []);
 
+  const loadSettings = useCallback(async () => {
+    const { data } = await supabase
+      .from("kb_settings")
+      .select("similarity_threshold, match_count")
+      .eq("id", true)
+      .maybeSingle();
+    if (data) {
+      setThreshold(data.similarity_threshold ?? 0.35);
+      setMatchCount(data.match_count ?? 5);
+    }
+    setSettingsLoaded(true);
+  }, []);
+
   useEffect(() => {
-    if (isAdmin) void load();
-  }, [isAdmin, load]);
+    if (isAdmin) {
+      void load();
+      void loadSettings();
+    }
+  }, [isAdmin, load, loadSettings]);
+
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    const { error } = await supabase
+      .from("kb_settings")
+      .update({ similarity_threshold: threshold, match_count: matchCount })
+      .eq("id", true);
+    setSavingSettings(false);
+    if (error) return toast.error(error.message);
+    toast.success("Configurações salvas");
+  };
 
   const handleFile = async (f: File) => {
     if (!f.name.toLowerCase().endsWith(".txt")) {
