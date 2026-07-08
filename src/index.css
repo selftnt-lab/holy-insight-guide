@@ -130,10 +130,10 @@
 
 /* Flash highlight after jumping to a verse via the navigator */
 @keyframes verse-flash-pulse {
-  0%   { background: hsl(var(--primary) / 0);      box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
-  15%  { background: hsl(var(--primary) / 0.28);   box-shadow: 0 0 0 4px hsl(var(--primary) / 0.35); }
-  70%  { background: hsl(var(--primary) / 0.18);   box-shadow: 0 0 0 3px hsl(var(--primary) / 0.22); }
-  100% { background: hsl(var(--primary) / 0);      box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+  0%   { background: hsl(var(--accent) / 0);      box-shadow: 0 0 0 0 hsl(var(--accent) / 0); }
+  15%  { background: hsl(var(--accent) / 0.22);   box-shadow: 0 0 0 4px hsl(var(--accent) / 0.30); }
+  70%  { background: hsl(var(--accent) / 0.14);   box-shadow: 0 0 0 3px hsl(var(--accent) / 0.18); }
+  100% { background: hsl(var(--accent) / 0);      box-shadow: 0 0 0 0 hsl(var(--accent) / 0); }
 }
 .verse-flash {
   animation: verse-flash-pulse 2.2s ease-out;
