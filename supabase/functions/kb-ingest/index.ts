@@ -110,8 +110,8 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (content.length > 500_000) {
-      return new Response(JSON.stringify({ error: "Documento muito grande (máx 500k caracteres)" }), {
+    if (content.length > 5_000_000) {
+      return new Response(JSON.stringify({ error: "Documento muito grande (máx 5.000.000 caracteres). Divida em partes menores." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
