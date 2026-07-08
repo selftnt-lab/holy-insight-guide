@@ -153,6 +153,7 @@ const Reading = () => {
         const y = el.getBoundingClientRect().top + window.scrollY - 96;
         window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
         didJumpRef.current = true;
+        triggerFlash(v);
         return;
       }
       if (attempts++ < 30) requestAnimationFrame(tryScroll);
