@@ -65,7 +65,12 @@ const Reading = () => {
   const initialVerseParam = params.get("verse");
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
-  const { data, loading, error } = useBibleChapter(bookSlug, chapter);
+  const { data, loading, error } = useBibleChapter(bookSlug, chapter, translation);
+
+  const handleTranslationChange = (code: string) => {
+    setTranslation(code);
+    setStoredTranslation(code);
+  };
   const { data: wordMap } = useChapterWordMap(bookSlug, chapter);
   const { upsert, remove, byVerse } = useChapterHighlights(bookSlug, chapter);
   const [chaptersRead, setChaptersRead] = useState<Set<number>>(new Set());
