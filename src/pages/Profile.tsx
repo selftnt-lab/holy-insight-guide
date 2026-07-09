@@ -367,14 +367,24 @@ const Profile = () => {
           className="mt-6"
         >
           {isAdmin && (
-            <Button
-              variant="outline"
-              className="mb-2 w-full rounded-xl"
-              onClick={() => navigate("/admin/knowledge")}
-            >
-              <Shield size={18} className="mr-2" />
-              Base de conhecimento (admin)
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                className="mb-2 w-full rounded-xl"
+                onClick={() => navigate("/admin/knowledge")}
+              >
+                <Shield size={18} className="mr-2" />
+                Base de conhecimento (admin)
+              </Button>
+              <Button
+                variant="outline"
+                className="mb-2 w-full rounded-xl"
+                onClick={() => navigate("/admin/errors")}
+              >
+                <AlertCircle size={18} className="mr-2" />
+                Erros do cliente (admin)
+              </Button>
+            </>
           )}
           <Button
             variant="outline"
