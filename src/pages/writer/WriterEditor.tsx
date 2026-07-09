@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Save, Loader2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   useCreateDocument,
   useUpdateDocument,
@@ -14,6 +16,7 @@ import {
   UserDocType,
 } from "@/hooks/useUserDocuments";
 import SacredDivider from "@/components/SacredDivider";
+import { renderChildrenWithBibleRefs } from "@/components/BibleReferenceLink";
 
 const VALID_TYPES: UserDocType[] = ["sermon", "devotional", "study", "note"];
 
@@ -134,14 +137,52 @@ const WriterEditor = () => {
             </p>
           </div>
           <div>
-            <Label htmlFor="content">Conteúdo</Label>
-            <Textarea
-              id="content"
-              value={contentMd}
-              onChange={(e) => setContentMd(e.target.value)}
-              placeholder="Escreva aqui em markdown..."
-              className="mt-1 min-h-[420px] font-mono text-sm"
-            />
+            <Label>Conteúdo</Label>
+            <Tabs defaultValue="edit" className="mt-1">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="edit">Editor</TabsTrigger>
+                <TabsTrigger value="preview">Preview</TabsTrigger>
+              </TabsList>
+              <TabsContent value="edit" className="mt-2">
+                <Textarea
+                  id="content"
+                  value={contentMd}
+                  onChange={(e) => setContentMd(e.target.value)}
+                  placeholder="Escreva aqui em markdown... Referências como Jo 3:16, Sl 23 ou 1 Co 13:4-7 ficam clicáveis no Preview."
+                  className="min-h-[420px] font-mono text-sm"
+                />
+              </TabsContent>
+              <TabsContent value="preview" className="mt-2">
+                <div className="min-h-[420px] rounded-md border bg-card p-4 prose prose-sm dark:prose-invert max-w-none">
+                  {contentMd.trim() ? (
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => <p>{renderChildrenWithBibleRefs(children)}</p>,
+                        li: ({ children }) => <li>{renderChildrenWithBibleRefs(children)}</li>,
+                        h1: ({ children }) => <h1>{renderChildrenWithBibleRefs(children)}</h1>,
+                        h2: ({ children }) => <h2>{renderChildrenWithBibleRefs(children)}</h2>,
+                        h3: ({ children }) => <h3>{renderChildrenWithBibleRefs(children)}</h3>,
+                        h4: ({ children }) => <h4>{renderChildrenWithBibleRefs(children)}</h4>,
+                        blockquote: ({ children }) => (
+                          <blockquote>{renderChildrenWithBibleRefs(children)}</blockquote>
+                        ),
+                        td: ({ children }) => <td>{renderChildrenWithBibleRefs(children)}</td>,
+                        strong: ({ children }) => (
+                          <strong>{renderChildrenWithBibleRefs(children)}</strong>
+                        ),
+                        em: ({ children }) => <em>{renderChildrenWithBibleRefs(children)}</em>,
+                      }}
+                    >
+                      {contentMd}
+                    </ReactMarkdown>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Escreva algo no Editor para ver o preview aqui.
+                    </p>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
           <Button onClick={handleSave} disabled={saving} className="w-full rounded-full">
             {saving ? (
