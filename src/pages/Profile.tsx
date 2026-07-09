@@ -1,6 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText, Shield } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText, Shield, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useAudioPlayer } from "@/contexts/AudioPlayerProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
