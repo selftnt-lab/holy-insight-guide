@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { BookMarked, BookOpen } from "lucide-react";
+import { BookMarked, BookOpen, Share2, Copy, Printer } from "lucide-react";
 import InsertReferenceDialog from "@/components/InsertReferenceDialog";
 import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { ChevronLeft, Save, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import {
   useCreateDocument,
   useUpdateDocument,
@@ -135,7 +142,22 @@ const WriterEditor = () => {
 
         <div className="mt-3 flex items-center justify-between gap-2">
           <Badge variant="secondary">{DOC_TYPE_LABEL[type]}</Badge>
-          {!isNew && <ReferencesSheet refs={refs} />}
+          {!isNew && (
+            <div className="flex items-center gap-2">
+              <ReferencesSheet refs={refs} />
+              <ExportMenu
+                onCopy={async () => {
+                  try {
+                    await navigator.clipboard.writeText(contentMd);
+                    toast.success("Markdown copiado");
+                  } catch {
+                    toast.error("Não foi possível copiar");
+                  }
+                }}
+                onPrint={() => id && navigate(`/writer/${id}/print`)}
+              />
+            </div>
+          )}
         </div>
         <h1 className="mt-2 font-serif text-2xl font-semibold">
           {isNew ? "Novo documento" : "Editar documento"}
@@ -235,6 +257,26 @@ const WriterEditor = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const ExportMenu = ({ onCopy, onPrint }: { onCopy: () => void; onPrint: () => void }) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="outline" size="sm" className="h-8">
+          <Share2 size={14} className="mr-1.5" /> Exportar
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onCopy}>
+          <Copy size={14} className="mr-2" /> Copiar Markdown
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onPrint}>
+          <Printer size={14} className="mr-2" /> Imprimir / Salvar PDF
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
