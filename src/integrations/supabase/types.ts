@@ -98,6 +98,39 @@ export type Database = {
         }
         Relationships: []
       }
+      client_error_logs: {
+        Row: {
+          build: string | null
+          created_at: string
+          id: string
+          message: string
+          route: string | null
+          stack: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          build?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          route?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          build?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          route?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       daily_devotionals: {
         Row: {
           completed_at: string | null
