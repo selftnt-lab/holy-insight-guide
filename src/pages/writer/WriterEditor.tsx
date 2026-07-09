@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { BookMarked } from "lucide-react";
+import { BookMarked, BookOpen } from "lucide-react";
 import InsertReferenceDialog from "@/components/InsertReferenceDialog";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { ChevronLeft, Save, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   useCreateDocument,
   useUpdateDocument,
   useUserDocument,
+  useDocumentRefs,
   DOC_TYPE_LABEL,
   UserDocType,
+  UserDocumentRef,
 } from "@/hooks/useUserDocuments";
 import SacredDivider from "@/components/SacredDivider";
 import { renderChildrenWithBibleRefs } from "@/components/BibleReferenceLink";
