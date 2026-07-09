@@ -78,7 +78,6 @@ const Reading = () => {
 
   const handleTranslationChange = (code: string) => {
     setTranslation(code);
-    setStoredTranslation(code);
   };
   const { data: wordMap } = useChapterWordMap(bookSlug, chapter);
   const { upsert, remove, byVerse } = useChapterHighlights(bookSlug, chapter);
