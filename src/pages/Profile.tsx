@@ -367,6 +367,60 @@ const Profile = () => {
             <LogOut size={18} className="mr-2" />
             Sair
           </Button>
+
+          <div className="mt-8 border-t border-border pt-4">
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Conta
+            </h2>
+            <AlertDialog
+              open={deleteOpen}
+              onOpenChange={(o) => {
+                setDeleteOpen(o);
+                if (!o) setDeleteConfirm("");
+              }}
+            >
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full rounded-xl">
+                  <Trash2 size={18} className="mr-2" />
+                  Excluir minha conta
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir conta</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Isso é permanente. Seus dados (documentos, diário, destaques,
+                    histórico do tutor, planos e perfil) serão removidos e não
+                    poderão ser recuperados.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Para confirmar, digite <strong>EXCLUIR</strong> abaixo:
+                  </p>
+                  <Input
+                    value={deleteConfirm}
+                    onChange={(e) => setDeleteConfirm(e.target.value)}
+                    placeholder="EXCLUIR"
+                    autoComplete="off"
+                  />
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={deleteConfirm !== "EXCLUIR" || deleting}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDeleteAccount();
+                    }}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleting ? "Excluindo..." : "Excluir permanentemente"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </motion.div>
             </TabsContent>
           </Tabs>
