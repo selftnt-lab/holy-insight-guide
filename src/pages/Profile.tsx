@@ -86,17 +86,25 @@ const Profile = () => {
       const { error } = await supabase.functions.invoke("delete-account");
       if (error) throw error;
 
+      const { clearAuthStorage } = await import("@/lib/clear-auth-storage");
+
       // Best-effort signOut; se falhar, limpa a sessão local manualmente.
       try {
         await signOut();
       } catch (signOutErr) {
         console.warn("signOut falhou após exclusão, limpando storage:", signOutErr);
-        const { clearAuthStorage } = await import("@/lib/clear-auth-storage");
         clearAuthStorage();
       }
 
       toast.success("Conta excluída com sucesso");
       navigate("/auth", { replace: true });
+
+      // Se ainda houver sessão residual (estado bugado), força reload limpo.
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        clearAuthStorage();
+        window.location.reload();
+      }
     } catch (e) {
       console.error(e);
       toast.error("Não foi possível excluir a conta. Tente novamente.");
