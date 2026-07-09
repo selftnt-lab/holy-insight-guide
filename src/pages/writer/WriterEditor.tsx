@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { BookMarked } from "lucide-react";
+import InsertReferenceDialog from "@/components/InsertReferenceDialog";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Save, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -38,6 +40,30 @@ const WriterEditor = () => {
   const [title, setTitle] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [contentMd, setContentMd] = useState("");
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const insertAtCursor = (text: string) => {
+    const ta = textareaRef.current;
+    if (!ta) {
+      setContentMd((prev) => (prev ? `${prev} ${text}` : text));
+      return;
+    }
+    const start = ta.selectionStart ?? contentMd.length;
+    const end = ta.selectionEnd ?? contentMd.length;
+    const before = contentMd.slice(0, start);
+    const after = contentMd.slice(end);
+    const needsLeadingSpace = before && !/\s$/.test(before);
+    const needsTrailingSpace = after && !/^\s/.test(after);
+    const insertion = `${needsLeadingSpace ? " " : ""}${text}${needsTrailingSpace ? " " : ""}`;
+    const next = before + insertion + after;
+    setContentMd(next);
+    const caret = (before + insertion).length;
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.setSelectionRange(caret, caret);
+    });
+  };
 
   useEffect(() => {
     if (doc) {
@@ -137,7 +163,15 @@ const WriterEditor = () => {
             </p>
           </div>
           <div>
-            <Label>Conteúdo</Label>
+            <div className="flex items-center justify-between">
+              <Label>Conteúdo</Label>
+              <InsertReferenceDialog onInsert={insertAtCursor}>
+                <Button type="button" variant="outline" size="sm" className="h-8">
+                  <BookMarked size={14} className="mr-1.5" />
+                  Inserir referência
+                </Button>
+              </InsertReferenceDialog>
+            </div>
             <Tabs defaultValue="edit" className="mt-1">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="edit">Editor</TabsTrigger>
@@ -146,6 +180,7 @@ const WriterEditor = () => {
               <TabsContent value="edit" className="mt-2">
                 <Textarea
                   id="content"
+                  ref={textareaRef}
                   value={contentMd}
                   onChange={(e) => setContentMd(e.target.value)}
                   placeholder="Escreva aqui em markdown... Referências como Jo 3:16, Sl 23 ou 1 Co 13:4-7 ficam clicáveis no Preview."
