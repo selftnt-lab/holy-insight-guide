@@ -75,6 +75,25 @@ const Profile = () => {
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [chaptersRead, setChaptersRead] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== "EXCLUIR") return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke("delete-account");
+      if (error) throw error;
+      toast.success("Sua conta foi excluída.");
+      await signOut();
+      navigate("/auth", { replace: true });
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível excluir a conta. Tente novamente.");
+      setDeleting(false);
+    }
+  };
 
   const load = useCallback(async () => {
     if (!user) return;
