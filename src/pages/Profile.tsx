@@ -85,8 +85,17 @@ const Profile = () => {
     try {
       const { error } = await supabase.functions.invoke("delete-account");
       if (error) throw error;
-      toast.success("Sua conta foi excluída.");
-      await signOut();
+
+      // Best-effort signOut; se falhar, limpa a sessão local manualmente.
+      try {
+        await signOut();
+      } catch (signOutErr) {
+        console.warn("signOut falhou após exclusão, limpando storage:", signOutErr);
+        const { clearAuthStorage } = await import("@/lib/clear-auth-storage");
+        clearAuthStorage();
+      }
+
+      toast.success("Conta excluída com sucesso");
       navigate("/auth", { replace: true });
     } catch (e) {
       console.error(e);
