@@ -20,7 +20,8 @@ import TranslationComparison from "@/components/TranslationComparison";
 import ReadingAudioControls from "@/components/ReadingAudioControls";
 import StudySheet from "@/components/StudySheet";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
-import { BIBLE_TRANSLATIONS, getStoredTranslation, setStoredTranslation } from "@/lib/bible-translations";
+import { BIBLE_TRANSLATIONS } from "@/lib/bible-translations";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import {
   Select,
   SelectContent,
