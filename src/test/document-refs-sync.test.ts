@@ -15,7 +15,7 @@ describe("extractRefsFromContent", () => {
   });
 
   it("normalizes range refs", () => {
-    const [r] = extractRefsFromContent("veja 1 Co 13:4-7 sobre amor");
+    const [r] = extractRefsFromContent("1 Co 13:4-7 fala do amor");
     expect(r.verse_start).toBe(4);
     expect(r.verse_end).toBe(7);
     expect(r.chapter).toBe(13);
