@@ -42,29 +42,31 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <AudioPlayerProvider>
-              <AppHeader />
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/reading" element={<ProtectedRoute><Reading /></ProtectedRoute>} />
-                <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
-                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/chat-history" element={<ProtectedRoute><ChatHistory /></ProtectedRoute>} />
-                <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
-                <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
-                <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
-                <Route path="/admin/knowledge" element={<ProtectedRoute><AdminKnowledge /></ProtectedRoute>} />
-                <Route path="/writer" element={<ProtectedRoute><WriterList /></ProtectedRoute>} />
-                <Route path="/writer/new" element={<ProtectedRoute><WriterEditor /></ProtectedRoute>} />
-                <Route path="/writer/:id" element={<ProtectedRoute><WriterEditor /></ProtectedRoute>} />
-                <Route path="/writer/:id/print" element={<ProtectedRoute><WriterPrint /></ProtectedRoute>} />
-                <Route path="/legal/termos" element={<Terms />} />
-                <Route path="/legal/privacidade" element={<Privacy />} />
-                <Route path="/legal/licencas" element={<Licenses />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <MiniAudioPlayer />
-              <BottomNav />
+              <AppErrorBoundary>
+                <AppHeader />
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/reading" element={<ProtectedRoute><Reading /></ProtectedRoute>} />
+                  <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/chat-history" element={<ProtectedRoute><ChatHistory /></ProtectedRoute>} />
+                  <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
+                  <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+                  <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
+                  <Route path="/admin/knowledge" element={<ProtectedRoute><AdminKnowledge /></ProtectedRoute>} />
+                  <Route path="/writer" element={<ProtectedRoute><WriterList /></ProtectedRoute>} />
+                  <Route path="/writer/new" element={<ProtectedRoute><WriterEditor /></ProtectedRoute>} />
+                  <Route path="/writer/:id" element={<ProtectedRoute><WriterEditor /></ProtectedRoute>} />
+                  <Route path="/writer/:id/print" element={<ProtectedRoute><WriterPrint /></ProtectedRoute>} />
+                  <Route path="/legal/termos" element={<Terms />} />
+                  <Route path="/legal/privacidade" element={<Privacy />} />
+                  <Route path="/legal/licencas" element={<Licenses />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <MiniAudioPlayer />
+                <BottomNav />
+              </AppErrorBoundary>
             </AudioPlayerProvider>
           </AuthProvider>
         </BrowserRouter>
