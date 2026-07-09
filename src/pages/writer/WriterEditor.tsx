@@ -180,6 +180,7 @@ const WriterEditor = () => {
               <TabsContent value="edit" className="mt-2">
                 <Textarea
                   id="content"
+                  ref={textareaRef}
                   value={contentMd}
                   onChange={(e) => setContentMd(e.target.value)}
                   placeholder="Escreva aqui em markdown... Referências como Jo 3:16, Sl 23 ou 1 Co 13:4-7 ficam clicáveis no Preview."
