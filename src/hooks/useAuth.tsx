@@ -31,10 +31,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN get existing session
-    supabase.auth.getSession().then(({ data: { session: existing } }) => {
-      setSession(existing);
-      setUser(existing?.user ?? null);
+    // THEN get existing session (com fallback para sessão inválida)
+    supabase.auth.getSession().then(async ({ data: { session: existing }, error }) => {
+      if (error || (existing && !existing.user)) {
+        const { clearAuthStorage } = await import("@/lib/clear-auth-storage");
+        try { await supabase.auth.signOut(); } catch { /* ignore */ }
+        clearAuthStorage();
+        setSession(null);
+        setUser(null);
+      } else {
+        setSession(existing);
+        setUser(existing?.user ?? null);
+      }
       setLoading(false);
     });
 
