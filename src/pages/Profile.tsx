@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText, Shield, Trash2 } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText, Shield, Trash2, AlertCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
