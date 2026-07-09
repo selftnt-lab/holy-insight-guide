@@ -189,9 +189,7 @@ const Reading = () => {
   const toggleImmersive = () => {
     setImmersive((p) => {
       const next = !p;
-      localStorage.setItem("reading.immersive", String(next));
-      if (next) setChromeVisible(false);
-      else setChromeVisible(true);
+      setChromeVisible(!next);
       return next;
     });
   };
