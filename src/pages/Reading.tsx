@@ -117,6 +117,16 @@ const Reading = () => {
     }
   }, [user, hydrated, params]);
 
+  // Sync state when URL params change externally (e.g., clicking a bible reference link
+  // while already on /reading). Guarded so we don't fight the effect that writes params.
+  useEffect(() => {
+    const b = params.get("book");
+    const c = Number(params.get("chapter"));
+    if (b && b !== bookSlug) setBookSlug(b);
+    if (c && Number.isFinite(c) && c > 0 && c !== chapter) setChapter(c);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
+
   useEffect(() => {
     if (user && hydrated) saveProgress(user.id, bookSlug, chapter);
     const next: Record<string, string> = { book: bookSlug, chapter: String(chapter) };
