@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText, Shield, Trash2 } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText, Shield, Trash2, AlertCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -367,14 +367,24 @@ const Profile = () => {
           className="mt-6"
         >
           {isAdmin && (
-            <Button
-              variant="outline"
-              className="mb-2 w-full rounded-xl"
-              onClick={() => navigate("/admin/knowledge")}
-            >
-              <Shield size={18} className="mr-2" />
-              Base de conhecimento (admin)
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                className="mb-2 w-full rounded-xl"
+                onClick={() => navigate("/admin/knowledge")}
+              >
+                <Shield size={18} className="mr-2" />
+                Base de conhecimento (admin)
+              </Button>
+              <Button
+                variant="outline"
+                className="mb-2 w-full rounded-xl"
+                onClick={() => navigate("/admin/errors")}
+              >
+                <AlertCircle size={18} className="mr-2" />
+                Erros do cliente (admin)
+              </Button>
+            </>
           )}
           <Button
             variant="outline"
