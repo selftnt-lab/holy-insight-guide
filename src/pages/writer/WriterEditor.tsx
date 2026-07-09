@@ -238,4 +238,54 @@ const WriterEditor = () => {
   );
 };
 
+const buildRefHref = (r: UserDocumentRef) => {
+  const p = new URLSearchParams();
+  p.set("book", r.book_slug);
+  p.set("chapter", String(r.chapter));
+  if (r.verse_start) p.set("verse", String(r.verse_start));
+  return `/reading?${p.toString()}`;
+};
+
+const ReferencesSheet = ({ refs }: { refs: UserDocumentRef[] }) => {
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button type="button" variant="outline" size="sm" className="h-8">
+          <BookOpen size={14} className="mr-1.5" />
+          Referências
+          <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-[10px]">
+            {refs.length}
+          </Badge>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-sm">
+        <SheetHeader>
+          <SheetTitle className="font-serif">Referências no texto</SheetTitle>
+        </SheetHeader>
+        <div className="mt-4">
+          {refs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nenhuma referência detectada. Escreva citações como "Jo 3:16" ou "Sl 23" no conteúdo e salve.
+            </p>
+          ) : (
+            <ul className="divide-y">
+              {refs.map((r) => (
+                <li key={r.id}>
+                  <Link
+                    to={buildRefHref(r)}
+                    className="flex items-center justify-between py-2.5 text-sm hover:text-primary"
+                  >
+                    <span className="font-medium">{r.ref_raw}</span>
+                    <ChevronLeft size={14} className="rotate-180 text-muted-foreground" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+};
+
 export default WriterEditor;
