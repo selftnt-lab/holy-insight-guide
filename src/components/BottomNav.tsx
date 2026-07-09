@@ -1,4 +1,4 @@
-import { Home, BookOpen, Compass, User } from "lucide-react";
+import { Home, BookOpen, Compass, User, PenLine } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import novusLogo from "@/assets/novus-ai-logo.png";
@@ -6,6 +6,7 @@ import novusLogo from "@/assets/novus-ai-logo.png";
 const tabs = [
   { path: "/", icon: Home, label: "Início" },
   { path: "/reading", icon: BookOpen, label: "Leitura" },
+  { path: "/writer", icon: PenLine, label: "Escritor" },
   { path: "/explore", icon: Compass, label: "Explorar" },
   { path: "/profile", icon: User, label: "Perfil" },
 ];
@@ -26,7 +27,7 @@ const BottomNav = () => {
               key={path}
               onClick={() => navigate(path)}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-4 py-1.5 transition-colors",
+                "flex flex-col items-center gap-0.5 px-2.5 py-1.5 transition-colors",
                 active ? "text-primary" : "text-muted-foreground"
               )}
             >
