@@ -2,6 +2,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { syncDocumentRefs, bookOrderIndex } from "@/lib/document-refs";
+
+export interface UserDocumentRef {
+  id: string;
+  document_id: string;
+  user_id: string;
+  ref_raw: string;
+  book_slug: string;
+  chapter: number;
+  verse_start: number | null;
+  verse_end: number | null;
+  created_at: string;
+}
 
 export type UserDocType = "sermon" | "devotional" | "study" | "note";
 
