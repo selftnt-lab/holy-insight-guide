@@ -168,3 +168,19 @@ export const useDocumentRefs = (documentId: string | undefined) => {
     },
   });
 };
+
+export const useDeleteDocument = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("user_documents").delete().eq("id", id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["user_documents"] });
+      toast.success("Documento excluído");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao excluir"),
+  });
+};
