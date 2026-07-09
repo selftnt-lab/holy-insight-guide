@@ -134,11 +134,8 @@ const Reading = () => {
     if (!initialVerseParam) window.scrollTo({ top: 0, behavior: "smooth" });
   }, [bookSlug, chapter, setParams, user, hydrated, initialVerseParam]);
 
-  // Load user preference for immersive mode
-  useEffect(() => {
-    const v = localStorage.getItem("reading.immersive");
-    if (v === "true") setImmersive(true);
-  }, []);
+  // Immersive preference is hydrated by useUserPreferences (backend + localStorage fallback)
+
 
   // Scroll to ?verse= once data is loaded (retries until the verse node exists)
   const didJumpRef = useRef(false);
