@@ -38,6 +38,7 @@ const WriterEditor = () => {
   const { data: doc, isLoading, isError } = useUserDocument(isNew ? undefined : id);
   const createDoc = useCreateDocument();
   const updateDoc = useUpdateDocument();
+  const { data: refs = [] } = useDocumentRefs(isNew ? undefined : id);
 
   const [type, setType] = useState<UserDocType>(initialType);
   const [title, setTitle] = useState("");
