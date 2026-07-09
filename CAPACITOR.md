@@ -89,3 +89,8 @@ Para publicar nas lojas será necessário depois:
 ## Blog Lovable
 
 Leia mais em: https://lovable.dev/blog/mobile-development
+
+## Service Workers
+
+O app **não registra Service Worker** — nem no build web, nem no empacotamento Capacitor.
+Isso garante que o app nativo carregue **sempre** o bundle empacotado em `dist/` e não uma versão web em cache. Se algum dia adicionarmos SW, ele deve ser guardado por `Capacitor.isNativePlatform()` para nunca rodar dentro do app nativo.
