@@ -41,6 +41,30 @@ const WriterEditor = () => {
   const [tagsInput, setTagsInput] = useState("");
   const [contentMd, setContentMd] = useState("");
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const insertAtCursor = (text: string) => {
+    const ta = textareaRef.current;
+    if (!ta) {
+      setContentMd((prev) => (prev ? `${prev} ${text}` : text));
+      return;
+    }
+    const start = ta.selectionStart ?? contentMd.length;
+    const end = ta.selectionEnd ?? contentMd.length;
+    const before = contentMd.slice(0, start);
+    const after = contentMd.slice(end);
+    const needsLeadingSpace = before && !/\s$/.test(before);
+    const needsTrailingSpace = after && !/^\s/.test(after);
+    const insertion = `${needsLeadingSpace ? " " : ""}${text}${needsTrailingSpace ? " " : ""}`;
+    const next = before + insertion + after;
+    setContentMd(next);
+    const caret = (before + insertion).length;
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.setSelectionRange(caret, caret);
+    });
+  };
+
   useEffect(() => {
     if (doc) {
       setType(doc.type);
