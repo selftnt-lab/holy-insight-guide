@@ -519,6 +519,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_documents: {
+        Row: {
+          content_md: string
+          created_at: string
+          id: string
+          is_archived: boolean
+          tags: string[]
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content_md?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          tags?: string[]
+          title?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content_md?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          tags?: string[]
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_plan_progress: {
         Row: {
           completed_at: string | null
