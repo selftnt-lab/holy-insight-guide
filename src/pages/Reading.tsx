@@ -20,7 +20,8 @@ import TranslationComparison from "@/components/TranslationComparison";
 import ReadingAudioControls from "@/components/ReadingAudioControls";
 import StudySheet from "@/components/StudySheet";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
-import { BIBLE_TRANSLATIONS, getStoredTranslation, setStoredTranslation } from "@/lib/bible-translations";
+import { BIBLE_TRANSLATIONS } from "@/lib/bible-translations";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import {
   Select,
   SelectContent,
@@ -41,7 +42,7 @@ const Reading = () => {
   const { user } = useAuth();
   const [bookSlug, setBookSlug] = useState(params.get("book") || "genesis");
   const [chapter, setChapter] = useState(Number(params.get("chapter")) || 1);
-  const [translation, setTranslation] = useState<string>(() => getStoredTranslation());
+  const { translation, setTranslation, immersive, setImmersive } = useUserPreferences();
   const [showChat, setShowChat] = useState(false);
   const [showStudy, setShowStudy] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -60,7 +61,6 @@ const Reading = () => {
   const [actionVerse, setActionVerse] = useState<{ verse: number; text: string } | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareVerse, setCompareVerse] = useState<number | undefined>(undefined);
-  const [immersive, setImmersive] = useState(false);
   const [chromeVisible, setChromeVisible] = useState(true);
   const verseRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
   const [flashVerse, setFlashVerse] = useState<number | null>(null);
@@ -78,7 +78,6 @@ const Reading = () => {
 
   const handleTranslationChange = (code: string) => {
     setTranslation(code);
-    setStoredTranslation(code);
   };
   const { data: wordMap } = useChapterWordMap(bookSlug, chapter);
   const { upsert, remove, byVerse } = useChapterHighlights(bookSlug, chapter);
@@ -135,11 +134,8 @@ const Reading = () => {
     if (!initialVerseParam) window.scrollTo({ top: 0, behavior: "smooth" });
   }, [bookSlug, chapter, setParams, user, hydrated, initialVerseParam]);
 
-  // Load user preference for immersive mode
-  useEffect(() => {
-    const v = localStorage.getItem("reading.immersive");
-    if (v === "true") setImmersive(true);
-  }, []);
+  // Immersive preference is hydrated by useUserPreferences (backend + localStorage fallback)
+
 
   // Scroll to ?verse= once data is loaded (retries until the verse node exists)
   const didJumpRef = useRef(false);
@@ -193,9 +189,7 @@ const Reading = () => {
   const toggleImmersive = () => {
     setImmersive((p) => {
       const next = !p;
-      localStorage.setItem("reading.immersive", String(next));
-      if (next) setChromeVisible(false);
-      else setChromeVisible(true);
+      setChromeVisible(!next);
       return next;
     });
   };
