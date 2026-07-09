@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Save, Loader2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   useCreateDocument,
   useUpdateDocument,
@@ -14,6 +16,7 @@ import {
   UserDocType,
 } from "@/hooks/useUserDocuments";
 import SacredDivider from "@/components/SacredDivider";
+import { renderChildrenWithBibleRefs } from "@/components/BibleReferenceLink";
 
 const VALID_TYPES: UserDocType[] = ["sermon", "devotional", "study", "note"];
 
