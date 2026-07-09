@@ -133,8 +133,9 @@ const WriterEditor = () => {
           <ChevronLeft size={16} className="mr-1" /> Voltar
         </Button>
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex items-center justify-between gap-2">
           <Badge variant="secondary">{DOC_TYPE_LABEL[type]}</Badge>
+          {!isNew && <ReferencesSheet refs={refs} />}
         </div>
         <h1 className="mt-2 font-serif text-2xl font-semibold">
           {isNew ? "Novo documento" : "Editar documento"}
