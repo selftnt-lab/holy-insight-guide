@@ -260,6 +260,26 @@ const WriterEditor = () => {
   );
 };
 
+const ExportMenu = ({ onCopy, onPrint }: { onCopy: () => void; onPrint: () => void }) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="outline" size="sm" className="h-8">
+          <Share2 size={14} className="mr-1.5" /> Exportar
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onCopy}>
+          <Copy size={14} className="mr-2" /> Copiar Markdown
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onPrint}>
+          <Printer size={14} className="mr-2" /> Imprimir / Salvar PDF
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 const buildRefHref = (r: UserDocumentRef) => {
   const p = new URLSearchParams();
   p.set("book", r.book_slug);
