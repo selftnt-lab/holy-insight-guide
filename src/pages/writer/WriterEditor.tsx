@@ -142,7 +142,22 @@ const WriterEditor = () => {
 
         <div className="mt-3 flex items-center justify-between gap-2">
           <Badge variant="secondary">{DOC_TYPE_LABEL[type]}</Badge>
-          {!isNew && <ReferencesSheet refs={refs} />}
+          {!isNew && (
+            <div className="flex items-center gap-2">
+              <ReferencesSheet refs={refs} />
+              <ExportMenu
+                onCopy={async () => {
+                  try {
+                    await navigator.clipboard.writeText(contentMd);
+                    toast.success("Markdown copiado");
+                  } catch {
+                    toast.error("Não foi possível copiar");
+                  }
+                }}
+                onPrint={() => id && navigate(`/writer/${id}/print`)}
+              />
+            </div>
+          )}
         </div>
         <h1 className="mt-2 font-serif text-2xl font-semibold">
           {isNew ? "Novo documento" : "Editar documento"}
