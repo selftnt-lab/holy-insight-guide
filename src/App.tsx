@@ -27,6 +27,7 @@ import WriterEditor from "@/pages/writer/WriterEditor";
 import WriterPrint from "@/pages/writer/WriterPrint";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
 import MiniAudioPlayer from "@/components/MiniAudioPlayer";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 
 
 
