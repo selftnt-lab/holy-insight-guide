@@ -61,7 +61,6 @@ const Reading = () => {
   const [actionVerse, setActionVerse] = useState<{ verse: number; text: string } | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareVerse, setCompareVerse] = useState<number | undefined>(undefined);
-  const [immersive, setImmersive] = useState(false);
   const [chromeVisible, setChromeVisible] = useState(true);
   const verseRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
   const [flashVerse, setFlashVerse] = useState<number | null>(null);
