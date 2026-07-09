@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { BookMarked } from "lucide-react";
+import InsertReferenceDialog from "@/components/InsertReferenceDialog";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Save, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
