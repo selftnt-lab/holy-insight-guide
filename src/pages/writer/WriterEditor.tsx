@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { BookMarked } from "lucide-react";
+import { BookMarked, BookOpen } from "lucide-react";
 import InsertReferenceDialog from "@/components/InsertReferenceDialog";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { ChevronLeft, Save, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   useCreateDocument,
   useUpdateDocument,
   useUserDocument,
+  useDocumentRefs,
   DOC_TYPE_LABEL,
   UserDocType,
+  UserDocumentRef,
 } from "@/hooks/useUserDocuments";
 import SacredDivider from "@/components/SacredDivider";
 import { renderChildrenWithBibleRefs } from "@/components/BibleReferenceLink";
@@ -35,6 +38,7 @@ const WriterEditor = () => {
   const { data: doc, isLoading, isError } = useUserDocument(isNew ? undefined : id);
   const createDoc = useCreateDocument();
   const updateDoc = useUpdateDocument();
+  const { data: refs = [] } = useDocumentRefs(isNew ? undefined : id);
 
   const [type, setType] = useState<UserDocType>(initialType);
   const [title, setTitle] = useState("");
@@ -129,8 +133,9 @@ const WriterEditor = () => {
           <ChevronLeft size={16} className="mr-1" /> Voltar
         </Button>
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex items-center justify-between gap-2">
           <Badge variant="secondary">{DOC_TYPE_LABEL[type]}</Badge>
+          {!isNew && <ReferencesSheet refs={refs} />}
         </div>
         <h1 className="mt-2 font-serif text-2xl font-semibold">
           {isNew ? "Novo documento" : "Editar documento"}
@@ -230,6 +235,56 @@ const WriterEditor = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const buildRefHref = (r: UserDocumentRef) => {
+  const p = new URLSearchParams();
+  p.set("book", r.book_slug);
+  p.set("chapter", String(r.chapter));
+  if (r.verse_start) p.set("verse", String(r.verse_start));
+  return `/reading?${p.toString()}`;
+};
+
+const ReferencesSheet = ({ refs }: { refs: UserDocumentRef[] }) => {
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button type="button" variant="outline" size="sm" className="h-8">
+          <BookOpen size={14} className="mr-1.5" />
+          Referências
+          <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-[10px]">
+            {refs.length}
+          </Badge>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-sm">
+        <SheetHeader>
+          <SheetTitle className="font-serif">Referências no texto</SheetTitle>
+        </SheetHeader>
+        <div className="mt-4">
+          {refs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nenhuma referência detectada. Escreva citações como "Jo 3:16" ou "Sl 23" no conteúdo e salve.
+            </p>
+          ) : (
+            <ul className="divide-y">
+              {refs.map((r) => (
+                <li key={r.id}>
+                  <Link
+                    to={buildRefHref(r)}
+                    className="flex items-center justify-between py-2.5 text-sm hover:text-primary"
+                  >
+                    <span className="font-medium">{r.ref_raw}</span>
+                    <ChevronLeft size={14} className="rotate-180 text-muted-foreground" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 

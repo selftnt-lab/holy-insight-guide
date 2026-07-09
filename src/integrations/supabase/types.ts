@@ -519,6 +519,50 @@ export type Database = {
         }
         Relationships: []
       }
+      user_document_refs: {
+        Row: {
+          book_slug: string
+          chapter: number
+          created_at: string
+          document_id: string
+          id: string
+          ref_raw: string
+          user_id: string
+          verse_end: number | null
+          verse_start: number | null
+        }
+        Insert: {
+          book_slug: string
+          chapter: number
+          created_at?: string
+          document_id: string
+          id?: string
+          ref_raw: string
+          user_id: string
+          verse_end?: number | null
+          verse_start?: number | null
+        }
+        Update: {
+          book_slug?: string
+          chapter?: number
+          created_at?: string
+          document_id?: string
+          id?: string
+          ref_raw?: string
+          user_id?: string
+          verse_end?: number | null
+          verse_start?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_document_refs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "user_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_documents: {
         Row: {
           content_md: string
