@@ -22,6 +22,8 @@ import Privacy from "@/pages/legal/Privacy";
 import Licenses from "@/pages/legal/Licenses";
 import NotFound from "@/pages/NotFound";
 import AdminKnowledge from "@/pages/admin/Knowledge";
+import WriterList from "@/pages/writer/WriterList";
+import WriterEditor from "@/pages/writer/WriterEditor";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
 import MiniAudioPlayer from "@/components/MiniAudioPlayer";
 
@@ -51,6 +53,9 @@ const App = () => (
                 <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
                 <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
                 <Route path="/admin/knowledge" element={<ProtectedRoute><AdminKnowledge /></ProtectedRoute>} />
+                <Route path="/writer" element={<ProtectedRoute><WriterList /></ProtectedRoute>} />
+                <Route path="/writer/new" element={<ProtectedRoute><WriterEditor /></ProtectedRoute>} />
+                <Route path="/writer/:id" element={<ProtectedRoute><WriterEditor /></ProtectedRoute>} />
                 <Route path="/legal/termos" element={<Terms />} />
                 <Route path="/legal/privacidade" element={<Privacy />} />
                 <Route path="/legal/licencas" element={<Licenses />} />
