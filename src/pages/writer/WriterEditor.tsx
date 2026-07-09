@@ -163,7 +163,15 @@ const WriterEditor = () => {
             </p>
           </div>
           <div>
-            <Label>Conteúdo</Label>
+            <div className="flex items-center justify-between">
+              <Label>Conteúdo</Label>
+              <InsertReferenceDialog onInsert={insertAtCursor}>
+                <Button type="button" variant="outline" size="sm" className="h-8">
+                  <BookMarked size={14} className="mr-1.5" />
+                  Inserir referência
+                </Button>
+              </InsertReferenceDialog>
+            </div>
             <Tabs defaultValue="edit" className="mt-1">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="edit">Editor</TabsTrigger>
