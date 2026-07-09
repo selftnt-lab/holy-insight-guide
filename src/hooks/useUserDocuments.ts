@@ -96,10 +96,17 @@ export const useCreateDocument = () => {
         .select()
         .single();
       if (error) throw error;
-      return data as UserDocument;
+      const doc = data as UserDocument;
+      try {
+        await syncDocumentRefs(doc.id, user!.id, doc.content_md);
+      } catch (e) {
+        console.error("syncDocumentRefs failed:", e);
+      }
+      return doc;
     },
-    onSuccess: () => {
+    onSuccess: (doc) => {
       qc.invalidateQueries({ queryKey: ["user_documents"] });
+      qc.invalidateQueries({ queryKey: ["user_document_refs", doc.id] });
       toast.success("Documento criado");
     },
     onError: (e: any) => toast.error(e.message ?? "Erro ao criar"),
@@ -107,6 +114,7 @@ export const useCreateDocument = () => {
 };
 
 export const useUpdateDocument = () => {
+  const { user } = useAuth();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { id: string; title?: string; content_md?: string; tags?: string[]; is_archived?: boolean }) => {
@@ -118,28 +126,45 @@ export const useUpdateDocument = () => {
         .select()
         .single();
       if (error) throw error;
-      return data as UserDocument;
+      const doc = data as UserDocument;
+      if (user && typeof input.content_md === "string") {
+        try {
+          await syncDocumentRefs(doc.id, user.id, doc.content_md);
+        } catch (e) {
+          console.error("syncDocumentRefs failed:", e);
+        }
+      }
+      return doc;
     },
     onSuccess: (doc) => {
       qc.invalidateQueries({ queryKey: ["user_documents"] });
       qc.invalidateQueries({ queryKey: ["user_document", doc.id] });
+      qc.invalidateQueries({ queryKey: ["user_document_refs", doc.id] });
     },
     onError: (e: any) => toast.error(e.message ?? "Erro ao salvar"),
   });
 };
 
-export const useDeleteDocument = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("user_documents").delete().eq("id", id);
+export const useDocumentRefs = (documentId: string | undefined) => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["user_document_refs", documentId],
+    enabled: !!user && !!documentId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_document_refs")
+        .select("*")
+        .eq("document_id", documentId!);
       if (error) throw error;
-      return id;
+      const rows = (data ?? []) as UserDocumentRef[];
+      rows.sort((a, b) => {
+        const ao = bookOrderIndex(a.book_slug);
+        const bo = bookOrderIndex(b.book_slug);
+        if (ao !== bo) return ao - bo;
+        if (a.chapter !== b.chapter) return a.chapter - b.chapter;
+        return (a.verse_start ?? 0) - (b.verse_start ?? 0);
+      });
+      return rows;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["user_documents"] });
-      toast.success("Documento excluído");
-    },
-    onError: (e: any) => toast.error(e.message ?? "Erro ao excluir"),
   });
 };
