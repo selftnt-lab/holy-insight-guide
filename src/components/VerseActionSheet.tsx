@@ -62,6 +62,8 @@ const VerseActionSheet = ({
   };
 
   const handleCopy = async () => {
+    // (D) pre-writer-insert / pre-clipboard — same string flowing outbound.
+    debugCodepoints(`pre-insert ${reference}`, text);
     await navigator.clipboard.writeText(`"${text}" — ${reference}`);
     toast.success("Copiado para a área de transferência");
   };
