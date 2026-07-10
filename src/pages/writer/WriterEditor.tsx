@@ -311,17 +311,28 @@ const ReferencesSheet = ({ refs }: { refs: UserDocumentRef[] }) => {
             </p>
           ) : (
             <ul className="divide-y">
-              {refs.map((r) => (
-                <li key={r.id}>
-                  <Link
-                    to={buildRefHref(r)}
-                    className="flex items-center justify-between py-2.5 text-sm hover:text-primary"
-                  >
-                    <span className="font-medium">{r.ref_raw}</span>
-                    <ChevronLeft size={14} className="rotate-180 text-muted-foreground" />
-                  </Link>
-                </li>
-              ))}
+              {refs.map((r) => {
+                const wp = new URLSearchParams();
+                wp.set("book", r.book_slug);
+                wp.set("chapter", String(r.chapter));
+                if (r.verse_start) wp.set("verse", String(r.verse_start));
+                return (
+                  <li key={r.id} className="py-2.5">
+                    <div className="flex items-center justify-between">
+                      <Link to={buildRefHref(r)} className="text-sm font-medium hover:text-primary">
+                        {r.ref_raw}
+                      </Link>
+                      <ChevronLeft size={14} className="rotate-180 text-muted-foreground" />
+                    </div>
+                    <Link
+                      to={`/writer?${wp.toString()}`}
+                      className="mt-1 inline-block text-[11px] text-muted-foreground hover:text-primary"
+                    >
+                      Ver outros documentos com esta referência →
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
