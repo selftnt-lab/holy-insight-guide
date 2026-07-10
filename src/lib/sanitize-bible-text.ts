@@ -86,8 +86,11 @@ export const debugCodepoints = (label: string, s: string): void => {
 /** Guard: flags suspect chars still present so we can trace regressions. */
 export const containsSuspectChars = (text: string): boolean => {
   if (!text) return false;
-  return /[\u200B-\u200F\uFEFF©®™§¶\u00B2\u00B3\u00B9\u2070-\u2079]/.test(text) ||
-    /\p{Cf}/u.test(text);
+  return (
+    /[\u200B-\u200F\uFEFF\uFFFD©®™§¶†‡\u00B2\u00B3\u00B9\u2070-\u2079]/.test(text) ||
+    /\p{Cf}/u.test(text) ||
+    /[\p{So}\p{Sk}]/u.test(text)
+  );
 };
 
 /** Dev-only diagnostic: logs codepoints when suspect chars leak through. */
