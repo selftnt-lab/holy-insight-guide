@@ -257,6 +257,14 @@ const Reading = () => {
     ? data.verses.map((v) => `${v.verse}. ${v.text}`).join("\n")
     : "";
 
+  // (B) pre-render — the exact strings the UI is about to paint.
+  useEffect(() => {
+    if (!data) return;
+    for (const v of data.verses) {
+      debugCodepoints(`pre-render ${bookSlug} ${chapter}:${v.verse}`, v.text);
+    }
+  }, [data, bookSlug, chapter]);
+
   return (
     <div
       className="min-h-screen pb-28 bg-background text-foreground transition-colors"
