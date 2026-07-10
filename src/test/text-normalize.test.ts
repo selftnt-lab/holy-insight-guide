@@ -4,7 +4,7 @@ import { normalizeUserText, sanitizePastedText } from "@/lib/text-normalize";
 describe("normalizeUserText", () => {
   it("removes NBSP, zero-width and BOM characters", () => {
     const dirty = "Foo\u00A0bar\u200Bbaz\uFEFF!";
-    expect(normalizeUserText(dirty)).toBe("Foo bar baz!");
+    expect(normalizeUserText(dirty)).toBe("Foo barbaz!");
   });
 
   it("preserves PT-BR accents and punctuation", () => {
