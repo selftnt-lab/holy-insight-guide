@@ -48,10 +48,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   );
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
-  // Load chapter for current target (cached)
+  // Load chapter for current target — translation MUST be part of the key so
+  // that switching versions reloads the correct text (fixes stale TTS bug).
   const { data: chapterData } = useBibleChapter(
     target?.bookSlug ?? "",
-    target?.chapter ?? 0
+    target?.chapter ?? 0,
+    target?.translation ?? DEFAULT_TRANSLATION,
   );
 
   const versesRef = useRef<{ verse: number; text: string }[]>([]);
