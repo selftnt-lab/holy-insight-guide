@@ -11,24 +11,27 @@ interface Props {
   bookSlug: string;
   bookName: string;
   chapter: number;
+  translation: string;
   startVerse?: number;
 }
 
 const RATES = [0.75, 1, 1.25, 1.5, 2];
 
-const ReadingAudioControls = ({ bookSlug, bookName, chapter, startVerse }: Props) => {
+const ReadingAudioControls = ({ bookSlug, bookName, chapter, translation, startVerse }: Props) => {
   const { target, playing, paused, rate, play, pause, resume, stop, setRate } =
     useAudioPlayer();
 
   const isThis =
-    target?.bookSlug === bookSlug && target?.chapter === chapter;
+    target?.bookSlug === bookSlug &&
+    target?.chapter === chapter &&
+    target?.translation === translation;
   const isPlaying = isThis && playing && !paused;
   const isPaused = isThis && paused;
 
   const onMain = () => {
     if (isPlaying) pause();
     else if (isPaused) resume();
-    else play({ bookSlug, bookName, chapter }, startVerse ?? 1);
+    else play({ bookSlug, bookName, chapter, translation }, startVerse ?? 1);
   };
 
   return (
