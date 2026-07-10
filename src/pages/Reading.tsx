@@ -565,6 +565,7 @@ const Reading = () => {
             bookSlug={bookSlug}
             bookName={book.name}
             chapter={chapter}
+            translation={translation}
           />
         </div>
 
