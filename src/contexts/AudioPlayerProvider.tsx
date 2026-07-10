@@ -113,6 +113,8 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
       queueIndexRef.current = index;
       const v = verses[index];
       setCurrentVerse(v.verse);
+      // (C) pre-TTS — must match exactly what the UI renders.
+      debugCodepoints(`pre-TTS verse ${v.verse}`, v.text);
       const utter = new SpeechSynthesisUtterance(v.text);
       const voice = resolveVoice();
       if (voice) {
