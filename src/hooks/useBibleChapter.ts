@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DEFAULT_TRANSLATION } from "@/lib/bible-translations";
+import { sanitizeBibleText, warnIfSuspect } from "@/lib/sanitize-bible-text";
 
 export interface BibleVerse {
   verse: number;
