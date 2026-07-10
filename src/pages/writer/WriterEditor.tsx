@@ -29,6 +29,7 @@ import {
 } from "@/hooks/useUserDocuments";
 import SacredDivider from "@/components/SacredDivider";
 import { renderChildrenWithBibleRefs } from "@/components/BibleReferenceLink";
+import { normalizeUserText, sanitizePastedText } from "@/lib/text-normalize";
 
 const VALID_TYPES: UserDocType[] = ["sermon", "devotional", "study", "note"];
 
