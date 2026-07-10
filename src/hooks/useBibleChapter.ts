@@ -51,7 +51,7 @@ export const useBibleChapter = (
         d.verses = (d.verses ?? []).map((v) => {
           // (A) RAW — as it arrives from the dataset/API.
           debugCodepoints(`raw ${bookSlug} ${chapter}:${v.verse} (${translation})`, v.text);
-          const clean = sanitizeBibleText(v.text);
+          const clean = sanitizeForTranslation(v.text, translation);
           warnIfSuspect(clean, `${bookSlug} ${chapter}:${v.verse} (${translation})`);
           return { ...v, text: clean };
         });
