@@ -49,6 +49,8 @@ export const useBibleChapter = (
         // Single source of truth: sanitize every verse before it reaches
         // the UI, the TTS engine, or the Writer insert pipeline.
         d.verses = (d.verses ?? []).map((v) => {
+          // (A) RAW — as it arrives from the dataset/API.
+          debugCodepoints(`raw ${bookSlug} ${chapter}:${v.verse} (${translation})`, v.text);
           const clean = sanitizeBibleText(v.text);
           warnIfSuspect(clean, `${bookSlug} ${chapter}:${v.verse} (${translation})`);
           return { ...v, text: clean };
