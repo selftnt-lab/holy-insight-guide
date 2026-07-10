@@ -47,7 +47,7 @@ export const useWriterSearch = (filters: WriterSearchFilters, limit = 50, offset
     queryFn: async () => {
       const p_archived =
         debounced.archived === "all" ? null : debounced.archived === "archived";
-      const { data, error } = await supabase.rpc("search_user_documents", {
+      const { data, error } = await (supabase.rpc as any)("search_user_documents", {
         p_query: debounced.query.trim() || null,
         p_archived,
         p_tag: debounced.tag.trim() || null,
