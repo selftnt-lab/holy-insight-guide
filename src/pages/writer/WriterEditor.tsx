@@ -215,6 +215,23 @@ const WriterEditor = () => {
                   ref={textareaRef}
                   value={contentMd}
                   onChange={(e) => setContentMd(e.target.value)}
+                  onPaste={(e) => {
+                    const raw = e.clipboardData.getData("text/plain");
+                    if (!raw) return;
+                    const cleaned = sanitizePastedText(raw);
+                    if (cleaned === raw) return; // let default paste happen
+                    e.preventDefault();
+                    const ta = textareaRef.current;
+                    const start = ta?.selectionStart ?? contentMd.length;
+                    const end = ta?.selectionEnd ?? contentMd.length;
+                    const next = contentMd.slice(0, start) + cleaned + contentMd.slice(end);
+                    setContentMd(next);
+                    const caret = start + cleaned.length;
+                    requestAnimationFrame(() => {
+                      ta?.focus();
+                      ta?.setSelectionRange(caret, caret);
+                    });
+                  }}
                   placeholder="Escreva aqui em markdown... Referências como Jo 3:16, Sl 23 ou 1 Co 13:4-7 ficam clicáveis no Preview."
                   className="min-h-[420px] font-mono text-sm"
                 />
