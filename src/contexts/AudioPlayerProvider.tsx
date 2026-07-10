@@ -1,10 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, ReactNode } from "react";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
+import { DEFAULT_TRANSLATION } from "@/lib/bible-translations";
 
 interface PlayingTarget {
   bookSlug: string;
   bookName: string;
   chapter: number;
+  translation: string;
 }
 
 interface AudioPlayerState {
@@ -46,10 +48,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
   );
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
-  // Load chapter for current target (cached)
+  // Load chapter for current target — translation MUST be part of the key so
+  // that switching versions reloads the correct text (fixes stale TTS bug).
   const { data: chapterData } = useBibleChapter(
     target?.bookSlug ?? "",
-    target?.chapter ?? 0
+    target?.chapter ?? 0,
+    target?.translation ?? DEFAULT_TRANSLATION,
   );
 
   const versesRef = useRef<{ verse: number; text: string }[]>([]);
@@ -159,11 +163,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     (t: PlayingTarget, startVerse = 1) => {
       stop();
       setTarget(t);
-      // If same chapter already loaded, start immediately
+      // If same chapter+translation already loaded, start immediately
       if (
         chapterData &&
         target?.bookSlug === t.bookSlug &&
-        target?.chapter === t.chapter
+        target?.chapter === t.chapter &&
+        target?.translation === t.translation
       ) {
         const idx = Math.max(
           0,
@@ -171,6 +176,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         );
         speakAt(idx === -1 ? 0 : idx);
       } else {
+        // Chapter/translation changing — wait for new verses to load, then start.
+        // Clear cached verses so speakAt can't fire against stale text.
+        versesRef.current = [];
         pendingStartRef.current = startVerse;
       }
     },
