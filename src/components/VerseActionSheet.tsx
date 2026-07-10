@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { HIGHLIGHT_COLORS, type HighlightColor } from "@/lib/highlight-colors";
 import type { VerseHighlight } from "@/hooks/useChapterHighlights";
 import { toast } from "sonner";
+import { debugCodepoints } from "@/lib/sanitize-bible-text";
 
 interface Props {
   open: boolean;
@@ -61,6 +62,8 @@ const VerseActionSheet = ({
   };
 
   const handleCopy = async () => {
+    // (D) pre-writer-insert / pre-clipboard — same string flowing outbound.
+    debugCodepoints(`pre-insert ${reference}`, text);
     await navigator.clipboard.writeText(`"${text}" — ${reference}`);
     toast.success("Copiado para a área de transferência");
   };

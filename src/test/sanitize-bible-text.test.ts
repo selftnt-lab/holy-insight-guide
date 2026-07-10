@@ -44,3 +44,20 @@ describe("containsSuspectChars", () => {
     expect(containsSuspectChars("No princípio criou Deus os céus.")).toBe(false);
   });
 });
+
+describe("guardrail: sanitized output must never contain suspects", () => {
+  const dirtySamples = [
+    "³© Esta, tendo sido anunciada primeiramente pelo Senhor",
+    "²§ Portanto, convém-nos atentar",
+    "grande salvação?© Esta, tendo sido",
+    "Deus\u200Bcriou\uFEFF os céus",
+    "meio de anjos se tornou firme,<S>r</S> e toda",
+    "\u00B9\u00B2\u00B3 No princípio",
+  ];
+  for (const raw of dirtySamples) {
+    it(`cleans: ${JSON.stringify(raw.slice(0, 40))}`, () => {
+      const clean = sanitizeBibleText(raw);
+      expect(containsSuspectChars(clean)).toBe(false);
+    });
+  }
+});
