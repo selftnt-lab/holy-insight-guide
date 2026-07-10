@@ -79,6 +79,25 @@ const Reading = () => {
   const handleTranslationChange = (code: string) => {
     setTranslation(code);
   };
+
+  // If user changes translation while narration is active on this chapter,
+  // restart the TTS with the new translation from the current verse so the
+  // voice never keeps reading text from the previous version.
+  useEffect(() => {
+    if (
+      audio.target &&
+      audio.target.bookSlug === bookSlug &&
+      audio.target.chapter === chapter &&
+      audio.target.translation !== translation &&
+      (audio.playing || audio.paused)
+    ) {
+      audio.play(
+        { bookSlug, bookName: book.name, chapter, translation },
+        audio.currentVerse ?? 1,
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [translation]);
   const { data: wordMap } = useChapterWordMap(bookSlug, chapter);
   const { upsert, remove, byVerse } = useChapterHighlights(bookSlug, chapter);
   const [chaptersRead, setChaptersRead] = useState<Set<number>>(new Set());
