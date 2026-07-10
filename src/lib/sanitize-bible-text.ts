@@ -30,6 +30,9 @@ export const sanitizeBibleText = (input: string): string => {
   out = out.replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, " ");
   out = out.replace(INVISIBLES_RE, "");
   out = out.replace(CONTROLS_RE, "");
+  // Anchored front-of-verse rules for footnote-marker sequences
+  // (¹²³ + ©§ in any order, plus stray leading °†‡¶).
+  out = out.replace(/^[\s]*(?:[\u00B2\u00B3\u00B9\u2070-\u2079©§°†‡¶]+\s*)+/, "");
   out = out.replace(NOTE_MARKERS_RE, "");
   // Clean punctuation orphans left by removed markers ("?© Esta" -> "? Esta").
   out = out.replace(/([?!.,;:])\s*(?=[A-ZÀ-Ú])/g, "$1 ");
@@ -37,6 +40,22 @@ export const sanitizeBibleText = (input: string): string => {
   out = out.replace(/[ \t]{2,}/g, " ");
   out = out.replace(/^\s+/, "").replace(/\s+$/, "");
   return out;
+};
+
+/**
+ * DEV-only forensic helper. Prints suspect codepoints and a snippet so we
+ * can prove WHERE dirty chars enter the pipeline (raw → render → TTS → writer).
+ * No-op in production builds.
+ */
+export const debugCodepoints = (label: string, s: string): void => {
+  if (!import.meta.env.DEV) return;
+  if (!s) return;
+  if (!containsSuspectChars(s)) return;
+  const points = Array.from(s)
+    .filter((c) => /[\u200B-\u200F\uFEFF©®™§¶\u00B2\u00B3\u00B9\u2070-\u2079]/.test(c) || /\p{Cf}/u.test(c))
+    .map((c) => "U+" + c.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0"));
+  // eslint-disable-next-line no-console
+  console.warn(`[bible-text:${label}]`, points, JSON.stringify(s.slice(0, 140)));
 };
 
 /** Guard: flags suspect chars still present so we can trace regressions. */
