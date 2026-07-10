@@ -839,6 +839,30 @@ export type Database = {
           title: string
         }[]
       }
+      search_user_documents: {
+        Args: {
+          p_archived?: boolean
+          p_book_slug?: string
+          p_chapter?: number
+          p_limit?: number
+          p_offset?: number
+          p_query?: string
+          p_tag?: string
+          p_verse?: number
+        }
+        Returns: {
+          content_md: string
+          created_at: string
+          id: string
+          is_archived: boolean
+          tags: string[]
+          title: string
+          total_count: number
+          type: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
