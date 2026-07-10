@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, ReactNode } from "react";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { DEFAULT_TRANSLATION } from "@/lib/bible-translations";
+import { debugCodepoints } from "@/lib/sanitize-bible-text";
 
 interface PlayingTarget {
   bookSlug: string;
