@@ -163,11 +163,12 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
     (t: PlayingTarget, startVerse = 1) => {
       stop();
       setTarget(t);
-      // If same chapter already loaded, start immediately
+      // If same chapter+translation already loaded, start immediately
       if (
         chapterData &&
         target?.bookSlug === t.bookSlug &&
-        target?.chapter === t.chapter
+        target?.chapter === t.chapter &&
+        target?.translation === t.translation
       ) {
         const idx = Math.max(
           0,
@@ -175,6 +176,9 @@ export const AudioPlayerProvider = ({ children }: { children: ReactNode }) => {
         );
         speakAt(idx === -1 ? 0 : idx);
       } else {
+        // Chapter/translation changing — wait for new verses to load, then start.
+        // Clear cached verses so speakAt can't fire against stale text.
+        versesRef.current = [];
         pendingStartRef.current = startVerse;
       }
     },
