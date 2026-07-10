@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { HIGHLIGHT_COLORS, type HighlightColor } from "@/lib/highlight-colors";
 import type { VerseHighlight } from "@/hooks/useChapterHighlights";
 import { toast } from "sonner";
+import { debugCodepoints } from "@/lib/sanitize-bible-text";
 
 interface Props {
   open: boolean;
