@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DEFAULT_TRANSLATION } from "@/lib/bible-translations";
+import { sanitizeBibleText, warnIfSuspect } from "@/lib/sanitize-bible-text";
 
 export interface BibleVerse {
   verse: number;
@@ -44,7 +45,15 @@ export const useBibleChapter = (
       .then(async (r) => {
         const j = await r.json();
         if (!r.ok) throw new Error(j.error || "Erro ao carregar");
-        return j as BibleChapterData;
+        const d = j as BibleChapterData;
+        // Single source of truth: sanitize every verse before it reaches
+        // the UI, the TTS engine, or the Writer insert pipeline.
+        d.verses = (d.verses ?? []).map((v) => {
+          const clean = sanitizeBibleText(v.text);
+          warnIfSuspect(clean, `${bookSlug} ${chapter}:${v.verse} (${translation})`);
+          return { ...v, text: clean };
+        });
+        return d;
       })
       .then((d) => {
         if (!cancelled) setData(d);
