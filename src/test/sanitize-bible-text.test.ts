@@ -1,5 +1,42 @@
 import { describe, it, expect } from "vitest";
-import { sanitizeBibleText, containsSuspectChars } from "@/lib/sanitize-bible-text";
+import {
+  sanitizeBibleText,
+  sanitizeBibleTextStrictForNAA,
+  sanitizeForTranslation,
+  containsSuspectChars,
+} from "@/lib/sanitize-bible-text";
+
+describe("sanitizeBibleTextStrictForNAA (Hb 2:3 bug)", () => {
+  it("drops leading junk symbols before real content", () => {
+    const raw = "?† Esta salvação começou a ser anunciada pelo Senhor";
+    const clean = sanitizeBibleTextStrictForNAA(raw);
+    expect(clean.startsWith("Esta")).toBe(true);
+    expect(containsSuspectChars(clean)).toBe(false);
+  });
+
+  it("removes U+FFFD replacement chars and dagger markers", () => {
+    const raw = "\uFFFD† Como escaparemos nós, se não atentarmos";
+    const clean = sanitizeBibleTextStrictForNAA(raw);
+    expect(clean.startsWith("Como")).toBe(true);
+    expect(containsSuspectChars(clean)).toBe(false);
+  });
+
+  it("keeps internal question marks intact (only leading is stripped)", () => {
+    const raw = "?† Como escaparemos nós, se não? Só por graça.";
+    const clean = sanitizeBibleTextStrictForNAA(raw);
+    expect(clean).toContain("se não? Só");
+  });
+
+  it("sanitizeForTranslation routes NAA through the strict pass", () => {
+    const raw = "?† Esta salvação";
+    expect(sanitizeForTranslation(raw, "naa")).toBe("Esta salvação");
+    // Other translations use the generic pass — leading "?" is not
+    // stripped there (only note markers are), which is correct.
+    expect(sanitizeForTranslation("³© Esta salvação", "acf")).toBe("Esta salvação");
+  });
+});
+
+
 
 describe("sanitizeBibleText", () => {
   it("removes the screenshot case (³© glued to verse start)", () => {

@@ -30,16 +30,41 @@ export const sanitizeBibleText = (input: string): string => {
   out = out.replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, " ");
   out = out.replace(INVISIBLES_RE, "");
   out = out.replace(CONTROLS_RE, "");
-  // Anchored front-of-verse rules for footnote-marker sequences
-  // (¹²³ + ©§ in any order, plus stray leading °†‡¶).
+  // Replacement char (decoding failures) and BOM.
+  out = out.replace(/[\uFFFD\uFEFF]/g, "");
+  // Anchored front-of-verse footnote sequences (¹²³ / ©§ / °†‡¶).
   out = out.replace(/^[\s]*(?:[\u00B2\u00B3\u00B9\u2070-\u2079©§°†‡¶]+\s*)+/, "");
   out = out.replace(NOTE_MARKERS_RE, "");
+  // Strip Unicode "Symbol, other" and "Symbol, modifier" — safe in verse
+  // domain (no emoji/ornaments belong in the text), catches upstream junk
+  // we haven't enumerated (e.g. †, ✝, ✠, weird note glyphs).
+  out = out.replace(/[\p{So}\p{Sk}]/gu, "");
   // Clean punctuation orphans left by removed markers ("?© Esta" -> "? Esta").
   out = out.replace(/([?!.,;:])\s*(?=[A-ZÀ-Ú])/g, "$1 ");
   // Collapse whitespace on the line (keep newlines).
   out = out.replace(/[ \t]{2,}/g, " ");
   out = out.replace(/^\s+/, "").replace(/\s+$/, "");
   return out;
+};
+
+/**
+ * Stricter variant for translations known to leak footnote-marker debris at
+ * the very start of the verse (NAA in particular, per the Hb 2:3 bug). After
+ * the generic pass, drop every leading non-letter/non-number char so a verse
+ * always starts on real content — never on "?", "†", "³", etc.
+ */
+export const sanitizeBibleTextStrictForNAA = (input: string): string => {
+  const generic = sanitizeBibleText(input);
+  if (!generic) return "";
+  return generic.replace(/^[^\p{L}\p{N}"'“”‘’(¿¡]+/u, "").trimStart();
+};
+
+/** Picks the right sanitizer based on translation code. */
+export const sanitizeForTranslation = (raw: string, translation: string): string => {
+  const t = (translation || "").toLowerCase();
+  return t === "naa"
+    ? sanitizeBibleTextStrictForNAA(raw)
+    : sanitizeBibleText(raw);
 };
 
 /**
@@ -61,8 +86,11 @@ export const debugCodepoints = (label: string, s: string): void => {
 /** Guard: flags suspect chars still present so we can trace regressions. */
 export const containsSuspectChars = (text: string): boolean => {
   if (!text) return false;
-  return /[\u200B-\u200F\uFEFF©®™§¶\u00B2\u00B3\u00B9\u2070-\u2079]/.test(text) ||
-    /\p{Cf}/u.test(text);
+  return (
+    /[\u200B-\u200F\uFEFF\uFFFD©®™§¶†‡\u00B2\u00B3\u00B9\u2070-\u2079]/.test(text) ||
+    /\p{Cf}/u.test(text) ||
+    /[\p{So}\p{Sk}]/u.test(text)
+  );
 };
 
 /** Dev-only diagnostic: logs codepoints when suspect chars leak through. */
