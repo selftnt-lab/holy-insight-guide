@@ -1,10 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, ReactNode } from "react";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
+import { DEFAULT_TRANSLATION } from "@/lib/bible-translations";
 
 interface PlayingTarget {
   bookSlug: string;
   bookName: string;
   chapter: number;
+  translation: string;
 }
 
 interface AudioPlayerState {
