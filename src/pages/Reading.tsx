@@ -36,6 +36,7 @@ import { getHighlightBg } from "@/lib/highlight-colors";
 import { fetchProgress, saveProgress } from "@/lib/reading-progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useAudioPlayer } from "@/contexts/AudioPlayerProvider";
+import { debugCodepoints } from "@/lib/sanitize-bible-text";
 
 const Reading = () => {
   const [params, setParams] = useSearchParams();
