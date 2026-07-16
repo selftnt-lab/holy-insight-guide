@@ -19,57 +19,58 @@ const BottomNav = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
-      <nav className="pointer-events-auto mx-auto mb-3 max-w-lg px-4">
-        <div className="flex items-center justify-around rounded-3xl border border-border/60 bg-card/95 px-2 py-2 shadow-float backdrop-blur-xl">
-          {tabs.map((tab) => {
-            const active = location.pathname === tab.path;
-            return (
-              <button
-                key={tab.path}
-                onClick={() => navigate(tab.path)}
-                aria-label={tab.label}
-                className={cn(
-                  "relative flex min-w-[54px] flex-col items-center gap-1 px-2 py-1.5 transition-colors",
-                  active ? "text-accent" : "text-muted-foreground"
-                )}
-              >
-                <span
+      <div className="pointer-events-auto mx-auto mb-3 max-w-lg px-4">
+        <div className="overflow-hidden rounded-3xl border border-border/60 bg-card shadow-float backdrop-blur-xl">
+          <nav className="flex items-center justify-around px-2 py-2">
+            {tabs.map((tab) => {
+              const active = location.pathname === tab.path;
+              return (
+                <button
+                  key={tab.path}
+                  onClick={() => navigate(tab.path)}
+                  aria-label={tab.label}
                   className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full transition-all",
-                    active && "bg-accent/15"
-                  )}
-                >
-                  <tab.icon size={20} strokeWidth={active ? 2.4 : 1.8} />
-
-                </span>
-                <span
-                  className={cn(
-                    "text-[10px] font-medium leading-none",
+                    "relative flex min-w-[54px] flex-col items-center gap-1 px-2 py-1.5 transition-colors",
                     active ? "text-accent" : "text-muted-foreground"
                   )}
                 >
-                  {tab.label}
-                </span>
-              </button>
-            );
-          })}
+                  <span
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-full transition-all",
+                      active && "bg-accent/15"
+                    )}
+                  >
+                    <tab.icon size={20} strokeWidth={active ? 2.4 : 1.8} />
+                  </span>
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium leading-none",
+                      active ? "text-accent" : "text-muted-foreground"
+                    )}
+                  >
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 border-t border-border/50 px-3 py-2 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span>Um produto</span>
+              <img
+                src={novusLogo}
+                alt="NOVUS.AI"
+                className="h-3 w-auto opacity-80 dark:brightness-0 dark:invert"
+              />
+            </span>
+            <span aria-hidden className="opacity-50">·</span>
+            <Link to="/legal/termos" className="hover:text-foreground">Termos</Link>
+            <span aria-hidden className="opacity-50">·</span>
+            <Link to="/legal/privacidade" className="hover:text-foreground">Privacidade</Link>
+            <span aria-hidden className="opacity-50">·</span>
+            <Link to="/legal/licencas" className="hover:text-foreground">Licenças</Link>
+          </div>
         </div>
-      </nav>
-      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-3 pb-2 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <span>Um produto</span>
-          <img
-            src={novusLogo}
-            alt="NOVUS.AI"
-            className="h-3 w-auto opacity-80 dark:brightness-0 dark:invert"
-          />
-        </span>
-        <span aria-hidden className="opacity-50">·</span>
-        <Link to="/legal/termos" className="hover:text-foreground">Termos</Link>
-        <span aria-hidden className="opacity-50">·</span>
-        <Link to="/legal/privacidade" className="hover:text-foreground">Privacidade</Link>
-        <span aria-hidden className="opacity-50">·</span>
-        <Link to="/legal/licencas" className="hover:text-foreground">Licenças</Link>
       </div>
     </div>
   );
