@@ -18,24 +18,30 @@ export type Database = {
         Row: {
           book_slug: string
           chapter: number
+          expires_at: string | null
           fetched_at: string
           id: string
+          license_class: string
           payload: Json
           translation: string
         }
         Insert: {
           book_slug: string
           chapter: number
+          expires_at?: string | null
           fetched_at?: string
           id?: string
+          license_class?: string
           payload: Json
           translation: string
         }
         Update: {
           book_slug?: string
           chapter?: number
+          expires_at?: string | null
           fetched_at?: string
           id?: string
+          license_class?: string
           payload?: Json
           translation?: string
         }
