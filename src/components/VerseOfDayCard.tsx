@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Share2, ArrowRight } from "lucide-react";
+import { Share2, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getVerseOfDay, type VerseOfDay } from "@/lib/verse-of-day";
+import landscape from "@/assets/verse-landscape.jpg";
 
 const VerseOfDayCard = () => {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const VerseOfDayCard = () => {
   if (!verse) return null;
 
   const share = async () => {
-    const text = `"${verse.text}"\n— ${verse.reference}\n\nLido em Holy Insight`;
+    const text = `"${verse.text}"\n— ${verse.reference}\n\nLido em RC Bible`;
     try {
       if (navigator.share) {
         await navigator.share({ title: verse.reference, text });
@@ -40,27 +40,43 @@ const VerseOfDayCard = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
+      className="relative overflow-hidden rounded-3xl shadow-float"
     >
-      <Card className="relative overflow-hidden rounded-2xl border-accent/20 bg-gradient-to-br from-accent/10 via-background to-background p-5">
-        <div className="flex items-center gap-2">
-          <Sparkles size={14} className="text-accent" />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
-            Versículo do dia
-          </span>
-        </div>
-        <p className="mt-3 font-serif text-base leading-relaxed text-foreground">
+      <img
+        src={landscape}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        width={1536}
+        height={1024}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      {/* Warm readable overlay — tuned for both themes */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/25 to-background/70 dark:from-black/55 dark:via-black/40 dark:to-black/75" />
+
+      <div className="relative z-10 flex flex-col items-center px-6 py-8 text-center">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground/70">
+          Versículo do Dia
+        </span>
+        <p className="mt-4 font-serif text-xl leading-snug text-foreground drop-shadow-sm">
           “{verse.text}”
         </p>
-        <p className="mt-3 text-sm font-medium text-muted-foreground">{verse.reference}</p>
-        <div className="mt-4 flex items-center gap-2">
-          <Button size="sm" variant="default" onClick={open} className="rounded-full">
+        <p className="mt-3 text-sm font-medium text-foreground/80">— {verse.reference}</p>
+
+        <div className="mt-5 flex items-center gap-2">
+          <Button size="sm" onClick={open} className="rounded-full">
             Ler capítulo <ArrowRight size={14} className="ml-1" />
           </Button>
-          <Button size="sm" variant="outline" onClick={share} className="rounded-full">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={share}
+            className="rounded-full border-foreground/20 bg-background/70 backdrop-blur"
+          >
             <Share2 size={14} className="mr-1" /> Compartilhar
           </Button>
         </div>
-      </Card>
+      </div>
     </motion.div>
   );
 };

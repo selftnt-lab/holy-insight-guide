@@ -1,11 +1,12 @@
-import { Home, BookOpen, Compass, User, PenLine } from "lucide-react";
+import { Home, Compass, User, PenLine } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import novusLogo from "@/assets/novus-ai-logo.png";
+import bibleMark from "@/assets/bible-mark.png.asset.json";
 
 const tabs = [
   { path: "/", icon: Home, label: "Início" },
-  { path: "/reading", icon: BookOpen, label: "Leitura" },
+  { path: "/reading", icon: "bible-mark" as const, label: "Bíblia" },
   { path: "/writer", icon: PenLine, label: "Escritor" },
   { path: "/explore", icon: Compass, label: "Explorar" },
   { path: "/profile", icon: User, label: "Perfil" },
@@ -18,32 +19,64 @@ const BottomNav = () => {
   if (location.pathname === "/auth") return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/90 backdrop-blur-xl safe-bottom">
-      <div className="mx-auto flex max-w-lg items-center justify-around py-2">
-        {tabs.map(({ path, icon: Icon, label }) => {
-          const active = location.pathname === path;
-          return (
-            <button
-              key={path}
-              onClick={() => navigate(path)}
-              className={cn(
-                "flex flex-col items-center gap-0.5 px-2.5 py-1.5 transition-colors",
-                active ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
-              <span className="text-[10px] font-medium">{label}</span>
-            </button>
-          );
-        })}
-      </div>
-      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 border-t border-border/50 px-3 py-1 text-[10px] text-muted-foreground">
+    <div className="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
+      <nav className="pointer-events-auto mx-auto mb-3 max-w-lg px-4">
+        <div className="flex items-center justify-around rounded-3xl border border-border/60 bg-card/95 px-2 py-2 shadow-float backdrop-blur-xl">
+          {tabs.map((tab) => {
+            const active = location.pathname === tab.path;
+            return (
+              <button
+                key={tab.path}
+                onClick={() => navigate(tab.path)}
+                aria-label={tab.label}
+                className={cn(
+                  "relative flex min-w-[54px] flex-col items-center gap-1 px-2 py-1.5 transition-colors",
+                  active ? "text-accent" : "text-muted-foreground"
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full transition-all",
+                    active && "bg-accent/15"
+                  )}
+                >
+                  {tab.icon === "bible-mark" ? (
+                    <img
+                      src={bibleMark.url}
+                      alt=""
+                      aria-hidden="true"
+                      className={cn(
+                        "h-5 w-5 object-contain transition-opacity",
+                        active
+                          ? "opacity-100 dark:invert-0"
+                          : "opacity-60 dark:opacity-70",
+                        "dark:invert"
+                      )}
+                    />
+                  ) : (
+                    <tab.icon size={20} strokeWidth={active ? 2.4 : 1.8} />
+                  )}
+                </span>
+                <span
+                  className={cn(
+                    "text-[10px] font-medium leading-none",
+                    active ? "text-accent" : "text-muted-foreground"
+                  )}
+                >
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-3 pb-2 text-[10px] text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <span>Um produto</span>
           <img
             src={novusLogo}
             alt="NOVUS.AI"
-            className="h-3 w-auto opacity-90 dark:brightness-0 dark:invert"
+            className="h-3 w-auto opacity-80 dark:brightness-0 dark:invert"
           />
         </span>
         <span aria-hidden className="opacity-50">·</span>
@@ -53,7 +86,7 @@ const BottomNav = () => {
         <span aria-hidden className="opacity-50">·</span>
         <Link to="/legal/licencas" className="hover:text-foreground">Licenças</Link>
       </div>
-    </nav>
+    </div>
   );
 };
 
