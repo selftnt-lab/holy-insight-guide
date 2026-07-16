@@ -23,12 +23,12 @@ const RecentHighlightsMini = () => {
   useEffect(() => {
     if (!user) return;
     supabase
-      .from("highlights")
+      .from("verse_highlights")
       .select("id, book_slug, chapter, verse, color, note")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(2)
-      .then(({ data }) => setItems((data as HL[]) ?? []));
+      .then(({ data }) => setItems((data as unknown as HL[]) ?? []));
   }, [user]);
 
   return (
