@@ -1,12 +1,11 @@
-import { Home, Compass, User, PenLine } from "lucide-react";
+import { Home, Compass, User, PenLine, BookOpen } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import novusLogo from "@/assets/novus-ai-logo.png";
-import bibleMark from "@/assets/bible-mark.png.asset.json";
 
 const tabs = [
   { path: "/", icon: Home, label: "Início" },
-  { path: "/reading", icon: "bible-mark" as const, label: "Bíblia" },
+  { path: "/reading", icon: BookOpen, label: "Bíblia" },
   { path: "/writer", icon: PenLine, label: "Escritor" },
   { path: "/explore", icon: Compass, label: "Explorar" },
   { path: "/profile", icon: User, label: "Perfil" },
@@ -40,22 +39,8 @@ const BottomNav = () => {
                     active && "bg-accent/15"
                   )}
                 >
-                  {tab.icon === "bible-mark" ? (
-                    <img
-                      src={bibleMark.url}
-                      alt=""
-                      aria-hidden="true"
-                      className={cn(
-                        "h-5 w-5 object-contain transition-opacity",
-                        active
-                          ? "opacity-100 dark:invert-0"
-                          : "opacity-60 dark:opacity-70",
-                        "dark:invert"
-                      )}
-                    />
-                  ) : (
-                    <tab.icon size={20} strokeWidth={active ? 2.4 : 1.8} />
-                  )}
+                  <tab.icon size={20} strokeWidth={active ? 2.4 : 1.8} />
+
                 </span>
                 <span
                   className={cn(
