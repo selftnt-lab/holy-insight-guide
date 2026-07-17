@@ -131,7 +131,7 @@ const Auth = () => {
             onClick={async () => {
               setLoading(true);
               const result = await lovable.auth.signInWithOAuth("google", {
-                redirect_uri: window.location.origin,
+                redirect_uri: `${window.location.origin}${safeNext}`,
               });
               if (result.error) {
                 setLoading(false);
@@ -139,7 +139,7 @@ const Auth = () => {
                 return;
               }
               if (result.redirected) return;
-              navigate("/", { replace: true });
+              navigate(safeNext, { replace: true });
             }}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
