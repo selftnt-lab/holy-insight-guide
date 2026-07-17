@@ -48,6 +48,7 @@ const App = () => (
             <AudioPlayerProvider>
               <AppErrorBoundary>
                 <AppHeader />
+                <PostAuthRedirect />
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
