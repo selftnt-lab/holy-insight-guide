@@ -102,7 +102,7 @@ const Auth = () => {
       return;
     }
     toast.success("Conta criada! Você já pode começar.");
-    navigate("/", { replace: true });
+    navigate(safeNext, { replace: true });
   };
 
   return (
