@@ -30,6 +30,7 @@ import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
 import MiniAudioPlayer from "@/components/MiniAudioPlayer";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
 import OAuthConsent from "@/pages/OAuthConsent";
+import PostAuthRedirect from "@/components/PostAuthRedirect";
 
 
 
