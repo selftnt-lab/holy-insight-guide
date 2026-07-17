@@ -845,6 +845,7 @@ export type Database = {
           title: string
         }[]
       }
+      purge_expired_bible_cache: { Args: never; Returns: number }
       search_user_documents: {
         Args: {
           p_archived?: boolean
