@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import rcBibleLogo from "@/assets/rc-bible-logo.png.asset.json";
 import { z } from "zod";
@@ -19,8 +19,17 @@ const nameSchema = z.string().trim().min(1, "Nome obrigatório").max(60);
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  // Preserve the ?next= target through login/signup/OAuth so the OAuth consent
+  // route (or any deep link) receives the user back where they started.
+  const rawNext = searchParams.get("next");
+  const safeNext =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+      ? rawNext
+      : "/";
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -30,8 +39,8 @@ const Auth = () => {
   const [signupPassword, setSignupPassword] = useState("");
 
   useEffect(() => {
-    if (!authLoading && user) navigate("/", { replace: true });
-  }, [user, authLoading, navigate]);
+    if (!authLoading && user) navigate(safeNext, { replace: true });
+  }, [user, authLoading, navigate, safeNext]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +68,7 @@ const Auth = () => {
       return;
     }
     toast.success("Bem-vindo de volta!");
-    navigate("/", { replace: true });
+    navigate(safeNext, { replace: true });
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -79,7 +88,7 @@ const Auth = () => {
       email: signupEmail,
       password: signupPassword,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `${window.location.origin}${safeNext}`,
         data: { display_name: signupName },
       },
     });
@@ -93,7 +102,7 @@ const Auth = () => {
       return;
     }
     toast.success("Conta criada! Você já pode começar.");
-    navigate("/", { replace: true });
+    navigate(safeNext, { replace: true });
   };
 
   return (
@@ -121,6 +130,14 @@ const Auth = () => {
             disabled={loading}
             onClick={async () => {
               setLoading(true);
+              // Google OAuth goes through Lovable's broker which requires
+              // redirect_uri to be the plain origin. Stash `next` so we can
+              // navigate to the intended destination once the session lands.
+              if (safeNext !== "/") {
+                try {
+                  sessionStorage.setItem("post_auth_next", safeNext);
+                } catch { /* ignore */ }
+              }
               const result = await lovable.auth.signInWithOAuth("google", {
                 redirect_uri: window.location.origin,
               });
@@ -130,7 +147,7 @@ const Auth = () => {
                 return;
               }
               if (result.redirected) return;
-              navigate("/", { replace: true });
+              navigate(safeNext, { replace: true });
             }}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">

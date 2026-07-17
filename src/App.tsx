@@ -29,6 +29,8 @@ import WriterPrint from "@/pages/writer/WriterPrint";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
 import MiniAudioPlayer from "@/components/MiniAudioPlayer";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
+import OAuthConsent from "@/pages/OAuthConsent";
+import PostAuthRedirect from "@/components/PostAuthRedirect";
 
 
 
@@ -46,8 +48,10 @@ const App = () => (
             <AudioPlayerProvider>
               <AppErrorBoundary>
                 <AppHeader />
+                <PostAuthRedirect />
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                   <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                   <Route path="/reading" element={<ProtectedRoute><Reading /></ProtectedRoute>} />
                   <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
