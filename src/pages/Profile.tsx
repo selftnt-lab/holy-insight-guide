@@ -388,6 +388,7 @@ const Profile = () => {
           )}
           <Button
             variant="outline"
+            data-testid="profile-signout"
             className="w-full rounded-xl"
             onClick={handleSignOut}
           >
