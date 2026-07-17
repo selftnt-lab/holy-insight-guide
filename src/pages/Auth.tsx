@@ -19,8 +19,17 @@ const nameSchema = z.string().trim().min(1, "Nome obrigatório").max(60);
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  // Preserve the ?next= target through login/signup/OAuth so the OAuth consent
+  // route (or any deep link) receives the user back where they started.
+  const rawNext = searchParams.get("next");
+  const safeNext =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+      ? rawNext
+      : "/";
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -30,8 +39,8 @@ const Auth = () => {
   const [signupPassword, setSignupPassword] = useState("");
 
   useEffect(() => {
-    if (!authLoading && user) navigate("/", { replace: true });
-  }, [user, authLoading, navigate]);
+    if (!authLoading && user) navigate(safeNext, { replace: true });
+  }, [user, authLoading, navigate, safeNext]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
