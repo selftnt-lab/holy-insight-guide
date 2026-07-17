@@ -1,0 +1,209 @@
+{
+  "version": 1,
+  "sdk_version": "0.23.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://vhesthnnsvrfvfmpuwvf.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "rc-bible-mcp",
+      "version": "0.1.0",
+      "title": "RC Bible"
+    },
+    "tools": [
+      {
+        "name": "list_writer_documents",
+        "title": "List Writer documents",
+        "description": "List the signed-in user's Writer documents (sermons, devotionals, notes) in RC Bible, most recently updated first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "sermon",
+                "devotional",
+                "note"
+              ],
+              "description": "Optional document type filter."
+            },
+            "include_archived": {
+              "type": "boolean",
+              "description": "Include archived documents (default false)."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Maximum number of documents to return (1-50, default 20)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_writer_document",
+        "title": "Get Writer document",
+        "description": "Read the full markdown content of one of the signed-in user's Writer documents in RC Bible.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "document_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "UUID of the document to fetch. Get IDs via list_writer_documents."
+            }
+          },
+          "required": [
+            "document_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_writer_note",
+        "title": "Create Writer note",
+        "description": "Create a new document (sermon, devotional, or note) in the signed-in user's Writer library in RC Bible.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "sermon",
+                "devotional",
+                "note"
+              ],
+              "description": "Document category."
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Document title."
+            },
+            "content_md": {
+              "type": "string",
+              "description": "Markdown body. Bible references like 'João 3:16' are auto-detected on save."
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Optional tag list."
+            }
+          },
+          "required": [
+            "type",
+            "title",
+            "content_md"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_verse_highlights",
+        "title": "List verse highlights",
+        "description": "List the signed-in user's most recent verse highlights (with optional notes and color) in RC Bible.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "book_slug": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Optional book slug filter (e.g. 'joao', 'romanos')."
+            },
+            "chapter": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Optional chapter filter (requires book_slug)."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Maximum highlights to return (1-100, default 30)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_writer",
+        "title": "Search Writer",
+        "description": "Search the signed-in user's Writer documents by free text, tag, and/or bible reference (book_slug + optional chapter/verse).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Free-text search across title, content, and tags."
+            },
+            "tag": {
+              "type": "string",
+              "description": "Exact tag filter."
+            },
+            "book_slug": {
+              "type": "string",
+              "description": "Bible reference book slug filter (e.g. 'joao')."
+            },
+            "chapter": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "verse": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "include_archived": {
+              "type": "boolean"
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Max results (1-50, default 20)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
