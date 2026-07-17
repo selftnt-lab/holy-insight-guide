@@ -130,8 +130,16 @@ const Auth = () => {
             disabled={loading}
             onClick={async () => {
               setLoading(true);
+              // Google OAuth goes through Lovable's broker which requires
+              // redirect_uri to be the plain origin. Stash `next` so we can
+              // navigate to the intended destination once the session lands.
+              if (safeNext !== "/") {
+                try {
+                  sessionStorage.setItem("post_auth_next", safeNext);
+                } catch { /* ignore */ }
+              }
               const result = await lovable.auth.signInWithOAuth("google", {
-                redirect_uri: `${window.location.origin}${safeNext}`,
+                redirect_uri: window.location.origin,
               });
               if (result.error) {
                 setLoading(false);
