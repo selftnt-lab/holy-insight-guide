@@ -66,7 +66,10 @@ const Dashboard = () => {
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             RC Bible · Guia Bíblico
           </p>
-          <h1 className="mt-3 font-serif text-4xl font-normal leading-[1.05] text-foreground">
+          <h1
+            data-testid="dashboard-greeting"
+            className="mt-3 font-serif text-4xl font-normal leading-[1.05] text-foreground"
+          >
             {greeting},<br />
             <span className="uppercase tracking-tight">{readerName}</span>
           </h1>
