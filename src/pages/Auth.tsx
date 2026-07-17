@@ -163,6 +163,7 @@ const Auth = () => {
                   <Label htmlFor="login-email">Email</Label>
                   <Input
                     id="login-email"
+                    data-testid="auth-login-email"
                     type="email"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
@@ -174,6 +175,7 @@ const Auth = () => {
                   <Label htmlFor="login-password">Senha</Label>
                   <Input
                     id="login-password"
+                    data-testid="auth-login-password"
                     type="password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
@@ -181,7 +183,12 @@ const Auth = () => {
                     autoComplete="current-password"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button
+                  type="submit"
+                  data-testid="auth-login-submit"
+                  className="w-full"
+                  disabled={loading}
+                >
                   {loading ? "Entrando..." : "Entrar"}
                 </Button>
               </form>
