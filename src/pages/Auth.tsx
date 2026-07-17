@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import rcBibleLogo from "@/assets/rc-bible-logo.png.asset.json";
 import { z } from "zod";
