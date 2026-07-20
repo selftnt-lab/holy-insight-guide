@@ -104,8 +104,8 @@ const Auth = () => {
     }
     toast.success("Conta criada! Verifique seu email para confirmar o cadastro antes de entrar.");
     setLoginEmail(signupEmail);
-    const tabsList = document.querySelector('[role="tablist"]');
-    const loginTab = tabsList?.querySelector('[value="login"]') as HTMLButtonElement;
+    setLoginEmail(signupEmail);
+    const loginTab = document.getElementById('login-tab') as HTMLButtonElement;
     loginTab?.click();
   };
 
@@ -173,10 +173,10 @@ const Auth = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="login">
+          <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+              <TabsTrigger value="login" id="login-tab">Entrar</TabsTrigger>
+              <TabsTrigger value="signup" id="signup-tab">Cadastrar</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login" className="mt-6">
