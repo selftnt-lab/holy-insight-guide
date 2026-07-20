@@ -108,25 +108,27 @@ const Auth = () => {
         if (message.includes("weak_password")) message = "A senha é muito fraca. Use uma combinação de letras, números e símbolos.";
         if (message.includes("Work emails only")) message = "Apenas e-mails corporativos são permitidos.";
         
-        toast.error(message, {
-          duration: 5000,
-        });
+        toast.error(message, { duration: 5000 });
         setLoading(false);
         return;
       }
       
       toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");
-
-    
-    // Bloquear redirecionamento automático para que o usuário veja a aba de login/mensagem
-    sessionStorage.setItem("confirming_signup", "true");
-    
-    setTimeout(() => {
-      sessionStorage.removeItem("confirming_signup");
-      setLoginEmail(signupEmail);
-      setActiveTab("login");
+      
+      // Bloquear redirecionamento automático para que o usuário veja a aba de login/mensagem
+      sessionStorage.setItem("confirming_signup", "true");
+      
+      setTimeout(() => {
+        sessionStorage.removeItem("confirming_signup");
+        setLoginEmail(signupEmail);
+        setActiveTab("login");
+        setLoading(false);
+      }, 1500);
+    } catch (err) {
+      console.error("Signup exception:", err);
+      toast.error("Ocorreu um erro inesperado ao criar conta.");
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
