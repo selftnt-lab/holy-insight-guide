@@ -46,6 +46,11 @@ const PlanningPage = () => {
             "Gostaria de criar um botão universal (que apareça em todas os ambientes do app), ou, se você julgar uma opção melhor, uma nova aba de contribuição que pode ser usada em outras campanhas de levantamento de recusos de ofertas, dizimos, doação para desenvolvimento, ou outras ações sociais. Me de um plano de como seria a melhor forma de criar essa ferramenta."
           </p>
         </div>
+        <div className="pt-4 border-t">
+          <p className="text-sm font-medium text-destructive">
+            E ai, vai consertar quando?
+          </p>
+        </div>
       </div>
     </div>
   );
