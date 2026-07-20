@@ -11,6 +11,7 @@ import PostAuthRedirect from "./components/PostAuthRedirect";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MiniAudioPlayer from "./components/MiniAudioPlayer";
 import { AudioPlayerProvider } from "./contexts/AudioPlayerProvider";
+import { AuthProvider } from "./hooks/useAuth";
 
 // Corrigindo caminhos de importação baseados na estrutura real de arquivos
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -47,46 +48,48 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
-          <AudioPlayerProvider>
-            <Toaster />
-            <BrowserRouter>
-              <AppHeader />
-              <PostAuthRedirect />
-              <Suspense fallback={<div className="flex h-screen items-center justify-center font-serif text-muted-foreground">Carregando...</div>}>
-                <main id="main">
-                  <Routes>
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/auth/v1/consent" element={<OAuthConsent />} />
-                    
-                    {/* ProtectedRoute espera children, então usamos um componente de layout que renderiza o Outlet */}
-                    <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/reading" element={<Reading />} />
-                      <Route path="/explore" element={<Explore />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/plans" element={<Plans />} />
-                      <Route path="/journal" element={<Journal />} />
-                      <Route path="/search" element={<Search />} />
-                      <Route path="/writer" element={<WriterList />} />
-                      <Route path="/writer/:id" element={<WriterEditor />} />
-                      <Route path="/chat-history" element={<ChatHistory />} />
-                      <Route path="/admin/knowledge" element={<AdminKnowledge />} />
-                      <Route path="/admin/errors" element={<AdminErrors />} />
-                      <Route path="/contribute" element={<Contribute />} />
-                      <Route path="/planning" element={<Planning />} />
-                    </Route>
-                    
-                    <Route path="/legal/termos" element={<Terms />} />
-                    <Route path="/legal/privacidade" element={<Privacy />} />
-                    <Route path="/legal/licencas" element={<Licenses />} />
-                  </Routes>
-                </main>
-              </Suspense>
-              <MiniAudioPlayer />
-              <BottomNav />
-            </BrowserRouter>
-          </AudioPlayerProvider>
+          <AuthProvider>
+            <AudioPlayerProvider>
+              <Toaster />
+              <BrowserRouter>
+                <AppHeader />
+                <PostAuthRedirect />
+                <Suspense fallback={<div className="flex h-screen items-center justify-center font-serif text-muted-foreground">Carregando...</div>}>
+                  <main id="main">
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/auth/v1/consent" element={<OAuthConsent />} />
+                      
+                      {/* ProtectedRoute espera children, então usamos um componente de layout que renderiza o Outlet */}
+                      <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/reading" element={<Reading />} />
+                        <Route path="/explore" element={<Explore />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/plans" element={<Plans />} />
+                        <Route path="/journal" element={<Journal />} />
+                        <Route path="/search" element={<Search />} />
+                        <Route path="/writer" element={<WriterList />} />
+                        <Route path="/writer/:id" element={<WriterEditor />} />
+                        <Route path="/chat-history" element={<ChatHistory />} />
+                        <Route path="/admin/knowledge" element={<AdminKnowledge />} />
+                        <Route path="/admin/errors" element={<AdminErrors />} />
+                        <Route path="/contribute" element={<Contribute />} />
+                        <Route path="/planning" element={<Planning />} />
+                      </Route>
+                      
+                      <Route path="/legal/termos" element={<Terms />} />
+                      <Route path="/legal/privacidade" element={<Privacy />} />
+                      <Route path="/legal/licencas" element={<Licenses />} />
+                    </Routes>
+                  </main>
+                </Suspense>
+                <MiniAudioPlayer />
+                <BottomNav />
+              </BrowserRouter>
+            </AudioPlayerProvider>
+          </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
