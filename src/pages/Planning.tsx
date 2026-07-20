@@ -40,6 +40,7 @@ const PlanningPage = () => {
             </p>
           </div>
         </div>
+      </div>
     </div>
   );
 };
