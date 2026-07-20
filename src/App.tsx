@@ -75,6 +75,7 @@ const App = () => (
                   <Route path="/legal/licencas" element={<Licenses />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </main>
                 <MiniAudioPlayer />
                 <BottomNav />
               </AppErrorBoundary>
