@@ -105,7 +105,44 @@ const PlanningPage = () => {
             ALERTA: O usuário reporta que o redirecionamento ou a tela de login/cadastro fecha prematuramente sem completar a validação. Correção aplicada para garantir que o estado de loading seja limpo apenas após a transição de aba e estendido o tempo de feedback.
           </p>
         </div>
-      </div>
+        </div>
+        <div className="pt-4 border-t bg-blue-50 dark:bg-blue-950/20 p-6 rounded-2xl border border-blue-200 dark:border-blue-900 shadow-sm">
+          <h2 className="text-xl font-serif font-semibold text-blue-800 dark:text-blue-300 mb-4 flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-sm">?</span>
+            Publicação em Lojas Nativas
+          </h2>
+          <div className="space-y-4">
+            <div className="bg-background/50 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+              <p className="text-sm font-medium text-foreground mb-1">Como eu faço para publicar meu projeto no android?</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Para publicar no Android, você deve usar o Capacitor (já configurado no projeto). O processo envolve exportar o código, sincronizar com o Android Studio e gerar o arquivo assinado (AAB) para a Play Store.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div className="p-4 rounded-xl bg-card border border-border/50">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Requisitos Prévios</h3>
+                <ul className="text-xs space-y-2 text-foreground/80">
+                  <li className="flex gap-2"><span>•</span> Conta de desenvolvedor Google Play</li>
+                  <li className="flex gap-2"><span>•</span> Android Studio instalado localmente</li>
+                  <li className="flex gap-2"><span>•</span> Assets (ícone 512px, splash screen)</li>
+                </ul>
+              </div>
+              <div className="p-4 rounded-xl bg-card border border-border/50">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Passos Técnicos</h3>
+                <ul className="text-xs space-y-2 text-foreground/80 font-mono">
+                  <li>1. bun run build</li>
+                  <li>2. npx cap sync android</li>
+                  <li>3. npx cap open android</li>
+                  <li>4. Build {">"} Generate Signed Bundle</li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground text-center italic">
+              Consulte o arquivo <code className="bg-muted px-1 rounded">CAPACITOR.md</code> na raiz do projeto para o guia completo.
+            </p>
+          </div>
+        </div>
     </div>
   );
 };
