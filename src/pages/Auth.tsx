@@ -32,9 +32,9 @@ const Auth = () => {
       ? rawNext
       : "/";
 
+  const [activeTab, setActiveTab] = useState("login");
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
@@ -104,13 +104,10 @@ const Auth = () => {
     }
     toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");
     
-    // Pequeno delay para o usuário ver o toast antes de mudar a aba
+    // Pequeno delay para o usuário ver o toast antes de mudar a aba via estado
     setTimeout(() => {
-      const loginTab = document.getElementById('login-tab') as HTMLButtonElement;
-      if (loginTab) {
-        setLoginEmail(signupEmail);
-        loginTab.click();
-      }
+      setLoginEmail(signupEmail);
+      setActiveTab("login");
     }, 1500);
   };
 
@@ -178,7 +175,7 @@ const Auth = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login" id="login-tab">Entrar</TabsTrigger>
               <TabsTrigger value="signup" id="signup-tab">Cadastrar</TabsTrigger>
