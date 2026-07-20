@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import PageSeo from "@/components/PageSeo";
 
 const Licenses = () => (
   <div className="min-h-screen pb-28">
+    <PageSeo title="Licenças e créditos — RC Bible" description="Traduções bíblicas de domínio público, léxicos e bibliotecas open source utilizadas pelo RC Bible." path="/legal/licencas" />
     <div className="mx-auto max-w-2xl px-5 pt-10">
       <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft size={16} /> Voltar

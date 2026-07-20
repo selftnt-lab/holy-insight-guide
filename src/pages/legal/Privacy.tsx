@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import PageSeo from "@/components/PageSeo";
 
 const Privacy = () => (
   <div className="min-h-screen pb-28">
+    <PageSeo title="Privacidade — RC Bible" description="Política de privacidade do RC Bible: quais dados coletamos, como usamos e seus direitos sob a LGPD." path="/legal/privacidade" />
     <div className="mx-auto max-w-2xl px-5 pt-10">
       <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft size={16} /> Voltar
