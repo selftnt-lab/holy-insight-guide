@@ -1,3 +1,4 @@
+import PageSeo from "@/components/PageSeo";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, RefreshCw, MapPin, User, Lightbulb, HelpCircle, BookOpen, Search, Sparkles, Languages, ArrowRight } from "lucide-react";

@@ -1,3 +1,4 @@
+import PageSeo from "@/components/PageSeo";
 import { useEffect, useState } from "react";
 import { BookOpen, ChevronRight, Sparkles, CalendarCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
