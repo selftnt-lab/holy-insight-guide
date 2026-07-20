@@ -71,7 +71,7 @@ const Dashboard = () => {
             className="mt-3 font-serif text-4xl font-normal leading-[1.05] text-foreground"
           >
             {greeting},<br />
-            <span className="uppercase tracking-tight">{readerName}</span>
+            <span className="uppercase tracking-tight text-accent">{readerName}</span>
           </h1>
           <SacredDivider className="mt-5" />
         </motion.div>
