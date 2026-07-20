@@ -185,7 +185,16 @@ const Auth = () => {
               variant="outline"
               className="rounded-xl px-0"
               disabled={loading}
-              onClick={() => toast.info("Apple Sign-in em breve")}
+              onClick={async () => {
+                setLoading(true);
+                const result = await lovable.auth.signInWithOAuth("apple", {
+                  redirect_uri: window.location.origin,
+                });
+                if (result.error) {
+                  setLoading(false);
+                  toast.error("Não foi possível entrar com Apple");
+                }
+              }}
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.407-2.427 1.25-3.83-1.207.052-2.662.805-3.532 1.82-.779.883-1.454 2.311-1.273 3.687 1.35.104 2.714-.664 3.555-1.677z"/>
@@ -197,7 +206,16 @@ const Auth = () => {
               variant="outline"
               className="rounded-xl px-0"
               disabled={loading}
-              onClick={() => toast.info("Microsoft Sign-in em breve")}
+              onClick={async () => {
+                setLoading(true);
+                const result = await lovable.auth.signInWithOAuth("azure", {
+                  redirect_uri: window.location.origin,
+                });
+                if (result.error) {
+                  setLoading(false);
+                  toast.error("Não foi possível entrar com Microsoft");
+                }
+              }}
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 23 23">
                 <path fill="#f3f3f3" d="M0 0h23v23H0z"/><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/>
@@ -282,7 +300,12 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="signup-password">Senha</Label>
+                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded italic">
+                      Mín. 6 chars, letras e números recomendados
+                    </span>
+                  </div>
                   <Input
                     id="signup-password"
                     type="password"
@@ -290,8 +313,11 @@ const Auth = () => {
                     onChange={(e) => setSignupPassword(e.target.value)}
                     required
                     autoComplete="new-password"
-                    minLength={6}
+                    placeholder="Sua senha segura"
                   />
+                  <p className="text-[11px] text-muted-foreground leading-tight px-1">
+                    A senha deve ser protegida. Se for muito simples (ex: 123456), o sistema recusará por segurança.
+                  </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Criando..." : "Criar conta"}
