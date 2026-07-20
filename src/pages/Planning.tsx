@@ -48,7 +48,7 @@ const PlanningPage = () => {
         </div>
         <div className="pt-4 border-t">
           <p className="text-sm font-medium text-destructive">
-            E ai, vai consertar quando?
+            após a inclsuisão da aba Contribuir, o app parou de funcionar, fica girando o status de carregamento e nã abre mais nada.
           </p>
         </div>
       </div>
