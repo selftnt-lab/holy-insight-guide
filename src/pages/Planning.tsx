@@ -113,9 +113,9 @@ const PlanningPage = () => {
           </h2>
           <div className="space-y-4">
             <div className="bg-background/50 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
-              <p className="text-sm font-medium text-foreground mb-1">Como eu faço para publicar meu projeto no android?</p>
+              <p className="text-sm font-medium text-foreground mb-1">quero gerar o arquivo APK desse projeto, como faço?</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Para publicar no Android, você deve usar o Capacitor (já configurado no projeto). O processo envolve exportar o código, sincronizar com o Android Studio e gerar o arquivo assinado (AAB) para a Play Store.
+                Para gerar um APK ou publicar no Android, você deve usar o Capacitor (já configurado). O processo envolve exportar o código, sincronizar com o Android Studio e gerar o arquivo (APK para teste ou AAB para a Play Store).
               </p>
             </div>
             
@@ -134,7 +134,8 @@ const PlanningPage = () => {
                   <li>1. bun run build</li>
                   <li>2. npx cap sync android</li>
                   <li>3. npx cap open android</li>
-                  <li>4. Build {">"} Generate Signed Bundle</li>
+                  <li>4. Build {">"} Build APK(s) (para teste)</li>
+                  <li>5. Build {">"} Generate Signed Bundle (para Play Store)</li>
                 </ul>
               </div>
             </div>
