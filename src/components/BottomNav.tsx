@@ -1,4 +1,4 @@
-import { Home, Compass, User, PenLine, BookOpen } from "lucide-react";
+import { Home, Compass, User, PenLine, BookOpen, Heart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import novusLogo from "@/assets/novus-ai-logo.png";
@@ -6,6 +6,7 @@ import novusLogo from "@/assets/novus-ai-logo.png";
 const tabs = [
   { path: "/", icon: Home, label: "Início" },
   { path: "/reading", icon: BookOpen, label: "Bíblia" },
+  { path: "/contribute", icon: Heart, label: "Contribuir" },
   { path: "/writer", icon: PenLine, label: "Escritor" },
   { path: "/explore", icon: Compass, label: "Explorar" },
   { path: "/profile", icon: User, label: "Perfil" },
