@@ -159,24 +159,21 @@ const Auth = () => {
             disabled={loading}
             onClick={async () => {
               setLoading(true);
-              // Google OAuth goes through Lovable's broker which requires
-              // redirect_uri to be the plain origin. Stash `next` so we can
-              // navigate to the intended destination once the session lands.
               if (safeNext !== "/") {
                 try {
                   sessionStorage.setItem("post_auth_next", safeNext);
                 } catch { /* ignore */ }
               }
-              const result = await lovable.auth.signInWithOAuth("google", {
-                redirect_uri: window.location.origin,
+              const { error } = await supabase.auth.signInWithOAuth({
+                provider: "google",
+                options: {
+                  redirectTo: window.location.origin,
+                },
               });
-              if (result.error) {
+              if (error) {
                 setLoading(false);
                 toast.error("Não foi possível entrar com Google");
-                return;
               }
-              if (result.redirected) return;
-              navigate(safeNext, { replace: true });
             }}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
@@ -196,10 +193,13 @@ const Auth = () => {
               disabled={loading}
               onClick={async () => {
                 setLoading(true);
-                const result = await lovable.auth.signInWithOAuth("apple", {
-                  redirect_uri: window.location.origin,
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: "apple",
+                  options: {
+                    redirectTo: window.location.origin,
+                  },
                 });
-                if (result.error) {
+                if (error) {
                   setLoading(false);
                   toast.error("Não foi possível entrar com Apple");
                 }
@@ -217,10 +217,13 @@ const Auth = () => {
               disabled={loading}
               onClick={async () => {
                 setLoading(true);
-                const result = await lovable.auth.signInWithOAuth("microsoft", {
-                  redirect_uri: window.location.origin,
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: "azure",
+                  options: {
+                    redirectTo: window.location.origin,
+                  },
                 });
-                if (result.error) {
+                if (error) {
                   setLoading(false);
                   toast.error("Não foi possível entrar com Microsoft");
                 }
