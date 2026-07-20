@@ -113,7 +113,9 @@ const Auth = () => {
         return;
       }
       
-      toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");
+      toast.success("Conta criada! Verifique seu email para confirmar o cadastro.", {
+        duration: 8000
+      });
       
       // Bloquear redirecionamento automático para que o usuário veja a aba de login/mensagem
       sessionStorage.setItem("confirming_signup", "true");
@@ -123,7 +125,7 @@ const Auth = () => {
         setLoginEmail(signupEmail);
         setActiveTab("login");
         setLoading(false);
-      }, 1500);
+      }, 2000);
     } catch (err) {
       console.error("Signup exception:", err);
       toast.error("Ocorreu um erro inesperado ao criar conta.");
