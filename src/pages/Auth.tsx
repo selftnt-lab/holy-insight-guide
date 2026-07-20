@@ -40,7 +40,13 @@ const Auth = () => {
   const [signupPassword, setSignupPassword] = useState("");
 
   useEffect(() => {
-    if (!authLoading && user) navigate(safeNext, { replace: true });
+    if (!authLoading && user) {
+      // Se acabamos de cadastrar, não redirecione imediatamente se estivermos mostrando a mensagem
+      const isConfirming = sessionStorage.getItem("confirming_signup");
+      if (isConfirming) return;
+      
+      navigate(safeNext, { replace: true });
+    }
   }, [user, authLoading, navigate, safeNext]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -104,8 +110,11 @@ const Auth = () => {
     }
     toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");
     
-    // Pequeno delay para o usuário ver o toast antes de mudar a aba via estado
+    // Bloquear redirecionamento automático para que o usuário veja a aba de login/mensagem
+    sessionStorage.setItem("confirming_signup", "true");
+    
     setTimeout(() => {
+      sessionStorage.removeItem("confirming_signup");
       setLoginEmail(signupEmail);
       setActiveTab("login");
     }, 1500);
