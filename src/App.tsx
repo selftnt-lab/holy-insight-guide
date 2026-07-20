@@ -64,7 +64,8 @@ const App = () => (
                   <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
                   <Route path="/admin/knowledge" element={<ProtectedRoute><AdminKnowledge /></ProtectedRoute>} />
                   <Route path="/admin/errors" element={<ProtectedRoute><ClientErrors /></ProtectedRoute>} />
-                  <Route path="/planning" element={<Planning />} />
+                    <Route path="/contribute" element={<Contribute />} />
+                    <Route path="/planning" element={<Planning />} />
 
                   <Route path="/writer" element={<ProtectedRoute><WriterList /></ProtectedRoute>} />
                   <Route path="/writer/new" element={<ProtectedRoute><WriterEditor /></ProtectedRoute>} />
