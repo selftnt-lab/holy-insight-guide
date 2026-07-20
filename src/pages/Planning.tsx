@@ -17,6 +17,12 @@ const PlanningPage = () => {
         <p className="text-lg leading-relaxed text-foreground/80">
           Adicionar a suíte pgTAP ao meu pipeline de CI para garantir que as regras RLS continuam aprovadas após cada mudança. Criar testes automatizados que validem que inserts e updates em user_document_refs e client_error_logs só funcionam quando a ownership estiver correta.
         </p>
+        
+        <div className="pt-4 border-t">
+          <p className="text-lg font-bold text-primary uppercase tracking-wide">
+            EXECUTAR O PLANO DE MIGRAÇÃO, TANTO PARA IOS QUANTO PARA GOOGLE.
+          </p>
+        </div>
       </div>
     </div>
   );
