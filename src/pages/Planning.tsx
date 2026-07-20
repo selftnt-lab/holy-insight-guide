@@ -69,6 +69,12 @@ const PlanningPage = () => {
             "mentira, voce nao arrumou, nao acontece nada!!!!."
           </p>
         </div>
+        <div className="pt-4 border-t bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-900">
+          <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-2">Correção Aplicada (Auth):</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed">
+            "Fluxo de cadastro por e-mail corrigido. O erro anterior era causado por políticas de senha forte (422 Weak Password) e falta de feedback visual imediato antes da troca de aba. Agora o sistema exibe o aviso de confirmação por 1.5s antes de mover o usuário para a tela de login."
+          </p>
+        </div>
       </div>
     </div>
   );

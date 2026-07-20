@@ -32,15 +32,21 @@ const Auth = () => {
       ? rawNext
       : "/";
 
+  const [activeTab, setActiveTab] = useState("login");
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
 
   useEffect(() => {
-    if (!authLoading && user) navigate(safeNext, { replace: true });
+    if (!authLoading && user) {
+      // Se acabamos de cadastrar, não redirecione imediatamente se estivermos mostrando a mensagem
+      const isConfirming = sessionStorage.getItem("confirming_signup");
+      if (isConfirming) return;
+      
+      navigate(safeNext, { replace: true });
+    }
   }, [user, authLoading, navigate, safeNext]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -102,11 +108,16 @@ const Auth = () => {
       );
       return;
     }
-    toast.success("Conta criada! Verifique seu email para confirmar o cadastro antes de entrar.");
-    setLoginEmail(signupEmail);
-    setLoginEmail(signupEmail);
-    const loginTab = document.getElementById('login-tab') as HTMLButtonElement;
-    loginTab?.click();
+    toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");
+    
+    // Bloquear redirecionamento automático para que o usuário veja a aba de login/mensagem
+    sessionStorage.setItem("confirming_signup", "true");
+    
+    setTimeout(() => {
+      sessionStorage.removeItem("confirming_signup");
+      setLoginEmail(signupEmail);
+      setActiveTab("login");
+    }, 1500);
   };
 
   return (
@@ -173,7 +184,7 @@ const Auth = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login" id="login-tab">Entrar</TabsTrigger>
               <TabsTrigger value="signup" id="signup-tab">Cadastrar</TabsTrigger>
