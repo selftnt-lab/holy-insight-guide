@@ -34,6 +34,12 @@ const BottomNav = () => {
                     active ? "text-accent" : "text-muted-foreground"
                   )}
                 >
+                  {active && (
+                    <span
+                      aria-hidden
+                      className="absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-full bg-accent"
+                    />
+                  )}
                   <span
                     className={cn(
                       "flex h-8 w-8 items-center justify-center rounded-full transition-all",

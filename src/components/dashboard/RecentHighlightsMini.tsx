@@ -33,7 +33,7 @@ const RecentHighlightsMini = () => {
 
   return (
     <Card className="rounded-3xl border-border/60 bg-card p-4 shadow-scripture">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">
         Destaques Recentes
       </p>
 

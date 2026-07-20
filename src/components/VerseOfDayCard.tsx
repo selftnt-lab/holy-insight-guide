@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getVerseOfDay, type VerseOfDay } from "@/lib/verse-of-day";
-import landscape from "@/assets/verse-landscape.jpg";
 
 const VerseOfDayCard = () => {
   const navigate = useNavigate();
@@ -40,38 +39,40 @@ const VerseOfDayCard = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="relative overflow-hidden rounded-3xl shadow-float"
+      className="relative overflow-hidden rounded-3xl border border-border/60 bg-card shadow-scripture"
     >
-      <img
-        src={landscape}
-        alt=""
-        aria-hidden="true"
-        loading="lazy"
-        width={1536}
-        height={1024}
-        className="absolute inset-0 h-full w-full object-cover"
+      {/* Subtle accent halos — sem imagem, mantendo o editorial */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-accent/10 blur-2xl"
       />
-      {/* Warm readable overlay — tuned for both themes */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/25 to-background/70 dark:from-black/55 dark:via-black/40 dark:to-black/75" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-accent-glow/10 blur-2xl"
+      />
 
       <div className="relative z-10 flex flex-col items-center px-6 py-8 text-center">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground/70">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-accent">
           Versículo do Dia
         </span>
-        <p className="mt-4 font-serif text-xl leading-snug text-foreground drop-shadow-sm">
+        <p className="mt-4 font-serif text-xl leading-snug text-foreground">
           “{verse.text}”
         </p>
-        <p className="mt-3 text-sm font-medium text-foreground/80">— {verse.reference}</p>
+        <p className="mt-3 text-sm font-medium text-muted-foreground">— {verse.reference}</p>
 
         <div className="mt-5 flex items-center gap-2">
-          <Button size="sm" onClick={open} className="rounded-full">
+          <Button
+            size="sm"
+            onClick={open}
+            className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90"
+          >
             Ler capítulo <ArrowRight size={14} className="ml-1" />
           </Button>
           <Button
             size="sm"
             variant="outline"
             onClick={share}
-            className="rounded-full border-foreground/20 bg-background/70 backdrop-blur"
+            className="rounded-full border-border"
           >
             <Share2 size={14} className="mr-1" /> Compartilhar
           </Button>
