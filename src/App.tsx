@@ -50,6 +50,7 @@ const App = () => (
               <AppErrorBoundary>
                 <AppHeader />
                 <PostAuthRedirect />
+                <main id="main">
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
@@ -74,6 +75,7 @@ const App = () => (
                   <Route path="/legal/licencas" element={<Licenses />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </main>
                 <MiniAudioPlayer />
                 <BottomNav />
               </AppErrorBoundary>

@@ -1,3 +1,4 @@
+import PageSeo from "@/components/PageSeo";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -107,6 +108,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-5 py-10">
+      <PageSeo title="Entrar — RC Bible" description="Faça login ou crie sua conta gratuita na RC Bible: leitura bíblica, estudo com IA, planos e devocional diário." path="/auth" />
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}

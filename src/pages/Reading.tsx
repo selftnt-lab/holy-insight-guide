@@ -1,3 +1,4 @@
+import PageSeo from "@/components/PageSeo";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle, Languages, Maximize2, Minimize2, GraduationCap } from "lucide-react";
@@ -275,6 +276,7 @@ const Reading = () => {
         if (e.target === e.currentTarget) setChromeVisible((v) => !v);
       }}
     >
+      <PageSeo title="Leitura — RC Bible" description="Leia a Bíblia em várias traduções em português, com destaques, anotações e estudo assistido por IA." path="/reading" />
       <div className="mx-auto max-w-lg px-5 pt-10">
         {/* Selectors */}
         <motion.div

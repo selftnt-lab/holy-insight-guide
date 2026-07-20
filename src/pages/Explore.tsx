@@ -1,3 +1,4 @@
+import PageSeo from "@/components/PageSeo";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, RefreshCw, MapPin, User, Lightbulb, HelpCircle, BookOpen, Search, Sparkles, Languages, ArrowRight } from "lucide-react";
@@ -172,6 +173,7 @@ const Explore = () => {
 
   return (
     <div className="min-h-screen pb-32">
+      <PageSeo title="Explorar — RC Bible" description="Descubra insights bíblicos: personagens, lugares, temas e perguntas para aprofundar seu estudo com a IA." path="/explore" />
       <div className="mx-auto max-w-lg px-5 pt-10">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <h1 className="text-2xl font-bold text-foreground">Explorar</h1>

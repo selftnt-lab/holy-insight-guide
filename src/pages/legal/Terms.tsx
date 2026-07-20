@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import PageSeo from "@/components/PageSeo";
 
 const Terms = () => (
   <div className="min-h-screen pb-28">
+    <PageSeo title="Termos de Uso — RC Bible" description="Termos de uso do aplicativo RC Bible: responsabilidades, uso aceitável e limitações do tutor de IA bíblica." path="/legal/termos" />
     <div className="mx-auto max-w-2xl px-5 pt-10">
       <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft size={16} /> Voltar

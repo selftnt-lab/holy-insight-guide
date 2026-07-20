@@ -1,3 +1,4 @@
+import PageSeo from "@/components/PageSeo";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -46,6 +47,7 @@ const Journal = () => {
 
   return (
     <div className="min-h-screen pb-32">
+      <PageSeo title="Diário — RC Bible" description="Suas reflexões e respostas devocionais em um só lugar. Registre insights e revisite sua caminhada bíblica." path="/journal" />
       <div className="mx-auto max-w-lg px-5 pt-12">
         <Button
           variant="ghost"
