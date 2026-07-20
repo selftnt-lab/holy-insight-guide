@@ -24,10 +24,15 @@ const PlanningPage = () => {
           </p>
         </div>
 
-        <div className="pt-4 border-t">
+        <div className="pt-4 border-t space-y-4">
           <p className="text-sm text-muted-foreground italic">
             confirmo, pode ocultar o badge.
           </p>
+          <div className="bg-muted/50 p-4 rounded-lg border border-dashed">
+            <p className="text-sm text-foreground/80 leading-relaxed">
+              Aqui temos imagens de uma ideia de layout alternativa para nossa aplicação. Eu acho muito exagerado nos aspectodia de tecnologia, porém faria alguns ajustes mjuito pontuais. Comparando com nosso layout hoje, conseguiriamos consolidar um meio termo entre essas ideias que te mandei e o que temos pronto? Se sim, mande um plano, porém deve ser estritamente visual, nenhum botão, container pode ser removido do lugar. Sriam meras alterações de cores, gráficos, cards, sem mexer em nada na estrutura do aplicativo.
+            </p>
+          </div>
         </div>
       </div>
     </div>
