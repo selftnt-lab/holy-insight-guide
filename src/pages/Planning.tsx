@@ -75,10 +75,16 @@ const PlanningPage = () => {
             "continua não acontecendo nada! preciso que seja resolvido logo, quero saber por qual motivo não está dando certo????"
           </p>
         </div>
+        <div className="pt-4 border-t bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg border border-amber-200 dark:border-amber-900">
+          <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-2">Novos Requisitos de Segurança & Provedores:</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed">
+            "o usuário foi criado, porém não respeitou a etapa de confirmação do email na caixa de entrada. Podemos enviar esse link de confirmação, como condicionantes para usar o app. Evitar o acesso de robos. Sugiro incluir também possibilidade de, além da conta google, apareceber opção de conta do iphone e microsoft."
+          </p>
+        </div>
         <div className="pt-4 border-t bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-900">
           <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-2">Estado da Correção (Auth):</p>
           <p className="text-sm text-foreground/80 italic leading-relaxed">
-            "Implementação concluída e validada em ambiente de teste (E2E). O fluxo agora garante exibição de feedback, mudança de aba e pré-preenchimento. Se o erro persistir, pode ser um cache de navegador ou restrição do provedor de e-mail na recepção do link de confirmação."
+            "Fluxo de feedback corrigido. Para forçar a confirmação de e-mail (bloquear acesso sem confirmação), é necessário habilitar 'Confirm Email' nas configurações de autenticação do backend. Adicionada a base para novos provedores OAuth (Apple/Microsoft) no planejamento."
           </p>
         </div>
       </div>
