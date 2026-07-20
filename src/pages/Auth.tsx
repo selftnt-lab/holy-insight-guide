@@ -104,8 +104,8 @@ const Auth = () => {
     }
     toast.success("Conta criada! Verifique seu email para confirmar o cadastro antes de entrar.");
     setLoginEmail(signupEmail);
-    const tabsList = document.querySelector('[role="tablist"]');
-    const loginTab = tabsList?.querySelector('[value="login"]') as HTMLButtonElement;
+    setLoginEmail(signupEmail);
+    const loginTab = document.getElementById('login-tab') as HTMLButtonElement;
     loginTab?.click();
   };
 
