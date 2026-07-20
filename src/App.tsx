@@ -31,6 +31,7 @@ import MiniAudioPlayer from "@/components/MiniAudioPlayer";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
 import OAuthConsent from "@/pages/OAuthConsent";
 import PostAuthRedirect from "@/components/PostAuthRedirect";
+import Planning from "@/pages/Planning";
 
 
 
@@ -62,6 +63,7 @@ const App = () => (
                   <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
                   <Route path="/admin/knowledge" element={<ProtectedRoute><AdminKnowledge /></ProtectedRoute>} />
                   <Route path="/admin/errors" element={<ProtectedRoute><ClientErrors /></ProtectedRoute>} />
+                  <Route path="/planning" element={<Planning />} />
 
                   <Route path="/writer" element={<ProtectedRoute><WriterList /></ProtectedRoute>} />
                   <Route path="/writer/new" element={<ProtectedRoute><WriterEditor /></ProtectedRoute>} />
