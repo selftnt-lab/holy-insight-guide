@@ -1,18 +1,16 @@
-import type { CapacitorConfig } from "@capacitor/cli";
+import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
  * DEV vs PROD:
  * - Em desenvolvimento (CAP_ENV=dev), habilita hot-reload apontando para o preview do Lovable.
  * - Em produção (default), NÃO define `server.url` — o app carrega o bundle empacotado em `dist/`.
- * Para desenvolver com hot-reload contra o preview:
- *   CAP_ENV=dev npx cap sync
  */
 const isDev = process.env.CAP_ENV === "dev";
 
 const config: CapacitorConfig = {
-  appId: "app.lovable.868b953aad314e7a99d277b319621e59",
-  appName: "RC Bíblia",
-  webDir: "dist",
+  appId: 'ai.novus.rcbiblia',
+  appName: 'RC Bíblia',
+  webDir: 'dist',
   ...(isDev
     ? {
         server: {
