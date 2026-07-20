@@ -202,6 +202,7 @@ const Plans = () => {
 
   return (
     <div className="min-h-screen pb-32">
+      <PageSeo title="Planos de Leitura — RC Bible" description="Escolha ou crie planos de leitura bíblica personalizados, acompanhe seu progresso e mantenha a constância diária." path="/plans" />
       <div className="mx-auto max-w-lg px-5 pt-12">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">

@@ -57,6 +57,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen pb-32">
+      <PageSeo title="Início — RC Bible" description="Seu painel bíblico diário: versículo do dia, planos ativos, destaques e progresso de leitura na RC Bible." path="/" />
       <div className="mx-auto max-w-lg px-5 pt-10">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
