@@ -51,6 +51,12 @@ const PlanningPage = () => {
             após a inclsuisão da aba Contribuir, o app parou de funcionar, fica girando o status de carregamento e nã abre mais nada.
           </p>
         </div>
+        <div className="pt-4 border-t bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg border border-amber-200 dark:border-amber-900">
+          <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-2">Requisito de Autenticação:</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed">
+            "o login está aceitando apenas contas google para novos usuários. precisamos ajustar par que, quem não tiver conta google, faça com qualquer outro email valido, utilizando o sistema de validação do email por link. ou adorat as melhores praticas mundiais de segutran/login."
+          </p>
+        </div>
       </div>
     </div>
   );
