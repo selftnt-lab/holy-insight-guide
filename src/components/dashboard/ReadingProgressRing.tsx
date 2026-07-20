@@ -14,7 +14,7 @@ const ReadingProgressRing = ({ value, label = "Progresso de Leitura" }: Props) =
 
   return (
     <Card className="flex flex-col items-center rounded-3xl border-border/60 bg-card p-4 shadow-scripture">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">
         {label}
       </p>
       <div className="relative mt-2 h-24 w-24">
