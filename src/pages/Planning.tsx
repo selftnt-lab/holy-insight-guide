@@ -63,6 +63,13 @@ const PlanningPage = () => {
             "Nada zcontece. Você diz que arrumou porém não arrumou nada. preciso que verifique, corrija e me de um relatorio de quais aruivos modificou. O resultado deve ser, ao cadastrar, usando email \"não google\", que aparecça a tela, confirme seu e-mail na caixa de entreda e volte a tela de login."
           </p>
         </div>
+        </div>
+        <div className="pt-4 border-t bg-rose-50 dark:bg-rose-950/20 p-4 rounded-lg border border-rose-200 dark:border-rose-900">
+          <p className="text-sm font-semibold text-rose-700 dark:text-rose-400 mb-2">Reclamação Crítica (Fluxo Auth):</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed font-bold">
+            "mentira, voce nao arrumou, nao acontece nada!!!!."
+          </p>
+        </div>
       </div>
     </div>
   );
