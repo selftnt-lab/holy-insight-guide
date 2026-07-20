@@ -101,11 +101,15 @@ const Auth = () => {
     });
     setLoading(false);
     if (error) {
-      toast.error(
-        error.message.includes("already")
-          ? "Este email já está cadastrado"
-          : error.message
-      );
+      console.error("Auth Signup Error:", error);
+      let message = error.message;
+      if (message.includes("already")) message = "Este email já está cadastrado";
+      if (message.includes("weak_password")) message = "A senha é muito fraca. Use uma combinação de letras, números e símbolos.";
+      if (message.includes("Work emails only")) message = "Apenas e-mails corporativos são permitidos.";
+      
+      toast.error(message, {
+        duration: 5000,
+      });
       return;
     }
     toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");

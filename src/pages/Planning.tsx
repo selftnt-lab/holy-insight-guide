@@ -64,9 +64,9 @@ const PlanningPage = () => {
           </p>
         </div>
         <div className="pt-4 border-t bg-rose-50 dark:bg-rose-950/20 p-4 rounded-lg border border-rose-200 dark:border-rose-900">
-          <p className="text-sm font-semibold text-rose-700 dark:text-rose-400 mb-2">Reclamação Crítica (Fluxo Auth):</p>
+          <p className="text-sm font-semibold text-rose-700 dark:text-rose-400 mb-2">Evidência de Erro (422 Unprocessable):</p>
           <p className="text-sm text-foreground/80 italic leading-relaxed font-bold">
-            "mentira, voce nao arrumou, nao acontece nada!!!!."
+            "Erro do console que prova que voce esta mentindo e que nao resolveu nada! (POST /auth/v1/signup -> 422 Unprocessable Content)"
           </p>
         </div>
         <div className="pt-4 border-t bg-destructive/5 dark:bg-destructive/10 p-4 rounded-lg border border-destructive/20">
