@@ -10,7 +10,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const isDev = process.env.CAP_ENV === "dev";
 
 const config: CapacitorConfig = {
-  appId: "app.lovable.868b953aad314e7a99d277b319621e59",
+  appId: "ai.novus.rcbiblia",
   appName: "RC Bíblia",
   webDir: "dist",
   ...(isDev
