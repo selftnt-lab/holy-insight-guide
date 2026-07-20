@@ -10,6 +10,7 @@ import AppErrorBoundary from "./components/AppErrorBoundary";
 import PostAuthRedirect from "./components/PostAuthRedirect";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MiniAudioPlayer from "./components/MiniAudioPlayer";
+import { AudioPlayerProvider } from "./contexts/AudioPlayerProvider";
 
 // Corrigindo caminhos de importação baseados na estrutura real de arquivos
 const Dashboard = lazy(() => import("./pages/Dashboard"));
