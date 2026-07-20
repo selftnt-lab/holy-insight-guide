@@ -102,8 +102,11 @@ const Auth = () => {
       );
       return;
     }
-    toast.success("Conta criada! Você já pode começar.");
-    navigate(safeNext, { replace: true });
+    toast.success("Conta criada! Verifique seu email para confirmar o cadastro antes de entrar.");
+    setLoginEmail(signupEmail);
+    const tabsList = document.querySelector('[role="tablist"]');
+    const loginTab = tabsList?.querySelector('[value="login"]') as HTMLButtonElement;
+    loginTab?.click();
   };
 
   return (
