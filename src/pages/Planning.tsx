@@ -86,6 +86,15 @@ const PlanningPage = () => {
           <p className="text-sm text-foreground/80 italic leading-relaxed">
             "Fluxo de feedback corrigido. Para forçar a confirmação de e-mail (bloquear acesso sem confirmação), é necessário habilitar 'Confirm Email' nas configurações de autenticação do backend. Adicionada a base para novos provedores OAuth (Apple/Microsoft) no planejamento."
           </p>
+          <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-900 mt-4">
+            <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Ajuste de Fluxo & UX (Auth):</p>
+            <p className="text-sm text-foreground/80 italic leading-relaxed">
+              "Os botões existem mas nao fazem nada, apenas do google funciona, os demais não. Para cadastro de senha manual, coloque uma observação de como deve ser a senha, e erros visiveis quando o padrão da senha digitada nao corresponder."
+            </p>
+            <p className="text-[10px] mt-2 text-blue-600 dark:text-blue-500 font-mono">
+              STATUS: Ativado login via Apple/Microsoft no frontend. Adicionada orientação de senha e tratamento visual de erros.
+            </p>
+          </div>
         </div>
       </div>
     </div>
