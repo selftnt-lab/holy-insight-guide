@@ -33,8 +33,13 @@ const PlanningPage = () => {
               Aqui temos imagens de uma ideia de layout alternativa para nossa aplicação. Eu acho muito exagerado nos aspectodia de tecnologia, porém faria alguns ajustes mjuito pontuais. Comparando com nosso layout hoje, conseguiriamos consolidar um meio termo entre essas ideias que te mandei e o que temos pronto? Se sim, mande um plano, porém deve ser estritamente visual, nenhum botão, container pode ser removido do lugar. Sriam meras alterações de cores, gráficos, cards, sem mexer em nada na estrutura do aplicativo.
             </p>
           </div>
+          <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+            <p className="text-sm font-medium text-primary mb-2">Solicitação de Plano Visual:</p>
+            <p className="text-sm text-foreground/80 italic leading-relaxed">
+              "traga um plano completo dessas alterações, mencione uma por uma das alterações que voce ira propor"
+            </p>
+          </div>
         </div>
-      </div>
     </div>
   );
 };
