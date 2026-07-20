@@ -50,6 +50,7 @@ const App = () => (
               <AppErrorBoundary>
                 <AppHeader />
                 <PostAuthRedirect />
+                <main id="main">
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
