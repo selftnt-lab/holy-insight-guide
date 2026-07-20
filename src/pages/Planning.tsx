@@ -57,6 +57,12 @@ const PlanningPage = () => {
             "o login está aceitando apenas contas google para novos usuários. precisamos ajustar par que, quem não tiver conta google, faça com qualquer outro email valido, utilizando o sistema de validação do email por link. ou adorat as melhores praticas mundiais de segutran/login."
           </p>
         </div>
+        <div className="pt-4 border-t bg-destructive/5 dark:bg-destructive/10 p-4 rounded-lg border border-destructive/20">
+          <p className="text-sm font-semibold text-destructive mb-2">Feedback de Falha (Auth):</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed">
+            "Nada zcontece. Você diz que arrumou porém não arrumou nada. preciso que verifique, corrija e me de um relatorio de quais aruivos modificou. O resultado deve ser, ao cadastrar, usando email \"não google\", que aparecça a tela, confirme seu e-mail na caixa de entreda e volte a tela de login."
+          </p>
+        </div>
       </div>
     </div>
   );
