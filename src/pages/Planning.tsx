@@ -26,7 +26,7 @@ const PlanningPage = () => {
 
         <div className="pt-4 border-t">
           <p className="text-sm text-muted-foreground italic">
-            quero remover a marca dagua
+            confirmo, pode ocultar o badge.
           </p>
         </div>
       </div>
