@@ -102,11 +102,16 @@ const Auth = () => {
       );
       return;
     }
-    toast.success("Conta criada! Verifique seu email para confirmar o cadastro antes de entrar.");
-    setLoginEmail(signupEmail);
-    setLoginEmail(signupEmail);
-    const loginTab = document.getElementById('login-tab') as HTMLButtonElement;
-    loginTab?.click();
+    toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");
+    
+    // Pequeno delay para o usuário ver o toast antes de mudar a aba
+    setTimeout(() => {
+      const loginTab = document.getElementById('login-tab') as HTMLButtonElement;
+      if (loginTab) {
+        setLoginEmail(signupEmail);
+        loginTab.click();
+      }
+    }, 1500);
   };
 
   return (
