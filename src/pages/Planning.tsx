@@ -23,6 +23,12 @@ const PlanningPage = () => {
             EXECUTAR O PLANO DE MIGRAÇÃO, TANTO PARA IOS QUANTO PARA GOOGLE.
           </p>
         </div>
+
+        <div className="pt-4 border-t">
+          <p className="text-sm text-muted-foreground italic">
+            quero remover a marca dagua
+          </p>
+        </div>
       </div>
     </div>
   );
