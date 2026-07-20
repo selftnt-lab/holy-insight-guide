@@ -91,37 +91,46 @@ const Auth = () => {
       }
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: signupEmail,
-      password: signupPassword,
-      options: {
-        emailRedirectTo: `${window.location.origin}${safeNext}`,
-        data: { display_name: signupName },
-      },
-    });
-    setLoading(false);
-    if (error) {
-      console.error("Auth Signup Error:", error);
-      let message = error.message;
-      if (message.includes("already")) message = "Este email já está cadastrado";
-      if (message.includes("weak_password")) message = "A senha é muito fraca. Use uma combinação de letras, números e símbolos.";
-      if (message.includes("Work emails only")) message = "Apenas e-mails corporativos são permitidos.";
-      
-      toast.error(message, {
-        duration: 5000,
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: signupEmail,
+        password: signupPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}${safeNext}`,
+          data: { display_name: signupName },
+        },
       });
-      return;
+
+      if (error) {
+        console.error("Auth Signup Error:", error);
+        let message = error.message;
+        if (message.includes("already")) message = "Este email já está cadastrado";
+        if (message.includes("weak_password")) message = "A senha é muito fraca. Use uma combinação de letras, números e símbolos.";
+        if (message.includes("Work emails only")) message = "Apenas e-mails corporativos são permitidos.";
+        
+        toast.error(message, { duration: 5000 });
+        setLoading(false);
+        return;
+      }
+      
+      toast.success("Conta criada! Verifique seu email para confirmar o cadastro.", {
+        duration: 8000
+      });
+      
+      // Bloquear redirecionamento automático para que o usuário veja a aba de login/mensagem
+      sessionStorage.setItem("confirming_signup", "true");
+      
+      setTimeout(() => {
+        sessionStorage.removeItem("confirming_signup");
+        setLoginEmail(signupEmail);
+        setActiveTab("login");
+        setLoading(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Signup exception:", err);
+      toast.error("Ocorreu um erro inesperado ao criar conta.");
+      setLoading(false);
     }
-    toast.success("Conta criada! Verifique seu email para confirmar o cadastro.");
-    
-    // Bloquear redirecionamento automático para que o usuário veja a aba de login/mensagem
-    sessionStorage.setItem("confirming_signup", "true");
-    
-    setTimeout(() => {
-      sessionStorage.removeItem("confirming_signup");
-      setLoginEmail(signupEmail);
-      setActiveTab("login");
-    }, 1500);
   };
 
   return (

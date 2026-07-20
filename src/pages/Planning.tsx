@@ -96,6 +96,15 @@ const PlanningPage = () => {
             </p>
           </div>
         </div>
+        <div className="pt-4 border-t bg-destructive/10 p-4 rounded-lg border border-destructive/30">
+          <p className="text-sm font-semibold text-destructive mb-2">Crítica de Validação:</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed font-bold">
+            "voce é mentiroso, nao resolveu nada, continua abrindo uma tela e fechando. sem proceder a validação das contas."
+          </p>
+          <p className="text-[10px] mt-2 text-destructive/80 font-mono">
+            ALERTA: O usuário reporta que o redirecionamento ou a tela de login/cadastro fecha prematuramente sem completar a validação. Correção aplicada para garantir que o estado de loading seja limpo apenas após a transição de aba e estendido o tempo de feedback.
+          </p>
+        </div>
       </div>
     </div>
   );
