@@ -11,7 +11,7 @@ const AppHeader = () => {
 
   return (
     <Fragment>
-      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center border-b border-border/60 bg-background/95 px-5 py-2 backdrop-blur-sm">
+      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center border-b border-border/50 bg-background/85 px-5 py-2 backdrop-blur-md">
         <div className="flex flex-col items-center gap-1">
           <img
             src={rcBranchIcon.url}
