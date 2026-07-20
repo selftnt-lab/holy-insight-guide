@@ -208,7 +208,7 @@ const Auth = () => {
               disabled={loading}
               onClick={async () => {
                 setLoading(true);
-                const result = await lovable.auth.signInWithOAuth("azure", {
+                const result = await lovable.auth.signInWithOAuth("microsoft", {
                   redirect_uri: window.location.origin,
                 });
                 if (result.error) {
