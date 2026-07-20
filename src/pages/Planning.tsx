@@ -113,7 +113,7 @@ const PlanningPage = () => {
           </h2>
           <div className="space-y-4">
             <div className="bg-background/50 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
-              <p className="text-sm font-medium text-foreground mb-1">Como eu faço para publicar meu projeto no android?</p>
+              <p className="text-sm font-medium text-foreground mb-1">quero gerar o arquivo APK desse projeto, como faço?</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Para publicar no Android, você deve usar o Capacitor (já configurado no projeto). O processo envolve exportar o código, sincronizar com o Android Studio e gerar o arquivo assinado (AAB) para a Play Store.
               </p>
