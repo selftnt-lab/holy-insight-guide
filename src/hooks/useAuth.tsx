@@ -6,6 +6,7 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  needsConfirmation: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -13,6 +14,7 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   session: null,
   loading: true,
+  needsConfirmation: false,
   signOut: async () => {},
 });
 
@@ -20,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   useEffect(() => {
     // Set up listener FIRST
@@ -27,6 +30,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
+        
+        // Verifica confirmação de email
+        if (newSession?.user) {
+          const isConfirmed = newSession.user.email_confirmed_at || 
+                              newSession.user.app_metadata.provider !== 'email';
+          setNeedsConfirmation(!isConfirmed);
+        } else {
+          setNeedsConfirmation(false);
+        }
+        
         setLoading(false);
       }
     );
@@ -42,6 +55,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setSession(existing);
         setUser(existing?.user ?? null);
+        
+        if (existing?.user) {
+          const isConfirmed = existing.user.email_confirmed_at || 
+                              existing.user.app_metadata.provider !== 'email';
+          setNeedsConfirmation(!isConfirmed);
+        }
       }
       setLoading(false);
     });
@@ -54,7 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, needsConfirmation, signOut }}>
       {children}
     </AuthContext.Provider>
   );

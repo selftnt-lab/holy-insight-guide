@@ -2,6 +2,7 @@ import { Home, Compass, User, PenLine, BookOpen, Heart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import novusLogo from "@/assets/novus-ai-logo.png";
+import { useAuth } from "@/hooks/useAuth";
 
 const tabs = [
   { path: "/", icon: Home, label: "Início" },
@@ -15,8 +16,9 @@ const tabs = [
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { needsConfirmation } = useAuth();
 
-  if (location.pathname === "/auth") return null;
+  if (location.pathname === "/auth" || needsConfirmation) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
