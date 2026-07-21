@@ -102,8 +102,12 @@ const Auth = () => {
     }
     
     toast.success("Bem-vindo de volta!");
+    // Forçamos o recarregamento da sessão para garantir que o estado de autenticação seja propagado
+    await supabase.auth.getSession();
     setTimeout(() => {
       navigate(safeNext, { replace: true });
+      // Forçamos um refresh da página para limpar qualquer estado de redirecionamento preso
+      window.location.href = safeNext;
     }, 100);
   };
 
@@ -156,8 +160,9 @@ const Auth = () => {
       
       // Cadastro bem-sucedido, redireciona imediatamente se o auto-confirm estiver on
       toast.success("Conta criada com sucesso! Redirecionando...");
+      await supabase.auth.getSession();
       setTimeout(() => {
-        navigate(safeNext, { replace: true });
+        window.location.href = safeNext;
       }, 500);
     } catch (err) {
       console.error("Signup exception:", err);
