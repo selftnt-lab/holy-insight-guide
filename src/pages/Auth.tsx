@@ -21,7 +21,7 @@ const nameSchema = z.string().trim().min(1, "Nome obrigatório").max(60);
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, needsConfirmation, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
 
   // Preserve the ?next= target through login/signup/OAuth so the OAuth consent
@@ -40,14 +40,14 @@ const Auth = () => {
   const [signupPassword, setSignupPassword] = useState("");
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && !needsConfirmation) {
       // Se acabamos de cadastrar, não redirecione imediatamente se estivermos mostrando a mensagem
       const isConfirming = sessionStorage.getItem("confirming_signup");
       if (isConfirming) return;
       
       navigate(safeNext, { replace: true });
     }
-  }, [user, authLoading, navigate, safeNext]);
+  }, [user, authLoading, needsConfirmation, navigate, safeNext]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +99,7 @@ const Auth = () => {
         email: signupEmail,
         password: signupPassword,
         options: {
-          emailRedirectTo: `${window.location.origin}${safeNext}`,
+          emailRedirectTo: `${window.location.origin}/auth`,
           data: { display_name: signupName },
         },
       });
@@ -133,6 +133,40 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  if (needsConfirmation && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-background">
+        <div className="max-w-md w-full space-y-6 text-center">
+          <div className="p-3 bg-accent/10 rounded-full w-fit mx-auto">
+            <div className="h-12 w-12 text-accent flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              </svg>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-serif font-bold text-foreground">Aguardando Confirmação</h2>
+            <p className="text-muted-foreground">
+              Sua conta foi criada, mas você precisa confirmar seu e-mail para continuar.
+            </p>
+            <p className="text-muted-foreground">
+              Enviamos um link para <strong>{user.email}</strong>. Por favor, verifique sua caixa de entrada e spam.
+            </p>
+          </div>
+          <div className="pt-4 space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full rounded-xl"
+              onClick={() => signOut()}
+            >
+              Voltar para o Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-5 py-10">
