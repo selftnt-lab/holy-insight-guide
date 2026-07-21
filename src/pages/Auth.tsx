@@ -21,7 +21,7 @@ const nameSchema = z.string().trim().min(1, "Nome obrigatório").max(60);
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading: authLoading, needsConfirmation, signOut } = useAuth();
+  const { user, loading: authLoading, needsConfirmation, signOut, session } = useAuth();
   const [loading, setLoading] = useState(false);
 
   // Preserve the ?next= target through login/signup/OAuth so the OAuth consent
@@ -153,6 +153,11 @@ const Auth = () => {
             <p className="text-muted-foreground">
               Enviamos um link para <strong>{user.email}</strong>. Por favor, verifique sua caixa de entrada e spam.
             </p>
+            {session?.access_token && (
+              <div className="mt-4 p-2 bg-muted rounded text-[10px] text-muted-foreground break-all opacity-50">
+                Sessão ativa detectada. Aguardando validação do servidor.
+              </div>
+            )}
           </div>
           <div className="pt-4 space-y-3">
             <Button 
