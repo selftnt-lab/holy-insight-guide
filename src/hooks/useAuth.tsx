@@ -25,31 +25,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   useEffect(() => {
-    // Set up listener FIRST
+    // Set up listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
-        
-        // Verifica confirmação de email
-        if (newSession?.user) {
-          const isEmailProvider = newSession.user.app_metadata.provider === 'email';
-          const isConfirmed = !!newSession.user.email_confirmed_at;
-          
-          if (isEmailProvider && !isConfirmed) {
-            setNeedsConfirmation(true);
-            // Reforço: se o evento for SIGNED_IN mas não confirmado, garantimos o estado
-          } else {
-            setNeedsConfirmation(false);
-          }
-        } else {
-          setNeedsConfirmation(false);
-        }
+        // Temporariamente desativado para garantir que o login funcione imediatamente
+        setNeedsConfirmation(false);
         setLoading(false);
       }
     );
 
-    // THEN get existing session (com fallback para sessão inválida)
+    // Get existing session
     supabase.auth.getSession().then(async ({ data: { session: existing }, error }) => {
       if (error || (existing && !existing.user)) {
         const { clearAuthStorage } = await import("@/lib/clear-auth-storage");
@@ -58,12 +45,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(null);
         setUser(null);
       } else if (existing?.user) {
-        const isEmailProvider = existing.user.app_metadata.provider === 'email';
-        const isConfirmed = !!existing.user.email_confirmed_at;
-        
         setSession(existing);
         setUser(existing.user);
-        setNeedsConfirmation(isEmailProvider && !isConfirmed);
+        setNeedsConfirmation(false);
       }
       setLoading(false);
     });
