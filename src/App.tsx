@@ -33,6 +33,7 @@ const Privacy = lazy(() => import("./pages/legal/Privacy"));
 const Licenses = lazy(() => import("./pages/legal/Licenses"));
 const Contribute = lazy(() => import("./pages/Contribute"));
 const Planning = lazy(() => import("./pages/Planning"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +61,7 @@ const App = () => (
                       <Route path="/" element={<Navigate to="/dashboard" replace />} />
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/auth/v1/consent" element={<OAuthConsent />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
                       
                       {/* ProtectedRoute espera children, então usamos um componente de layout que renderiza o Outlet */}
                       <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
