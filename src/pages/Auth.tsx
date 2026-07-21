@@ -93,11 +93,19 @@ const Auth = () => {
         if (!secondTry) return;
       }
       
-      toast.error(
-        error.message.includes("Invalid login")
-          ? "Email ou senha incorretos"
-          : error.message
-      );
+      let errorMessage = error.message;
+      
+      if (error.message.includes("Invalid login credentials") || error.message.includes("Email ou senha incorretos")) {
+        errorMessage = "Email ou senha incorretos. Por favor, verifique seus dados ou use a recuperação de senha.";
+      }
+
+      toast.error(errorMessage, {
+        duration: 6000,
+        action: {
+          label: "Recuperar Senha",
+          onClick: () => setIsForgotPassword(true)
+        }
+      });
       return;
     }
     
@@ -162,8 +170,11 @@ const Auth = () => {
       }
       
       // Cadastro bem-sucedido, redireciona imediatamente se o auto-confirm estiver on
-      toast.success("Conta criada com sucesso! Redirecionando...");
-      await supabase.auth.getSession();
+      toast.success("Conta criada com sucesso! Entrando...");
+      // Forçamos o refresh do banco após o signup para garantir que o trigger handle_new_user completou
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await supabase.auth.refreshSession();
+      
       setTimeout(() => {
         window.location.href = safeNext;
       }, 500);
@@ -375,7 +386,7 @@ const Auth = () => {
             </TabsList>
 
             <TabsContent value="login" className="mt-6">
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4" noValidate>
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
                   <Input
@@ -421,7 +432,7 @@ const Auth = () => {
             </TabsContent>
 
             <TabsContent value="signup" className="mt-6">
-              <form onSubmit={handleSignup} className="space-y-4">
+              <form onSubmit={handleSignup} className="space-y-4" noValidate>
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Nome</Label>
                   <Input
