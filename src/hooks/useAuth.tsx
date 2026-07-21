@@ -36,9 +36,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Se houver um redirecionamento pendente pós-login (Google/Apple)
         if (event === "SIGNED_IN") {
-          const next = sessionStorage.getItem("post_auth_next") || "/";
+          const next = sessionStorage.getItem("post_auth_next") || "/dashboard";
           sessionStorage.removeItem("post_auth_next");
-          if (window.location.pathname === "/auth" || window.location.pathname === "/auth/callback") {
+          // Só redireciona se estivermos em uma rota de auth, para não interromper sessões ativas
+          if (window.location.pathname.startsWith("/auth")) {
              window.location.href = next;
           }
         }

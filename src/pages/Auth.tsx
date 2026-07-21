@@ -102,13 +102,16 @@ const Auth = () => {
     }
     
     toast.success("Bem-vindo de volta!");
-    // Forçamos o recarregamento da sessão para garantir que o estado de autenticação seja propagado
-    await supabase.auth.getSession();
+    
+    // Forçar atualização do estado local do Supabase
+    await supabase.auth.refreshSession();
+    
     setTimeout(() => {
+      // Usamos replace: true para limpar o histórico e evitar que o 'back' volte para a tela de login
       navigate(safeNext, { replace: true });
-      // Forçamos um refresh da página para limpar qualquer estado de redirecionamento preso
-      window.location.href = safeNext;
-    }, 100);
+      // Forçamos o redirecionamento via location para garantir que o Router limpe estados internos
+      window.location.assign(safeNext);
+    }, 150);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
