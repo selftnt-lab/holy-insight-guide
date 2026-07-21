@@ -15,7 +15,7 @@ export default function PostAuthRedirect() {
 
   useEffect(() => {
     if (loading || !user) return;
-    if (location.pathname !== "/") return;
+    if (location.pathname !== "/" && location.pathname !== "/auth") return;
     let next: string | null = null;
     try {
       next = sessionStorage.getItem("post_auth_next");

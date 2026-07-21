@@ -102,9 +102,16 @@ const Auth = () => {
     }
     
     toast.success("Bem-vindo de volta!");
+    
+    // Forçar atualização do estado local do Supabase
+    await supabase.auth.refreshSession();
+    
     setTimeout(() => {
+      // Usamos replace: true para limpar o histórico e evitar que o 'back' volte para a tela de login
       navigate(safeNext, { replace: true });
-    }, 100);
+      // Forçamos o redirecionamento via location para garantir que o Router limpe estados internos
+      window.location.assign(safeNext);
+    }, 150);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -156,8 +163,9 @@ const Auth = () => {
       
       // Cadastro bem-sucedido, redireciona imediatamente se o auto-confirm estiver on
       toast.success("Conta criada com sucesso! Redirecionando...");
+      await supabase.auth.getSession();
       setTimeout(() => {
-        navigate(safeNext, { replace: true });
+        window.location.href = safeNext;
       }, 500);
     } catch (err) {
       console.error("Signup exception:", err);

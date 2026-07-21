@@ -28,12 +28,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
+        console.log("Auth event:", event, !!newSession);
         setSession(newSession);
         setUser(newSession?.user ?? null);
-        // Força a confirmação como verdadeira para qualquer tipo de login
-        // eliminando qualquer bloqueio de e-mail pendente.
         setNeedsConfirmation(false);
         setLoading(false);
+        
+        // Se houver um redirecionamento pendente pós-login (Google/Apple)
+        if (event === "SIGNED_IN") {
+          const next = sessionStorage.getItem("post_auth_next") || "/dashboard";
+          sessionStorage.removeItem("post_auth_next");
+          // Só redireciona se estivermos em uma rota de auth, para não interromper sessões ativas
+          if (window.location.pathname.startsWith("/auth")) {
+             window.location.href = next;
+          }
+        }
       }
     );
 
