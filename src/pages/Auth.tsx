@@ -170,8 +170,11 @@ const Auth = () => {
       }
       
       // Cadastro bem-sucedido, redireciona imediatamente se o auto-confirm estiver on
-      toast.success("Conta criada com sucesso! Redirecionando...");
-      await supabase.auth.getSession();
+      toast.success("Conta criada com sucesso! Entrando...");
+      // Forçamos o refresh do banco após o signup para garantir que o trigger handle_new_user completou
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await supabase.auth.refreshSession();
+      
       setTimeout(() => {
         window.location.href = safeNext;
       }, 500);
