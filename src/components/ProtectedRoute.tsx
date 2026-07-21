@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { user, loading, needsConfirmation, signOut } = useAuth();

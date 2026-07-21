@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import rcBranchIcon from "@/assets/rc-branch-icon.png.asset.json";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const AppHeader = () => {
   const location = useLocation();
