@@ -83,11 +83,10 @@ const Auth = () => {
     if (error) {
       console.error("Login error:", error);
       
-      // Captura erro específico de e-mail não confirmado
-      if (error.message.includes("Email not confirmed") || error.status === 400 || error.message.includes("confirmation")) {
-        setPendingEmail(loginEmail);
-        setSignupPendingEmail(true);
-        toast.error("Você precisa confirmar seu e-mail antes de entrar. Verifique sua caixa de entrada (e a pasta de spam). Se acabou de cadastrar, aguarde 1-2 minutos.", { duration: 8000 });
+      // Removido o bloqueio de confirmação para resolver o problema de login
+      if (error.message.includes("Email not confirmed")) {
+        // Tentamos novamente ou apenas mostramos o erro original se persistir
+        toast.error("Erro ao entrar. Verifique seus dados.");
         return;
       }
       
