@@ -3,7 +3,7 @@ import React from "react";
 const RoutesPlaceholder = () => {
   return (
     <div className="hidden">
-      estar o fluxo completo de cadastro, confirmando o e-mail e verificando o acesso às rotas protegidas.
+      continua cadastrando direto e entrando sem o filtro da confirmação de e-mail, você não vai corrigir?
     </div>
   );
 };
