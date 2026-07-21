@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import rcLogo from "@/assets/rc-bible-logo-pro.png.asset.json";
+import rcLogo from "@/assets/rc-bible-logo-new.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
