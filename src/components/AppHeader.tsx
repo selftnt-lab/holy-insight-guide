@@ -18,7 +18,11 @@ const AppHeader = () => {
         <div className="flex flex-col items-center">
           <img
             src={rcLogo.url}
-            className="h-16 w-auto object-contain transition-all duration-300 hover:scale-105 dark:brightness-[1.15] dark:contrast-[1.1] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.15)]"
+            className="h-16 w-auto object-contain transition-all duration-700 hover:scale-105 dark:brightness-[1.15] dark:contrast-[1.1] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.15)]"
+            style={{ 
+              transitionProperty: "filter, transform, opacity, brightness, contrast",
+              transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)"
+            }}
           />
         </div>
         <Button
