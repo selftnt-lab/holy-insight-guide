@@ -388,6 +388,15 @@ const Auth = () => {
                     required
                     autoComplete="current-password"
                   />
+                  <div className="flex justify-end">
+                    <button 
+                      type="button"
+                      onClick={() => setIsForgotPassword(true)}
+                      className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
                 </div>
                 <Button
                   type="submit"
