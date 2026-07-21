@@ -29,6 +29,12 @@ const Auth = () => {
   const [signupPendingEmail, setSignupPendingEmail] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
 
+  const rawNext = searchParams.get("next");
+  const safeNext =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+      ? rawNext
+      : "/";
+
   const [activeTab, setActiveTab] = useState("login");
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -49,7 +55,6 @@ const Auth = () => {
 
   useEffect(() => {
     if (!authLoading && user && !needsConfirmation) {
-      // Se acabamos de cadastrar, não redirecione imediatamente se estivermos mostrando a mensagem
       const isConfirming = sessionStorage.getItem("confirming_signup");
       if (isConfirming) return;
       
@@ -74,7 +79,15 @@ const Auth = () => {
       password: loginPassword,
     });
     setLoading(false);
+    
     if (error) {
+      if (error.message.includes("Email not confirmed")) {
+        setPendingEmail(loginEmail);
+        setSignupPendingEmail(true);
+        toast.error("Você precisa confirmar seu e-mail antes de entrar.");
+        return;
+      }
+      
       toast.error(
         error.message.includes("Invalid login")
           ? "Email ou senha incorretos"
@@ -82,8 +95,8 @@ const Auth = () => {
       );
       return;
     }
+    
     toast.success("Bem-vindo de volta!");
-    // Pequeno delay para garantir que o estado de auth atualize antes de redirecionar
     setTimeout(() => {
       navigate(safeNext, { replace: true });
     }, 100);
@@ -112,29 +125,33 @@ const Auth = () => {
         },
       });
 
+      setLoading(false);
+
       if (error) {
         console.error("Auth Signup Error:", error);
-        let message = error.message;
-        if (message.includes("already")) message = "Este email já está cadastrado";
-        if (message.includes("weak_password")) message = "A senha é muito fraca. Use uma combinação de letras, números e símbolos.";
-        if (message.includes("Work emails only")) message = "Apenas e-mails corporativos são permitidos.";
+        if (error.message.includes("already registered")) {
+          toast.error("Este e-mail já está em uso. Tente fazer login.", {
+            duration: Infinity,
+            action: {
+              label: "Ir para Login",
+              onClick: () => {
+                setLoginEmail(signupEmail);
+                setActiveTab("login");
+              }
+            }
+          });
+          return;
+        }
         
+        let message = error.message;
+        if (message.includes("weak_password")) message = "A senha é muito fraca. Use uma combinação de letras, números e símbolos.";
         toast.error(message, { duration: 5000 });
-        setLoading(false);
         return;
       }
       
-      toast.success("Conta criada! Enviamos um link de confirmação para o seu e-mail. Por favor, valide sua conta para acessar o aplicativo.", {
-        duration: 10000
-      });
-      
-      // Limpar campos e forçar aba de login
-      setLoginEmail(signupEmail);
-      setSignupEmail("");
-      setSignupPassword("");
-      setSignupName("");
-      setActiveTab("login");
-      setLoading(false);
+      setPendingEmail(signupEmail);
+      setSignupPendingEmail(true);
+      toast.success("Verifique seu e-mail para ativar sua conta.");
     } catch (err) {
       console.error("Signup exception:", err);
       toast.error("Ocorreu um erro inesperado ao criar conta.");
@@ -142,41 +159,138 @@ const Auth = () => {
     }
   };
 
-  if (needsConfirmation && user) {
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      emailSchema.parse(forgotPasswordEmail);
+    } catch (err) {
+      toast.error("E-mail inválido");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setResetEmailSent(true);
+      toast.success("Link de recuperação enviado!");
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (showResendCooldown > 0) return;
+    setLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: pendingEmail,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("E-mail de confirmação reenviado!");
+      setShowResendCooldown(60);
+    }
+  };
+
+  if (signupPendingEmail || (needsConfirmation && user)) {
+    const displayEmail = pendingEmail || user?.email;
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-background">
         <div className="max-w-md w-full space-y-6 text-center">
-          <div className="p-3 bg-accent/10 rounded-full w-fit mx-auto">
-            <div className="h-12 w-12 text-accent flex items-center justify-center">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="p-3 bg-primary/10 rounded-full w-fit mx-auto"
+          >
+            <div className="h-12 w-12 text-primary flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
               </svg>
             </div>
-          </div>
+          </motion.div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-serif font-bold text-foreground">Aguardando Confirmação</h2>
+            <h2 className="text-2xl font-serif font-bold text-foreground">Confirme seu e-mail</h2>
             <p className="text-muted-foreground">
-              Sua conta foi criada, mas você precisa confirmar seu e-mail para continuar.
+              Enviamos um link de ativação para <strong>{displayEmail}</strong>.
             </p>
-            <p className="text-muted-foreground">
-              Enviamos um link para <strong>{user.email}</strong>. Por favor, verifique sua caixa de entrada e spam.
+            <p className="text-sm text-muted-foreground">
+              Por favor, verifique sua caixa de entrada e a pasta de spam. Você precisa clicar no link para acessar o RC Bible.
             </p>
-            {session?.access_token && (
-              <div className="mt-4 p-2 bg-muted rounded text-[10px] text-muted-foreground break-all opacity-50">
-                Sessão ativa detectada. Aguardando validação do servidor.
-              </div>
-            )}
           </div>
           <div className="pt-4 space-y-3">
             <Button 
+              className="w-full rounded-xl"
+              onClick={handleResendConfirmation}
+              disabled={loading || showResendCooldown > 0}
+            >
+              {showResendCooldown > 0 ? `Aguarde ${showResendCooldown}s` : "Reenviar e-mail de confirmação"}
+            </Button>
+            <Button 
               variant="outline" 
               className="w-full rounded-xl"
-              onClick={() => signOut()}
+              onClick={() => {
+                signOut();
+                setSignupPendingEmail(false);
+              }}
             >
               Voltar para o Login
             </Button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (isForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-5 py-10">
+        <PageSeo title="Recuperar Senha — RC Bible" description="Recupere o acesso à sua conta RC Bible." path="/auth" />
+        <Card className="w-full max-w-md p-6 rounded-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-serif font-bold">Recuperar Senha</h2>
+            <p className="text-sm text-muted-foreground">
+              {resetEmailSent 
+                ? "Se este e-mail estiver cadastrado, você receberá um link em instantes."
+                : "Digite seu e-mail para receber as instruções de recuperação."}
+            </p>
+          </div>
+          
+          {!resetEmailSent ? (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgot-email">E-mail</Label>
+                <Input
+                  id="forgot-email"
+                  type="email"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  placeholder="exemplo@email.com"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Enviando..." : "Enviar link de recuperação"}
+              </Button>
+            </form>
+          ) : (
+            <Button variant="outline" className="w-full" onClick={() => setIsForgotPassword(false)}>
+              Voltar para o Login
+            </Button>
+          )}
+          
+          {!resetEmailSent && (
+            <button 
+              onClick={() => setIsForgotPassword(false)}
+              className="w-full text-center text-sm text-muted-foreground hover:underline"
+            >
+              Lembrei minha senha
+            </button>
+          )}
+        </Card>
       </div>
     );
   }
