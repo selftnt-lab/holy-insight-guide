@@ -2,7 +2,7 @@ import PageSeo from "@/components/PageSeo";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import rcBibleLogo from "@/assets/rc-bible-logo-new.png.asset.json";
+import rcBibleLogo from "@/assets/rc-bible-logo-pro.png.asset.json";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -310,7 +310,7 @@ const Auth = () => {
           <img
             src={rcBibleLogo.url}
             alt="RC Bible - Renovada Church"
-            className="h-48 w-auto object-scale-down"
+            className="h-56 w-auto object-scale-down drop-shadow-2xl transition-all duration-500 hover:scale-105 dark:brightness-110 dark:contrast-125"
           />
           <h1 className="mt-4 font-serif text-3xl font-bold text-foreground">Guia Bíblico</h1>
           <p className="text-sm text-muted-foreground">Seu tutor para estudar a Bíblia</p>

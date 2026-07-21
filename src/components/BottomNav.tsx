@@ -1,7 +1,7 @@
 import { Home, Compass, User, PenLine, BookOpen, Heart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import rcLogo from "@/assets/rc-bible-logo-new.png.asset.json";
+import rcLogo from "@/assets/rc-bible-logo-pro.png.asset.json";
 import { useAuth } from "@/hooks/useAuth";
 
 const tabs = [
@@ -69,7 +69,7 @@ const BottomNav = () => {
               <img
                 src={rcLogo.url}
                 alt="RC BIBLE"
-                className="h-4 w-auto opacity-90 dark:invert"
+                className="h-5 w-auto opacity-90 transition-opacity hover:opacity-100 dark:brightness-110 dark:contrast-125"
               />
             </span>
             <span aria-hidden className="opacity-50">·</span>
