@@ -113,19 +113,14 @@ const Auth = () => {
         return;
       }
       
-      toast.success("Conta criada! Enviamos um e-mail de confirmação para você. Por favor, valide seu acesso clicando no link enviado.", {
-        duration: 8000
+      toast.success("Conta criada! Você precisa confirmar seu e-mail para acessar o aplicativo. Verifique sua caixa de entrada.", {
+        duration: 10000
       });
       
-      // Bloquear redirecionamento automático para que o usuário veja a aba de login/mensagem
-      sessionStorage.setItem("confirming_signup", "true");
-      
-      setTimeout(() => {
-        sessionStorage.removeItem("confirming_signup");
-        setLoginEmail(signupEmail);
-        setActiveTab("login");
-        setLoading(false);
-      }, 3000);
+      // Limpar campos e mudar para aba de login para evitar confusão
+      setLoginEmail(signupEmail);
+      setActiveTab("login");
+      setLoading(false);
     } catch (err) {
       console.error("Signup exception:", err);
       toast.error("Ocorreu um erro inesperado ao criar conta.");

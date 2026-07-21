@@ -33,8 +33,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Verifica confirmação de email
         if (newSession?.user) {
-          const isConfirmed = newSession.user.email_confirmed_at || 
+          const isConfirmed = !!newSession.user.email_confirmed_at || 
                               newSession.user.app_metadata.provider !== 'email';
+          
+          // Se não estiver confirmado, forçamos o logout se necessário ou apenas marcamos o estado
           setNeedsConfirmation(!isConfirmed);
         } else {
           setNeedsConfirmation(false);
