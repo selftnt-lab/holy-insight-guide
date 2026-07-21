@@ -23,14 +23,11 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading, needsConfirmation, signOut, session } = useAuth();
   const [loading, setLoading] = useState(false);
-
-  // Preserve the ?next= target through login/signup/OAuth so the OAuth consent
-  // route (or any deep link) receives the user back where they started.
-  const rawNext = searchParams.get("next");
-  const safeNext =
-    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
-      ? rawNext
-      : "/";
+  const [showResendCooldown, setShowResendCooldown] = useState(0);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [signupPendingEmail, setSignupPendingEmail] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
 
   const [activeTab, setActiveTab] = useState("login");
   const [loginEmail, setLoginEmail] = useState("");
@@ -38,6 +35,17 @@ const Auth = () => {
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (showResendCooldown > 0) {
+      interval = setInterval(() => {
+        setShowResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [showResendCooldown]);
 
   useEffect(() => {
     if (!authLoading && user && !needsConfirmation) {
