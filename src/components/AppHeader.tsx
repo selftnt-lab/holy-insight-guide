@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 const AppHeader = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  if (location.pathname === "/auth") return null;
+  const { needsConfirmation } = useAuth();
+  
+  if (location.pathname === "/auth" || needsConfirmation) return null;
 
   return (
     <Fragment>
