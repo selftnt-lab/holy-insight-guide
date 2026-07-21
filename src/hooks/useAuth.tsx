@@ -31,21 +31,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
-        // Se o evento for SIGNED_IN ou INITIAL_SESSION, verificamos se o email está confirmado
-        // Se for uma conta de email/senha e não estiver confirmado, deslogamos o usuário imediatamente
-        if (newSession?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+        // Verifica confirmação de email
+        if (newSession?.user) {
           const isEmailProvider = newSession.user.app_metadata.provider === 'email';
           const isConfirmed = !!newSession.user.email_confirmed_at;
           
           if (isEmailProvider && !isConfirmed) {
-            // Se o usuário acabou de logar mas não confirmou o email, deslogamos
             setNeedsConfirmation(true);
-            await supabase.auth.signOut();
-            return;
+            // NÃO deslogamos aqui para permitir que a sessão exista mas o ProtectedRoute bloqueie
+          } else {
+            setNeedsConfirmation(false);
           }
+        } else {
+          setNeedsConfirmation(false);
         }
-
-        setNeedsConfirmation(false);
         setLoading(false);
       }
     );
@@ -62,14 +61,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const isEmailProvider = existing.user.app_metadata.provider === 'email';
         const isConfirmed = !!existing.user.email_confirmed_at;
         
-        if (isEmailProvider && !isConfirmed) {
-          setNeedsConfirmation(true);
-          await supabase.auth.signOut();
-        } else {
-          setSession(existing);
-          setUser(existing.user);
-          setNeedsConfirmation(false);
-        }
+        setSession(existing);
+        setUser(existing.user);
+        setNeedsConfirmation(isEmailProvider && !isConfirmed);
       }
       setLoading(false);
     });
