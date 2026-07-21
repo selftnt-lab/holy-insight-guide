@@ -281,7 +281,7 @@ const Auth = () => {
           <img
             src={rcBibleLogo.url}
             alt="RC Bible - Renovada Church"
-            className="h-64 w-auto object-scale-down transition-all duration-500 hover:scale-105"
+            className="h-64 w-auto object-scale-down transition-all duration-500 hover:scale-105 dark:brightness-[1.15] dark:contrast-[1.1] dark:drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]"
           />
           <h1 className="mt-4 font-serif text-3xl font-bold text-foreground">Guia Bíblico</h1>
           <p className="text-sm text-muted-foreground">Seu tutor para estudar a Bíblia</p>
