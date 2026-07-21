@@ -28,12 +28,12 @@ export const resolveFirstName = (
 ): string => {
   const meta = (user?.user_metadata ?? {}) as UserMetaName;
   return (
+    firstNameOf(profile?.display_name) ||
     firstNameOf(profile?.full_name) ||
     meta.given_name ||
     meta.first_name ||
     firstNameOf(meta.full_name) ||
     firstNameOf(meta.name) ||
-    firstNameOf(profile?.display_name) ||
     fallback
   );
 };

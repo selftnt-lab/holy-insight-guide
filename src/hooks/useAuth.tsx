@@ -30,8 +30,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       async (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
-        // Temporariamente desativado para garantir que o login funcione imediatamente
-        setNeedsConfirmation(false);
+        // Garantir que o estado de confirmação seja checado corretamente
+        setNeedsConfirmation(newSession?.user?.email_confirmed_at === null && (newSession?.user?.app_metadata?.provider === 'email'));
         setLoading(false);
       }
     );

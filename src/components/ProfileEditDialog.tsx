@@ -185,11 +185,17 @@ const ProfileEditDialog = ({ open, onOpenChange, userId, onSaved }: Props) => {
       .from("profiles")
       .update(payload)
       .eq("user_id", userId);
+    
     setSaving(false);
     if (error) {
-      toast.error("Erro ao salvar");
+      console.error("Update profile error:", error);
+      toast.error("Erro ao salvar. Verifique se você está conectado.");
       return;
     }
+    
+    // Refresh session to sync user_metadata if possible, though local state is primary
+    await supabase.auth.refreshSession();
+    
     toast.success("Perfil atualizado");
     onSaved?.();
     onOpenChange(false);

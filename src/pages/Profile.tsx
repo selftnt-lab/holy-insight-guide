@@ -140,7 +140,7 @@ const Profile = () => {
     picture?: string;
     avatar_url?: string;
   };
-  const displayName = resolveFirstName(user, profile, "Leitor");
+  const displayName = profile?.display_name || resolveFirstName(user, profile, "Leitor");
   const initial = displayName.charAt(0).toUpperCase();
   const avatarUrl = profile?.avatar_url || meta.picture || meta.avatar_url;
 
