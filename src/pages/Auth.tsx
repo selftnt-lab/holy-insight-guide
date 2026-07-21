@@ -87,7 +87,7 @@ const Auth = () => {
       if (error.message.includes("Email not confirmed") || error.status === 400) {
         setPendingEmail(loginEmail);
         setSignupPendingEmail(true);
-        toast.error("Você precisa confirmar seu e-mail antes de entrar. Verifique sua caixa de entrada.");
+        toast.error("Você precisa confirmar seu e-mail antes de entrar. Verifique sua caixa de entrada (e a pasta de spam).", { duration: 6000 });
         return;
       }
       
@@ -220,9 +220,14 @@ const Auth = () => {
             <p className="text-muted-foreground">
               Enviamos um link de ativação para <strong>{displayEmail}</strong>.
             </p>
-            <p className="text-sm text-muted-foreground">
-              Por favor, verifique sua caixa de entrada e a pasta de spam. Você precisa clicar no link para acessar o RC Bible.
-            </p>
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 p-3 rounded-lg text-sm text-amber-800 dark:text-amber-200 mt-4 text-left">
+              <p className="font-semibold mb-1">Não recebeu o e-mail?</p>
+              <ul className="list-disc list-inside space-y-1 opacity-90">
+                <li>Verifique sua pasta de <strong>Spam</strong> ou Lixo Eletrônico.</li>
+                <li>Certifique-se de que o e-mail acima está correto.</li>
+                <li>Aguarde alguns minutos; o envio pode levar um tempo.</li>
+              </ul>
+            </div>
           </div>
           <div className="pt-4 space-y-3">
             <Button 
