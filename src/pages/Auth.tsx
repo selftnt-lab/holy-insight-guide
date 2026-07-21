@@ -84,15 +84,13 @@ const Auth = () => {
       console.error("Login error:", error);
       
       if (error.message.toLowerCase().includes("email not confirmed") || error.message.toLowerCase().includes("verifique seu e-mail")) {
-        // Ignora o bloqueio de confirmação de e-mail para permitir login imediato
-        // se o usuário já estiver cadastrado mas não confirmou.
-        toast.info("Acessando... (confirmação pendente)");
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        // Como o backend foi reconfigurado para auto-confirmar, este erro não deve mais ocorrer.
+        // Mas se ocorrer por algum cache, tentamos forçar o login uma última vez.
+        const { error: secondTry } = await supabase.auth.signInWithPassword({
           email: loginEmail,
           password: loginPassword,
         });
-        if (signInError) throw signInError;
-        return;
+        if (!secondTry) return;
       }
       
       toast.error(
@@ -206,54 +204,16 @@ const Auth = () => {
   };
 
   if (signupPendingEmail || (needsConfirmation && user)) {
-    const displayEmail = pendingEmail || user?.email;
+    // Redireciona imediatamente se já tiver usuário, ignorando confirmação pendente
+    if (user) {
+      navigate(safeNext, { replace: true });
+      return null;
+    }
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-background">
         <div className="max-w-md w-full space-y-6 text-center">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="p-3 bg-primary/10 rounded-full w-fit mx-auto"
-          >
-            <div className="h-12 w-12 text-primary flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-              </svg>
-            </div>
-          </motion.div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-serif font-bold text-foreground">Confirme seu e-mail</h2>
-            <p className="text-muted-foreground">
-              Enviamos um link de ativação para <strong>{displayEmail}</strong>.
-            </p>
-            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 p-3 rounded-lg text-sm text-amber-800 dark:text-amber-200 mt-4 text-left">
-              <p className="font-semibold mb-1">Não recebeu o e-mail?</p>
-              <ul className="list-disc list-inside space-y-1 opacity-90">
-                <li>Verifique sua pasta de <strong>Spam</strong> ou Lixo Eletrônico.</li>
-                <li>Certifique-se de que o e-mail acima está correto.</li>
-                <li>Aguarde alguns minutos; o envio pode levar um tempo.</li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-4 space-y-3">
-            <Button 
-              className="w-full rounded-xl"
-              onClick={handleResendConfirmation}
-              disabled={loading || showResendCooldown > 0}
-            >
-              {showResendCooldown > 0 ? `Aguarde ${showResendCooldown}s` : "Reenviar e-mail de confirmação"}
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full rounded-xl"
-              onClick={() => {
-                signOut();
-                setSignupPendingEmail(false);
-              }}
-            >
-              Voltar para o Login
-            </Button>
-          </div>
+          <h2 className="text-2xl font-serif font-bold">Acessando...</h2>
+          <Button onClick={() => navigate(safeNext, { replace: true })}>Clique aqui se não for redirecionado</Button>
         </div>
       </div>
     );
