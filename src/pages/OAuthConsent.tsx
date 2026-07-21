@@ -122,7 +122,7 @@ export default function OAuthConsent() {
           <img
             src={rcBibleLogo.url}
             alt="RC Bible"
-            className="h-24 w-auto object-scale-down"
+            className="h-24 w-auto object-scale-down dark:brightness-[1.15] dark:contrast-[1.1] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]"
           />
         </div>
 
