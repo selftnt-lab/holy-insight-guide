@@ -93,11 +93,19 @@ const Auth = () => {
         if (!secondTry) return;
       }
       
-      toast.error(
-        error.message.includes("Invalid login")
-          ? "Email ou senha incorretos"
-          : error.message
-      );
+      let errorMessage = error.message;
+      
+      if (error.message.includes("Invalid login credentials") || error.message.includes("Email ou senha incorretos")) {
+        errorMessage = "Email ou senha incorretos. Por favor, verifique seus dados ou use a recuperação de senha.";
+      }
+
+      toast.error(errorMessage, {
+        duration: 6000,
+        action: {
+          label: "Recuperar Senha",
+          onClick: () => setIsForgotPassword(true)
+        }
+      });
       return;
     }
     
