@@ -83,10 +83,10 @@ const Auth = () => {
     if (error) {
       console.error("Login error:", error);
       
-      // Removido o bloqueio de confirmação para resolver o problema de login
-      if (error.message.includes("Email not confirmed")) {
-        // Tentamos novamente ou apenas mostramos o erro original se persistir
-        toast.error("Erro ao entrar. Verifique seus dados.");
+      if (error.message.toLowerCase().includes("email not confirmed") || error.message.toLowerCase().includes("verifique seu e-mail")) {
+        setPendingEmail(loginEmail);
+        setSignupPendingEmail(true);
+        toast.error("E-mail não confirmado. Verifique sua caixa de entrada.");
         return;
       }
       
