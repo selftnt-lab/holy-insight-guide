@@ -333,11 +333,8 @@ const Auth = () => {
                   sessionStorage.setItem("post_auth_next", safeNext);
                 } catch { /* ignore */ }
               }
-              const { error } = await supabase.auth.signInWithOAuth({
-                provider: "google",
-                options: {
-                  redirectTo: `${window.location.origin}/auth/callback`,
-                },
+              const { error } = await lovable.auth.signInWithOAuth("google", {
+                redirect_uri: `${window.location.origin}/auth/callback`,
               });
               if (error) {
                 setLoading(false);
