@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import rcLogo from "@/assets/rc-bible-logo-new.png.asset.json";
+import rcLogo from "@/assets/rc-bible-logo-pro.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -18,8 +18,7 @@ const AppHeader = () => {
         <div className="flex flex-col items-center">
           <img
             src={rcLogo.url}
-            alt="RC Bible"
-            className="h-14 w-auto object-contain dark:invert"
+            className="h-16 w-auto object-contain transition-all duration-300 hover:scale-105 dark:brightness-110 dark:contrast-125"
           />
         </div>
         <Button
