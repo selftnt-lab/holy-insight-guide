@@ -2,7 +2,7 @@ import PageSeo from "@/components/PageSeo";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import rcBibleLogo from "@/assets/rc-bible-logo.png.asset.json";
+import rcBibleLogo from "@/assets/rc-bible-pwa-icon.png.asset.json";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

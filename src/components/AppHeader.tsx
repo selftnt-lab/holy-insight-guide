@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import rcBranchIcon from "@/assets/rc-branch-icon.png.asset.json";
+import rcBranchIcon from "@/assets/rc-bible-pwa-icon.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
