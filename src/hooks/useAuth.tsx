@@ -27,21 +27,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Set up listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
+      async (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
-        // Verifica confirmação de email
-        if (newSession?.user) {
-          const isConfirmed = !!newSession.user.email_confirmed_at || 
-                              newSession.user.app_metadata.provider !== 'email';
+        // Se o evento for SIGNED_IN ou INITIAL_SESSION, verificamos se o email está confirmado
+        // Se for uma conta de email/senha e não estiver confirmado, deslogamos o usuário imediatamente
+        if (newSession?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+          const isEmailProvider = newSession.user.app_metadata.provider === 'email';
+          const isConfirmed = !!newSession.user.email_confirmed_at;
           
-          // Se não estiver confirmado, forçamos o logout se necessário ou apenas marcamos o estado
-          setNeedsConfirmation(!isConfirmed);
-        } else {
-          setNeedsConfirmation(false);
+          if (isEmailProvider && !isConfirmed) {
+            // Se o usuário acabou de logar mas não confirmou o email, deslogamos
+            setNeedsConfirmation(true);
+            await supabase.auth.signOut();
+            return;
+          }
         }
-        
+
+        setNeedsConfirmation(false);
         setLoading(false);
       }
     );
@@ -54,14 +58,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         clearAuthStorage();
         setSession(null);
         setUser(null);
-      } else {
-        setSession(existing);
-        setUser(existing?.user ?? null);
+      } else if (existing?.user) {
+        const isEmailProvider = existing.user.app_metadata.provider === 'email';
+        const isConfirmed = !!existing.user.email_confirmed_at;
         
-        if (existing?.user) {
-          const isConfirmed = existing.user.email_confirmed_at || 
-                              existing.user.app_metadata.provider !== 'email';
-          setNeedsConfirmation(!isConfirmed);
+        if (isEmailProvider && !isConfirmed) {
+          setNeedsConfirmation(true);
+          await supabase.auth.signOut();
+        } else {
+          setSession(existing);
+          setUser(existing.user);
+          setNeedsConfirmation(false);
         }
       }
       setLoading(false);
