@@ -84,9 +84,14 @@ const Auth = () => {
       console.error("Login error:", error);
       
       if (error.message.toLowerCase().includes("email not confirmed") || error.message.toLowerCase().includes("verifique seu e-mail")) {
-        setPendingEmail(loginEmail);
-        setSignupPendingEmail(true);
-        toast.error("E-mail não confirmado. Verifique sua caixa de entrada.");
+        // Ignora o bloqueio de confirmação de e-mail para permitir login imediato
+        // se o usuário já estiver cadastrado mas não confirmou.
+        toast.info("Acessando... (confirmação pendente)");
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: loginEmail,
+          password: loginPassword,
+        });
+        if (signInError) throw signInError;
         return;
       }
       
@@ -151,9 +156,11 @@ const Auth = () => {
         return;
       }
       
-      setPendingEmail(signupEmail);
-      setSignupPendingEmail(true);
-      toast.success("Verifique seu e-mail para ativar sua conta.");
+      // Cadastro bem-sucedido, redireciona imediatamente se o auto-confirm estiver on
+      toast.success("Conta criada com sucesso! Redirecionando...");
+      setTimeout(() => {
+        navigate(safeNext, { replace: true });
+      }, 500);
     } catch (err) {
       console.error("Signup exception:", err);
       toast.error("Ocorreu um erro inesperado ao criar conta.");

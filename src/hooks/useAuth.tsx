@@ -31,7 +31,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         // Garantir que o estado de confirmação seja checado corretamente
-        setNeedsConfirmation(newSession?.user?.email_confirmed_at === null && (newSession?.user?.app_metadata?.provider === 'email'));
+        // Ignora a trava de confirmação para permitir acesso imediato, 
+        // mas mantém a lógica de login do Google se necessário.
+        setNeedsConfirmation(false);
         setLoading(false);
       }
     );
