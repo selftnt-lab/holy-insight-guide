@@ -84,9 +84,14 @@ const Auth = () => {
       console.error("Login error:", error);
       
       if (error.message.toLowerCase().includes("email not confirmed") || error.message.toLowerCase().includes("verifique seu e-mail")) {
-        setPendingEmail(loginEmail);
-        setSignupPendingEmail(true);
-        toast.error("E-mail não confirmado. Verifique sua caixa de entrada.");
+        // Ignora o bloqueio de confirmação de e-mail para permitir login imediato
+        // se o usuário já estiver cadastrado mas não confirmou.
+        toast.info("Acessando... (confirmação pendente)");
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: loginEmail,
+          password: loginPassword,
+        });
+        if (signInError) throw signInError;
         return;
       }
       
