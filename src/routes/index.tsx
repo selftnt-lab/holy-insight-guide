@@ -1,11 +1,5 @@
-import React from "react";
+import { Navigate } from "react-router-dom";
 
-const RoutesPlaceholder = () => {
-  return (
-    <div className="hidden">
-      Rotas carregadas e protegidas.
-    </div>
-  );
-};
-
-export default RoutesPlaceholder;
+export default function Index() {
+  return <Navigate to="/auth" replace />;
+}
