@@ -156,9 +156,11 @@ const Auth = () => {
         return;
       }
       
-      setPendingEmail(signupEmail);
-      setSignupPendingEmail(true);
-      toast.success("Verifique seu e-mail para ativar sua conta.");
+      // Cadastro bem-sucedido, redireciona imediatamente se o auto-confirm estiver on
+      toast.success("Conta criada com sucesso! Redirecionando...");
+      setTimeout(() => {
+        navigate(safeNext, { replace: true });
+      }, 500);
     } catch (err) {
       console.error("Signup exception:", err);
       toast.error("Ocorreu um erro inesperado ao criar conta.");
