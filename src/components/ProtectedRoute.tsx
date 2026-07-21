@@ -28,10 +28,12 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
             </div>
           </div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-serif font-bold text-foreground">Confirme seu e-mail</h2>
+            <h2 className="text-2xl font-serif font-bold text-foreground">Validação Obrigatória</h2>
             <p className="text-muted-foreground">
-              Enviamos um link de confirmação para <strong>{user.email}</strong>. 
-              Por favor, clique no link para ativar sua conta e acessar o aplicativo.
+              O processo de cadastro gera acesso direto ao sistema, mas para garantir sua segurança e evitar acessos de robôs, é necessário validar seu e-mail.
+            </p>
+            <p className="text-muted-foreground">
+              Enviamos um link de confirmação para <strong>{user.email}</strong> em nome do app <strong>RC Bible</strong>.
             </p>
           </div>
           <div className="pt-4 space-y-3">
