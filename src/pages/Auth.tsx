@@ -81,10 +81,13 @@ const Auth = () => {
     setLoading(false);
     
     if (error) {
-      if (error.message.includes("Email not confirmed")) {
+      console.error("Login error:", error);
+      
+      // Captura erro específico de e-mail não confirmado
+      if (error.message.includes("Email not confirmed") || error.status === 400) {
         setPendingEmail(loginEmail);
         setSignupPendingEmail(true);
-        toast.error("Você precisa confirmar seu e-mail antes de entrar.");
+        toast.error("Você precisa confirmar seu e-mail antes de entrar. Verifique sua caixa de entrada.");
         return;
       }
       
