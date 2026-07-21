@@ -75,7 +75,10 @@ const Auth = () => {
       return;
     }
     toast.success("Bem-vindo de volta!");
-    navigate(safeNext, { replace: true });
+    // Pequeno delay para garantir que o estado de auth atualize antes de redirecionar
+    setTimeout(() => {
+      navigate(safeNext, { replace: true });
+    }, 100);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -113,12 +116,15 @@ const Auth = () => {
         return;
       }
       
-      toast.success("Conta criada! Você precisa confirmar seu e-mail para acessar o aplicativo. Verifique sua caixa de entrada.", {
+      toast.success("Conta criada com sucesso! Verifique seu e-mail para ativar sua conta antes de entrar.", {
         duration: 10000
       });
       
-      // Limpar campos e mudar para aba de login para evitar confusão
+      // Limpar campos e forçar aba de login
       setLoginEmail(signupEmail);
+      setSignupEmail("");
+      setSignupPassword("");
+      setSignupName("");
       setActiveTab("login");
       setLoading(false);
     } catch (err) {
