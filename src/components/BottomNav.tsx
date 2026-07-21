@@ -1,7 +1,7 @@
 import { Home, Compass, User, PenLine, BookOpen, Heart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import novusLogo from "@/assets/novus-ai-logo.png";
+import rcLogo from "@/assets/rc-bible-logo-new.png.asset.json";
 import { useAuth } from "@/hooks/useAuth";
 
 const tabs = [
@@ -65,11 +65,11 @@ const BottomNav = () => {
           </nav>
           <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 border-t border-border/50 px-3 py-2 text-[10px] text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <span>Um produto</span>
+              <span>RC Bible</span>
               <img
-                src={novusLogo}
-                alt="NOVUS.AI"
-                className="h-3 w-auto opacity-80 dark:brightness-0 dark:invert"
+                src={rcLogo.url}
+                alt="RC BIBLE"
+                className="h-4 w-auto opacity-90 dark:invert"
               />
             </span>
             <span aria-hidden className="opacity-50">·</span>

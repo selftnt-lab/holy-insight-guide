@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import rcBranchIcon from "@/assets/rc-bible-pwa-icon.png.asset.json";
+import rcLogo from "@/assets/rc-bible-logo-new.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -14,22 +14,13 @@ const AppHeader = () => {
 
   return (
     <Fragment>
-      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center border-b border-border/50 bg-background/85 px-5 py-2 backdrop-blur-md">
-        <div className="flex flex-col items-center gap-1">
+      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center border-b border-border/50 bg-background/85 px-5 py-3 backdrop-blur-md">
+        <div className="flex flex-col items-center">
           <img
-            src={rcBranchIcon.url}
-            alt=""
-            aria-hidden="true"
-            className="h-10 w-10 object-contain dark:invert"
+            src={rcLogo.url}
+            alt="RC Bible"
+            className="h-14 w-auto object-contain dark:invert"
           />
-          <div className="flex flex-col items-center leading-tight">
-            <span className="font-serif text-base font-semibold tracking-wide text-foreground">
-              RC BIBLE
-            </span>
-            <span className="text-[9px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
-              Renovada Church
-            </span>
-          </div>
         </div>
         <Button
           variant="ghost"
