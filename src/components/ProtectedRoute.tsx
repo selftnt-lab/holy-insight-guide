@@ -16,9 +16,10 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 
   if (!user) return <Navigate to="/auth" replace />;
 
-  if (needsConfirmation) {
-    return <Navigate to="/auth" replace />;
-  }
+  // Removido bloqueio por confirmação de e-mail para resolver interrupção do fluxo de login.
+  // if (needsConfirmation) {
+  //   return <Navigate to="/auth" replace />;
+  // }
 
   return <>{children}</>;
 };
