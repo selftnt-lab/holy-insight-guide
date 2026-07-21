@@ -383,7 +383,7 @@ const Auth = () => {
             </TabsList>
 
             <TabsContent value="login" className="mt-6">
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4" noValidate>
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
                   <Input
@@ -429,7 +429,7 @@ const Auth = () => {
             </TabsContent>
 
             <TabsContent value="signup" className="mt-6">
-              <form onSubmit={handleSignup} className="space-y-4">
+              <form onSubmit={handleSignup} className="space-y-4" noValidate>
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Nome</Label>
                   <Input
