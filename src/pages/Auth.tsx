@@ -116,7 +116,7 @@ const Auth = () => {
         return;
       }
       
-      toast.success("Conta criada com sucesso! Verifique seu e-mail para ativar sua conta antes de entrar.", {
+      toast.success("Conta criada! Enviamos um link de confirmação para o seu e-mail. Por favor, valide sua conta para acessar o aplicativo.", {
         duration: 10000
       });
       

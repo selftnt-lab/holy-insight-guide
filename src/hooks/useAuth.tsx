@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           if (isEmailProvider && !isConfirmed) {
             setNeedsConfirmation(true);
-            // NÃO deslogamos aqui para permitir que a sessão exista mas o ProtectedRoute bloqueie
+            // Reforço: se o evento for SIGNED_IN mas não confirmado, garantimos o estado
           } else {
             setNeedsConfirmation(false);
           }

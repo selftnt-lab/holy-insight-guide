@@ -3,7 +3,7 @@ import React from "react";
 const RoutesPlaceholder = () => {
   return (
     <div className="hidden">
-      Fluxo de confirmação de e-mail e bloqueio de acesso não autorizado configurados e implantados.
+      Sistema de autenticação reforçado: confirmação de e-mail obrigatória via Edge Functions com bloqueio de UIX para usuários não validados.
     </div>
   );
 };
