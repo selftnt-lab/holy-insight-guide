@@ -11,21 +11,27 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/__l5e/assets-v1/56266dde-0df7-4923-8c0c-f2a511da3011/rc-bible-logo-new.png",
+      "src": "/favicon.png",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/__l5e/assets-v1/56266dde-0df7-4923-8c0c-f2a511da3011/rc-bible-logo-new.png",
+      "src": "/favicon.png",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/__l5e/assets-v1/56266dde-0df7-4923-8c0c-f2a511da3011/rc-bible-logo-new.png",
+      "src": "/favicon.png",
+      "sizes": "1200x1200",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "maskable"
     }
   ]
