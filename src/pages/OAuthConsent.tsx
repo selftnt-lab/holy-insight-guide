@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import rcBibleLogo from "@/assets/rc-bible-modern-logo.png.asset.json";
+import BrandLogo from "@/components/BrandLogo";
 
 type AuthorizationDetails = {
   client?: { name?: string; client_uri?: string; logo_uri?: string };
@@ -119,15 +119,7 @@ export default function OAuthConsent() {
         className="w-full max-w-md"
       >
         <div className="flex flex-col items-center mb-6">
-          <img
-            src={rcBibleLogo.url}
-            alt="RC Bible"
-            className="h-24 w-auto object-scale-down transition-all duration-700 mix-blend-multiply dark:mix-blend-screen dark:invert brightness-[1.1] contrast-[1.1] dark:brightness-[1.5] dark:contrast-[1.2] drop-shadow-[0_4px_15px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.25)]"
-            style={{ 
-              transitionProperty: "filter, transform, opacity, brightness, contrast",
-              transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)"
-            }}
-          />
+          <BrandLogo size="lg" />
         </div>
 
         <Card className="p-6 rounded-2xl space-y-5">
