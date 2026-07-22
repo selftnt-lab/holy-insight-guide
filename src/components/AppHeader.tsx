@@ -8,9 +8,9 @@ import { useAuth } from "@/hooks/useAuth";
 const AppHeader = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { needsConfirmation } = useAuth();
+  const { needsConfirmation, loading: authLoading } = useAuth();
   
-  if (location.pathname === "/auth" || needsConfirmation) return null;
+  if (location.pathname === "/auth" || needsConfirmation || authLoading) return null;
 
   return (
     <Fragment>
