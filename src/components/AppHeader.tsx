@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import rcLogo from "@/assets/app-logo.svg.asset.json";
+import rcLogo from "@/assets/rc-bible-modern-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -18,7 +18,7 @@ const AppHeader = () => {
         <div className="flex flex-col items-center">
           <img
             src={rcLogo.url}
-            className="h-16 w-auto object-contain transition-all duration-700 hover:scale-105 dark:brightness-[1.15] dark:contrast-[1.1] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.15)]"
+            className="h-16 w-auto object-contain transition-all duration-700 hover:scale-105 dark:invert dark:brightness-[1.5] dark:contrast-[1.2] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]"
             style={{ 
               transitionProperty: "filter, transform, opacity, brightness, contrast",
               transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)"

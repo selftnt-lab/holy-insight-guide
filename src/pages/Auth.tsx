@@ -2,7 +2,7 @@ import PageSeo from "@/components/PageSeo";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import rcBibleLogo from "@/assets/app-logo.svg.asset.json";
+import rcBibleLogo from "@/assets/rc-bible-modern-logo.png.asset.json";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -300,14 +300,14 @@ const Auth = () => {
           <img
             src={rcBibleLogo.url}
             alt="RC Bible - Renovada Church"
-            className="h-64 w-auto object-scale-down transition-all duration-700 hover:scale-105 dark:brightness-[1.15] dark:contrast-[1.1] dark:drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+            className="h-64 w-auto object-scale-down transition-all duration-700 hover:scale-105 dark:invert dark:brightness-[1.5] dark:contrast-[1.2] dark:drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]"
             style={{ 
               transitionProperty: "filter, transform, opacity, brightness, contrast",
               transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)"
             }}
           />
-          <h1 className="mt-4 font-serif text-3xl font-bold text-foreground">Guia Bíblico</h1>
-          <p className="text-sm text-muted-foreground">Seu tutor para estudar a Bíblia</p>
+          <h1 className="mt-4 font-serif text-3xl font-bold text-foreground">RC Bible</h1>
+          <p className="text-sm text-muted-foreground">Renovada Church</p>
         </div>
 
         <Card className="p-6 rounded-2xl">
