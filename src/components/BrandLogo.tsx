@@ -21,30 +21,14 @@ const BrandLogo = ({ className, size = "md" }: BrandLogoProps) => {
 
   return (
     <div className={cn("relative flex items-center justify-center overflow-visible", sizeClasses[size], className)}>
-      {/* Light Logo */}
+      {/* Simplified single image with CSS filter approach for reliability */}
       <img
         src={logoLight.url}
         alt="RC Bible"
         className={cn(
-          "absolute inset-0 h-full w-full object-contain transition-opacity duration-500 ease-in-out",
-          theme === "light" ? "opacity-100" : "opacity-0"
+          "h-full w-auto object-contain transition-all duration-300",
+          theme === "dark" ? "invert brightness-[2] contrast-[1.2]" : "none"
         )}
-        style={{
-          filter: theme === "light" ? "none" : "invert(1) brightness(2)"
-        }}
-      />
-      
-      {/* Dark Logo */}
-      <img
-        src={logoDark.url}
-        alt="RC Bible"
-        className={cn(
-          "absolute inset-0 h-full w-full object-contain transition-opacity duration-500 ease-in-out",
-          theme === "dark" ? "opacity-100" : "opacity-0"
-        )}
-        style={{
-          filter: theme === "dark" ? "invert(1) brightness(2)" : "none"
-        }}
       />
     </div>
   );
