@@ -8,15 +8,15 @@ import { useAuth } from "@/hooks/useAuth";
 const AppHeader = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { needsConfirmation } = useAuth();
+  const { needsConfirmation, loading: authLoading } = useAuth();
   
-  if (location.pathname === "/auth" || needsConfirmation) return null;
+  if (location.pathname === "/auth" || needsConfirmation || authLoading) return null;
 
   return (
     <Fragment>
-      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center border-b border-border/50 bg-background/85 px-5 py-3 backdrop-blur-md">
+      <header className="fixed left-0 right-0 top-0 z-[100] flex items-center justify-center border-b border-border bg-background px-5 py-3 shadow-md">
         <div className="flex flex-col items-center">
-          <BrandLogo size="md" />
+          <BrandLogo size="md" className="z-10" />
         </div>
         <Button
           variant="ghost"
