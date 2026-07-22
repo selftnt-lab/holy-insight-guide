@@ -13,14 +13,14 @@ const BrandLogo = ({ className, size = "md" }: BrandLogoProps) => {
   const { theme } = useTheme();
 
   const sizeClasses = {
-    sm: "h-8",
-    md: "h-16",
-    lg: "h-24",
-    xl: "h-64",
+    sm: "h-8 w-auto min-w-[32px]",
+    md: "h-16 w-auto min-w-[64px]",
+    lg: "h-24 w-auto min-w-[96px]",
+    xl: "h-64 w-auto min-w-[256px]",
   };
 
   return (
-    <div className={cn("relative flex items-center justify-center", sizeClasses[size], className)}>
+    <div className={cn("relative flex items-center justify-center overflow-visible", sizeClasses[size], className)}>
       {/* Light Logo */}
       <img
         src={logoLight.url}
