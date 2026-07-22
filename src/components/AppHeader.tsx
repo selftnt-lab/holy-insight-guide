@@ -14,9 +14,9 @@ const AppHeader = () => {
 
   return (
     <Fragment>
-      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center border-b border-border/50 bg-background/85 px-5 py-3 backdrop-blur-md">
+      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center border-b border-border/50 bg-background px-5 py-3 shadow-sm">
         <div className="flex flex-col items-center">
-          <BrandLogo size="md" />
+          <BrandLogo size="md" className="z-10" />
         </div>
         <Button
           variant="ghost"
