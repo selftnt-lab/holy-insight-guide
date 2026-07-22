@@ -306,8 +306,8 @@ const Auth = () => {
               transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)"
             }}
           />
-          <h1 className="mt-4 font-serif text-3xl font-bold text-foreground">Guia Bíblico</h1>
-          <p className="text-sm text-muted-foreground">Seu tutor para estudar a Bíblia</p>
+          <h1 className="mt-4 font-serif text-3xl font-bold text-foreground">RC Bible</h1>
+          <p className="text-sm text-muted-foreground">Renovada Church</p>
         </div>
 
         <Card className="p-6 rounded-2xl">

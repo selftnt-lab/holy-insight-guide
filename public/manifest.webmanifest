@@ -11,19 +11,19 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/__l5e/assets-v1/2c758968-7cd1-48b2-ad39-6afa4cbb314f/rc-bible-pwa-icon.png",
+      "src": "/__l5e/assets-v1/370aa81e-53c1-4116-b463-bb2e0ed03138/rc-bible-modern-logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/__l5e/assets-v1/2c758968-7cd1-48b2-ad39-6afa4cbb314f/rc-bible-pwa-icon.png",
+      "src": "/__l5e/assets-v1/370aa81e-53c1-4116-b463-bb2e0ed03138/rc-bible-modern-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/__l5e/assets-v1/2c758968-7cd1-48b2-ad39-6afa4cbb314f/rc-bible-pwa-icon.png",
+      "src": "/__l5e/assets-v1/370aa81e-53c1-4116-b463-bb2e0ed03138/rc-bible-modern-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
