@@ -13,14 +13,15 @@ const BrandLogo = ({ className, size = "md" }: BrandLogoProps) => {
   const { theme } = useTheme();
 
   const sizeClasses = {
-    sm: "h-8 w-auto min-w-[32px]",
-    md: "h-16 w-auto min-w-[64px]",
-    lg: "h-24 w-auto min-w-[96px]",
-    xl: "h-64 w-auto min-w-[256px]",
+    sm: "h-10 min-w-[40px]",
+    md: "h-20 min-w-[80px]",
+    lg: "h-32 min-w-[128px]",
+    xl: "h-72 min-w-[288px]",
   };
 
   return (
     <div className={cn("relative flex items-center justify-center overflow-visible", sizeClasses[size], className)}>
+      <div className="absolute inset-0 flex items-center justify-center">
       {/* Simplified single image with CSS filter approach for reliability */}
       <img
         src={logoLight.url}
@@ -30,6 +31,7 @@ const BrandLogo = ({ className, size = "md" }: BrandLogoProps) => {
           theme === "dark" ? "invert brightness-[2] contrast-[1.2]" : "none"
         )}
       />
+      </div>
     </div>
   );
 };
