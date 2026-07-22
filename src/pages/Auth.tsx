@@ -2,7 +2,7 @@ import PageSeo from "@/components/PageSeo";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import rcBibleLogo from "@/assets/rc-bible-modern-logo.png.asset.json";
+import BrandLogo from "@/components/BrandLogo";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -297,15 +297,7 @@ const Auth = () => {
         className="w-full max-w-md"
       >
         <div className="flex flex-col items-center mb-8">
-          <img
-            src={rcBibleLogo.url}
-            alt="RC Bible - Renovada Church"
-            className="h-64 w-auto object-scale-down transition-all duration-700 hover:scale-105 mix-blend-multiply dark:mix-blend-screen dark:invert brightness-[1.1] contrast-[1.1] dark:brightness-[1.5] dark:contrast-[1.2] drop-shadow-[0_12px_30px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_0_25px_rgba(255,255,255,0.2)]"
-            style={{ 
-              transitionProperty: "filter, transform, opacity, brightness, contrast",
-              transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)"
-            }}
-          />
+          <BrandLogo size="xl" />
           <h1 className="mt-4 font-serif text-3xl font-bold text-foreground">RC Bible</h1>
           <p className="text-sm text-muted-foreground">Renovada Church</p>
         </div>
