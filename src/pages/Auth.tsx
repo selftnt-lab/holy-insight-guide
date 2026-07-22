@@ -300,7 +300,7 @@ const Auth = () => {
           <img
             src={rcBibleLogo.url}
             alt="RC Bible - Renovada Church"
-            className="h-64 w-auto object-scale-down transition-all duration-700 hover:scale-105 dark:invert dark:brightness-[1.5] dark:contrast-[1.2] dark:drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+            className="h-64 w-auto object-scale-down transition-all duration-700 hover:scale-105 mix-blend-multiply dark:mix-blend-lighten brightness-[1.1] contrast-[1.1] dark:brightness-[1.5] dark:contrast-[1.2] drop-shadow-[0_10px_25px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_0_25px_rgba(255,255,255,0.2)]"
             style={{ 
               transitionProperty: "filter, transform, opacity, brightness, contrast",
               transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)"
