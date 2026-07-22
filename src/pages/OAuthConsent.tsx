@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import rcBibleLogo from "@/assets/app-logo.svg.asset.json";
+import rcBibleLogo from "@/assets/rc-bible-modern-logo.png.asset.json";
 
 type AuthorizationDetails = {
   client?: { name?: string; client_uri?: string; logo_uri?: string };
