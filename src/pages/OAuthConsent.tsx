@@ -122,7 +122,7 @@ export default function OAuthConsent() {
           <img
             src={rcBibleLogo.url}
             alt="RC Bible"
-            className="h-24 w-auto object-scale-down transition-all duration-700 dark:brightness-[1.15] dark:contrast-[1.1] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]"
+            className="h-24 w-auto object-scale-down transition-all duration-700 dark:invert dark:brightness-[1.5] dark:contrast-[1.2] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
             style={{ 
               transitionProperty: "filter, transform, opacity, brightness, contrast",
               transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)"
