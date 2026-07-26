@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RC Bíblia</string>
+    <string name="title_activity_main">RC Bíblia</string>
+    <string name="package_name">ai.novus.rcbiblia</string>
+    <string name="custom_url_scheme">ai.novus.rcbiblia</string>
+</resources>

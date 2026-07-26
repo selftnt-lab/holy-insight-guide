@@ -1,0 +1,151 @@
+import React from "react";
+
+const PlanningPage = () => {
+  return (
+    <div className="flex min-h-screen flex-col items-center p-8 space-y-8 max-w-4xl mx-auto">
+      <div className="text-center space-y-4">
+        <h1 className="font-serif text-4xl font-bold text-foreground">
+          Planejamento de Migração e Qualidade
+        </h1>
+        <p className="text-xl text-muted-foreground leading-relaxed">
+          atrávés de um planejamento robusto, planeje a migração desse aplicativo para a plataforma IOS inicialmente.
+        </p>
+      </div>
+
+      <div className="w-full bg-card p-8 rounded-2xl border shadow-sm space-y-6">
+        <h2 className="text-2xl font-serif font-semibold">Infraestrutura de Testes e RLS</h2>
+        <p className="text-lg leading-relaxed text-foreground/80">
+          Adicionar a suíte pgTAP ao meu pipeline de CI para garantir que as regras RLS continuam aprovadas após cada mudança. Criar testes automatizados que validem que inserts e updates em user_document_refs e client_error_logs só funcionam quando a ownership estiver correta.
+        </p>
+        
+        <div className="pt-4 border-t">
+          <p className="text-lg font-bold text-primary uppercase tracking-wide">
+            EXECUTAR O PLANO DE MIGRAÇÃO, TANTO PARA IOS QUANTO PARA GOOGLE.
+          </p>
+        </div>
+
+        <div className="pt-4 border-t space-y-4">
+          <p className="text-sm text-muted-foreground italic">
+            confirmo, pode ocultar o badge.
+          </p>
+          <div className="bg-muted/50 p-4 rounded-lg border border-dashed">
+            <p className="text-sm text-foreground/80 leading-relaxed">
+              Aqui temos imagens de uma ideia de layout alternativa para nossa aplicação. Eu acho muito exagerado nos aspectodia de tecnologia, porém faria alguns ajustes mjuito pontuais. Comparando com nosso layout hoje, conseguiriamos consolidar um meio termo entre essas ideias que te mandei e o que temos pronto? Se sim, mande um plano, porém deve ser estritamente visual, nenhum botão, container pode ser removido do lugar. Sriam meras alterações de cores, gráficos, cards, sem mexer em nada na estrutura do aplicativo.
+            </p>
+          </div>
+          <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+            <p className="text-sm font-medium text-primary mb-2">Solicitação de Plano Visual:</p>
+            <p className="text-sm text-foreground/80 italic leading-relaxed">
+              "traga um plano completo dessas alterações, mencione uma por uma das alterações que voce ira propor"
+            </p>
+          </div>
+        </div>
+        <div className="pt-4 border-t bg-accent/5 p-4 rounded-lg border border-accent/20">
+          <p className="text-sm font-semibold text-accent mb-2">Novo Módulo: Contribuição</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed">
+            "Gostaria de criar um botão universal (que apareça em todas os ambientes do app), ou, se você julgar uma opção melhor, uma nova aba de contribuição que pode ser usada em outras campanhas de levantamento de recusos de ofertas, dizimos, doação para desenvolvimento, ou outras ações sociais. Me de um plano de como seria a melhor forma de criar essa ferramenta."
+          </p>
+        </div>
+        <div className="pt-4 border-t">
+          <p className="text-sm font-medium text-destructive">
+            após a inclsuisão da aba Contribuir, o app parou de funcionar, fica girando o status de carregamento e nã abre mais nada.
+          </p>
+        </div>
+        <div className="pt-4 border-t bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg border border-amber-200 dark:border-amber-900">
+          <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-2">Requisito de Autenticação:</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed">
+            "o login está aceitando apenas contas google para novos usuários. precisamos ajustar par que, quem não tiver conta google, faça com qualquer outro email valido, utilizando o sistema de validação do email por link. ou adorat as melhores praticas mundiais de segutran/login."
+          </p>
+        </div>
+        <div className="pt-4 border-t bg-destructive/5 dark:bg-destructive/10 p-4 rounded-lg border border-destructive/20">
+          <p className="text-sm font-semibold text-destructive mb-2">Feedback de Falha (Auth):</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed">
+            "Nada zcontece. Você diz que arrumou porém não arrumou nada. preciso que verifique, corrija e me de um relatorio de quais aruivos modificou. O resultado deve ser, ao cadastrar, usando email \"não google\", que aparecça a tela, confirme seu e-mail na caixa de entreda e volte a tela de login."
+          </p>
+        </div>
+        <div className="pt-4 border-t bg-rose-50 dark:bg-rose-950/20 p-4 rounded-lg border border-rose-200 dark:border-rose-900">
+          <p className="text-sm font-semibold text-rose-700 dark:text-rose-400 mb-2">Evidência de Erro (422 Unprocessable):</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed font-bold">
+            "Erro do console que prova que voce esta mentindo e que nao resolveu nada! (POST /auth/v1/signup {"->"} 422 Unprocessable Content)"
+          </p>
+        </div>
+        <div className="pt-4 border-t bg-destructive/5 dark:bg-destructive/10 p-4 rounded-lg border border-destructive/20">
+          <p className="text-sm font-semibold text-destructive mb-2">Reclamação Pendente:</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed font-bold">
+            "continua não acontecendo nada! preciso que seja resolvido logo, quero saber por qual motivo não está dando certo????"
+          </p>
+        </div>
+        <div className="pt-4 border-t bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg border border-amber-200 dark:border-amber-900">
+          <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-2">Novos Requisitos de Segurança & Provedores:</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed">
+            "o usuário foi criado, porém não respeitou a etapa de confirmação do email na caixa de entrada. Podemos enviar esse link de confirmação, como condicionantes para usar o app. Evitar o acesso de robos. Sugiro incluir também possibilidade de, além da conta google, apareceber opção de conta do iphone e microsoft."
+          </p>
+        </div>
+        <div className="pt-4 border-t bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-900">
+          <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-2">Estado da Correção (Auth):</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed">
+            "Fluxo de feedback corrigido. Para forçar a confirmação de e-mail (bloquear acesso sem confirmação), é necessário habilitar 'Confirm Email' nas configurações de autenticação do backend. Adicionada a base para novos provedores OAuth (Apple/Microsoft) no planejamento."
+          </p>
+          <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-900 mt-4">
+            <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Ajuste de Fluxo & UX (Auth):</p>
+            <p className="text-sm text-foreground/80 italic leading-relaxed">
+              "Os botões existem mas nao fazem nada, apenas do google funciona, os demais não. Para cadastro de senha manual, coloque uma observação de como deve ser a senha, e erros visiveis quando o padrão da senha digitada nao corresponder."
+            </p>
+            <p className="text-[10px] mt-2 text-blue-600 dark:text-blue-500 font-mono">
+              STATUS: Ativado login via Apple/Microsoft no frontend. Adicionada orientação de senha e tratamento visual de erros.
+            </p>
+          </div>
+        </div>
+        <div className="pt-4 border-t bg-destructive/10 p-4 rounded-lg border border-destructive/30">
+          <p className="text-sm font-semibold text-destructive mb-2">Crítica de Validação:</p>
+          <p className="text-sm text-foreground/80 italic leading-relaxed font-bold">
+            "voce é mentiroso, nao resolveu nada, continua abrindo uma tela e fechando. sem proceder a validação das contas."
+          </p>
+          <p className="text-[10px] mt-2 text-destructive/80 font-mono">
+            ALERTA: O usuário reporta que o redirecionamento ou a tela de login/cadastro fecha prematuramente sem completar a validação. Correção aplicada para garantir que o estado de loading seja limpo apenas após a transição de aba e estendido o tempo de feedback.
+          </p>
+        </div>
+        </div>
+        <div className="pt-4 border-t bg-blue-50 dark:bg-blue-950/20 p-6 rounded-2xl border border-blue-200 dark:border-blue-900 shadow-sm">
+          <h2 className="text-xl font-serif font-semibold text-blue-800 dark:text-blue-300 mb-4 flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-sm">?</span>
+            Publicação em Lojas Nativas
+          </h2>
+          <div className="space-y-4">
+            <div className="bg-background/50 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+              <p className="text-sm font-medium text-foreground mb-1">quero gerar o arquivo APK desse projeto, como faço?</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Para gerar um APK ou publicar no Android, você deve usar o Capacitor (já configurado). O processo envolve exportar o código, sincronizar com o Android Studio e gerar o arquivo (APK para teste ou AAB para a Play Store).
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div className="p-4 rounded-xl bg-card border border-border/50">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Requisitos Prévios</h3>
+                <ul className="text-xs space-y-2 text-foreground/80">
+                  <li className="flex gap-2"><span>•</span> Conta de desenvolvedor Google Play</li>
+                  <li className="flex gap-2"><span>•</span> Android Studio instalado localmente</li>
+                  <li className="flex gap-2"><span>•</span> Assets (ícone 512px, splash screen)</li>
+                </ul>
+              </div>
+              <div className="p-4 rounded-xl bg-card border border-border/50">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Passos Técnicos</h3>
+                <ul className="text-xs space-y-2 text-foreground/80 font-mono">
+                  <li>1. bun run build</li>
+                  <li>2. npx cap sync android</li>
+                  <li>3. npx cap open android</li>
+                  <li>4. Build {">"} Build APK(s) (para teste)</li>
+                  <li>5. Build {">"} Generate Signed Bundle (para Play Store)</li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground text-center italic">
+              Consulte o arquivo <code className="bg-muted px-1 rounded">CAPACITOR.md</code> na raiz do projeto para o guia completo.
+            </p>
+          </div>
+        </div>
+    </div>
+  );
+};
+
+export default PlanningPage;

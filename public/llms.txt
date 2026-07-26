@@ -1,0 +1,16 @@
+# RC Bible
+
+> Guia bíblico de bolso da Renovada Church com leitura, estudo com IA, planos de leitura e devocional diário.
+
+RC Bible é uma aplicação web para leitura e estudo da Bíblia em português, com múltiplas traduções (ACF, ARA, NVI, entre outras), destaques, anotações, planos de leitura, devocionais e um tutor assistido por IA.
+
+## Pages
+
+- [Início](/): Página inicial com versículo do dia, progresso de leitura e destaques recentes.
+- [Entrar](/auth): Login e cadastro de conta.
+
+## Legal
+
+- [Termos de Uso](/legal/termos): Termos de uso do aplicativo.
+- [Política de Privacidade](/legal/privacidade): Como tratamos dados dos usuários.
+- [Licenças e créditos](/legal/licencas): Traduções bíblicas e bibliotecas utilizadas.
