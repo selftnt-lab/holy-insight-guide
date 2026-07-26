@@ -18,24 +18,30 @@ export type Database = {
         Row: {
           book_slug: string
           chapter: number
+          expires_at: string | null
           fetched_at: string
           id: string
+          license_class: string
           payload: Json
           translation: string
         }
         Insert: {
           book_slug: string
           chapter: number
+          expires_at?: string | null
           fetched_at?: string
           id?: string
+          license_class?: string
           payload: Json
           translation: string
         }
         Update: {
           book_slug?: string
           chapter?: number
+          expires_at?: string | null
           fetched_at?: string
           id?: string
+          license_class?: string
           payload?: Json
           translation?: string
         }
@@ -98,6 +104,39 @@ export type Database = {
         }
         Relationships: []
       }
+      client_error_logs: {
+        Row: {
+          build: string | null
+          created_at: string
+          id: string
+          message: string
+          route: string | null
+          stack: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          build?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          route?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          build?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          route?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       daily_devotionals: {
         Row: {
           completed_at: string | null
@@ -128,6 +167,93 @@ export type Database = {
         }
         Relationships: []
       }
+      email_send_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email?: string
+          status?: string
+          template_name?: string
+        }
+        Relationships: []
+      }
+      email_send_state: {
+        Row: {
+          auth_email_ttl_minutes: number
+          batch_size: number
+          id: number
+          retry_after_until: string | null
+          send_delay_ms: number
+          transactional_email_ttl_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_unsubscribe_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       explore_suggestions: {
         Row: {
           book_slug: string
@@ -155,6 +281,142 @@ export type Database = {
         }
         Relationships: []
       }
+      kb_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          document_id: string
+          embedding: string
+          id: string
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          document_id: string
+          embedding: string
+          id?: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          document_id?: string
+          embedding?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "kb_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_documents: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          source: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          source?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          source?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      kb_ingest_jobs: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          error: string | null
+          id: string
+          processed_chunks: number
+          progress: number
+          status: string
+          title: string
+          total_chunks: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          error?: string | null
+          id?: string
+          processed_chunks?: number
+          progress?: number
+          status?: string
+          title: string
+          total_chunks?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          error?: string | null
+          id?: string
+          processed_chunks?: number
+          progress?: number
+          status?: string
+          title?: string
+          total_chunks?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_ingest_jobs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "kb_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_settings: {
+        Row: {
+          id: boolean
+          match_count: number
+          similarity_threshold: number
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          match_count?: number
+          similarity_threshold?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          match_count?: number
+          similarity_threshold?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -173,9 +435,11 @@ export type Database = {
           gender: string | null
           id: string
           interests: string[] | null
+          preferred_translation: string | null
           preferred_translations: string[]
           preferred_voice_uri: string | null
           reading_immersive_mode: boolean
+          theme_preference: string | null
           tradition: string | null
           updated_at: string
           user_id: string
@@ -197,9 +461,11 @@ export type Database = {
           gender?: string | null
           id?: string
           interests?: string[] | null
+          preferred_translation?: string | null
           preferred_translations?: string[]
           preferred_voice_uri?: string | null
           reading_immersive_mode?: boolean
+          theme_preference?: string | null
           tradition?: string | null
           updated_at?: string
           user_id: string
@@ -221,9 +487,11 @@ export type Database = {
           gender?: string | null
           id?: string
           interests?: string[] | null
+          preferred_translation?: string | null
           preferred_translations?: string[]
           preferred_voice_uri?: string | null
           reading_immersive_mode?: boolean
+          theme_preference?: string | null
           tradition?: string | null
           updated_at?: string
           user_id?: string
@@ -383,6 +651,110 @@ export type Database = {
         }
         Relationships: []
       }
+      suppressed_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string
+        }
+        Relationships: []
+      }
+      user_document_refs: {
+        Row: {
+          book_slug: string
+          chapter: number
+          created_at: string
+          document_id: string
+          id: string
+          ref_raw: string
+          user_id: string
+          verse_end: number | null
+          verse_start: number | null
+        }
+        Insert: {
+          book_slug: string
+          chapter: number
+          created_at?: string
+          document_id: string
+          id?: string
+          ref_raw: string
+          user_id: string
+          verse_end?: number | null
+          verse_start?: number | null
+        }
+        Update: {
+          book_slug?: string
+          chapter?: number
+          created_at?: string
+          document_id?: string
+          id?: string
+          ref_raw?: string
+          user_id?: string
+          verse_end?: number | null
+          verse_start?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_document_refs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "user_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_documents: {
+        Row: {
+          content_md: string
+          created_at: string
+          id: string
+          is_archived: boolean
+          tags: string[]
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content_md?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          tags?: string[]
+          title?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content_md?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          tags?: string[]
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_plan_progress: {
         Row: {
           completed_at: string | null
@@ -426,6 +798,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       verse_highlights: {
         Row: {
@@ -545,10 +938,78 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_email: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      email_queue_dispatch: { Args: never; Returns: undefined }
+      enqueue_email: {
+        Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      match_kb_chunks: {
+        Args: { match_count?: number; query_embedding: string }
+        Returns: {
+          content: string
+          document_id: string
+          id: string
+          similarity: number
+          source: string
+          title: string
+        }[]
+      }
+      move_to_dlq: {
+        Args: {
+          dlq_name: string
+          message_id: number
+          payload: Json
+          source_queue: string
+        }
+        Returns: number
+      }
+      purge_expired_bible_cache: { Args: never; Returns: number }
+      read_email_batch: {
+        Args: { batch_size: number; queue_name: string; vt: number }
+        Returns: {
+          message: Json
+          msg_id: number
+          read_ct: number
+        }[]
+      }
+      search_user_documents: {
+        Args: {
+          p_archived?: boolean
+          p_book_slug?: string
+          p_chapter?: number
+          p_limit?: number
+          p_offset?: number
+          p_query?: string
+          p_tag?: string
+          p_verse?: number
+        }
+        Returns: {
+          content_md: string
+          created_at: string
+          id: string
+          is_archived: boolean
+          tags: string[]
+          title: string
+          total_count: number
+          type: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -675,6 +1136,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
