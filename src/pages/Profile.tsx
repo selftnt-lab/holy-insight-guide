@@ -1,6 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText } from "lucide-react";
+import { Moon, Sun, BookOpen, Flame, LogOut, Pencil, Church, MessageSquare, Highlighter, Volume2, NotebookText, Shield, Trash2, AlertCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useAudioPlayer } from "@/contexts/AudioPlayerProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
@@ -58,9 +71,46 @@ const Profile = () => {
   const ptVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith("pt"));
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { isAdmin } = useIsAdmin();
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [chaptersRead, setChaptersRead] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== "EXCLUIR") return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke("delete-account");
+      if (error) throw error;
+
+      const { clearAuthStorage } = await import("@/lib/clear-auth-storage");
+
+      // Best-effort signOut; se falhar, limpa a sessão local manualmente.
+      try {
+        await signOut();
+      } catch (signOutErr) {
+        console.warn("signOut falhou após exclusão, limpando storage:", signOutErr);
+        clearAuthStorage();
+      }
+
+      toast.success("Conta excluída com sucesso");
+      navigate("/auth", { replace: true });
+
+      // Se ainda houver sessão residual (estado bugado), força reload limpo.
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        clearAuthStorage();
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível excluir a conta. Tente novamente.");
+      setDeleting(false);
+    }
+  };
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -90,7 +140,7 @@ const Profile = () => {
     picture?: string;
     avatar_url?: string;
   };
-  const displayName = resolveFirstName(user, profile, "Leitor");
+  const displayName = profile?.display_name || resolveFirstName(user, profile, "Leitor");
   const initial = displayName.charAt(0).toUpperCase();
   const avatarUrl = profile?.avatar_url || meta.picture || meta.avatar_url;
 
@@ -100,7 +150,7 @@ const Profile = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-32">
       <div className="mx-auto max-w-lg px-5 pt-12">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -316,14 +366,89 @@ const Profile = () => {
           transition={{ delay: 0.35 }}
           className="mt-6"
         >
+          {isAdmin && (
+            <>
+              <Button
+                variant="outline"
+                className="mb-2 w-full rounded-xl"
+                onClick={() => navigate("/admin/knowledge")}
+              >
+                <Shield size={18} className="mr-2" />
+                Base de conhecimento (admin)
+              </Button>
+              <Button
+                variant="outline"
+                className="mb-2 w-full rounded-xl"
+                onClick={() => navigate("/admin/errors")}
+              >
+                <AlertCircle size={18} className="mr-2" />
+                Erros do cliente (admin)
+              </Button>
+            </>
+          )}
           <Button
             variant="outline"
+            data-testid="profile-signout"
             className="w-full rounded-xl"
             onClick={handleSignOut}
           >
             <LogOut size={18} className="mr-2" />
             Sair
           </Button>
+
+          <div className="mt-8 border-t border-border pt-4">
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Conta
+            </h2>
+            <AlertDialog
+              open={deleteOpen}
+              onOpenChange={(o) => {
+                setDeleteOpen(o);
+                if (!o) setDeleteConfirm("");
+              }}
+            >
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full rounded-xl">
+                  <Trash2 size={18} className="mr-2" />
+                  Excluir minha conta
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir conta</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Isso é permanente. Seus dados (documentos, diário, destaques,
+                    histórico do tutor, planos e perfil) serão removidos e não
+                    poderão ser recuperados.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Para confirmar, digite <strong>EXCLUIR</strong> abaixo:
+                  </p>
+                  <Input
+                    value={deleteConfirm}
+                    onChange={(e) => setDeleteConfirm(e.target.value)}
+                    placeholder="EXCLUIR"
+                    autoComplete="off"
+                  />
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={deleteConfirm !== "EXCLUIR" || deleting}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDeleteAccount();
+                    }}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleting ? "Excluindo..." : "Excluir permanentemente"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </motion.div>
             </TabsContent>
           </Tabs>

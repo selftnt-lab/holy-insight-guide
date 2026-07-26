@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { CONFESSIONAL_SYSTEM_PROMPT } from "../_shared/system-prompt.ts";
-import { callLovableAI, extractToolCallArgs, jsonResponse } from "../_shared/ai.ts";
+import { callAI, extractToolCallArgs, jsonResponse } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -66,9 +66,9 @@ Gere 6 cards variando entre estes tipos:
 Distribua de forma equilibrada (idealmente 1-2 de cada tipo, conforme o capítulo permite).
 Os cards devem estar diretamente conectados ao conteúdo do capítulo informado e ajudar o leitor a explorar o texto em profundidade. Linguagem clara, acessível, em português brasileiro.`;
 
-    const ai = await callLovableAI({
-      model: "google/gemini-2.5-flash",
-      fallbackModel: "google/gemini-2.5-flash-lite",
+    const ai = await callAI({
+      model: "claude-sonnet-5",
+      fallbackModel: "claude-haiku-4-5-20251001",
       messages: [
         { role: "system", content: CONFESSIONAL_SYSTEM_PROMPT },
         { role: "user", content: userPrompt },

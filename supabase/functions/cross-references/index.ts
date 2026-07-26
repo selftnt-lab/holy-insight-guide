@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { CONFESSIONAL_SYSTEM_PROMPT } from "../_shared/system-prompt.ts";
-import { callLovableAI, extractToolCallArgs, jsonResponse } from "../_shared/ai.ts";
+import { callAI, extractToolCallArgs, jsonResponse } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,9 +34,9 @@ ${verseText ? `Texto: "${verseText}"` : ""}
 
 Liste referências cruzadas bíblicas reais sobre o mesmo tema.`;
 
-    const ai = await callLovableAI({
-      model: "google/gemini-2.5-flash",
-      fallbackModel: "google/gemini-2.5-flash-lite",
+    const ai = await callAI({
+      model: "claude-sonnet-5",
+      fallbackModel: "claude-haiku-4-5-20251001",
       messages: [
         { role: "system", content: CONFESSIONAL_SYSTEM_PROMPT + technicalRules },
         { role: "user", content: userPrompt },

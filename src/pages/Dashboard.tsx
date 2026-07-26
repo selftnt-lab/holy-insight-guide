@@ -1,8 +1,8 @@
+import PageSeo from "@/components/PageSeo";
 import { useEffect, useState } from "react";
-import { Play, BookOpen, ChevronRight, Sparkles, CalendarCheck } from "lucide-react";
+import { BookOpen, ChevronRight, Sparkles, CalendarCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fetchProgress, type ReadingProgress } from "@/lib/reading-progress";
@@ -14,6 +14,11 @@ import AiChat from "@/components/AiChat";
 import SacredDivider from "@/components/SacredDivider";
 import DevotionalCard from "@/components/DevotionalCard";
 import StreakBadge from "@/components/StreakBadge";
+import VerseOfDayCard from "@/components/VerseOfDayCard";
+import ReadingProgressRing from "@/components/dashboard/ReadingProgressRing";
+import ActivePlansMini from "@/components/dashboard/ActivePlansMini";
+import RecentHighlightsMini from "@/components/dashboard/RecentHighlightsMini";
+import RecentNotesMini from "@/components/dashboard/RecentNotesMini";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -45,7 +50,6 @@ const Dashboard = () => {
   const bookName = book?.name || "Gênesis";
   const totalChapters = book?.chapters || 50;
   const pct = Math.round((progress.chapter / totalChapters) * 100);
-  const chaptersRead = progress.chaptersRead.length;
   const readerName = resolveFirstName(user, profileName);
 
   const continueReading = () => {
@@ -53,8 +57,9 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24">
-      <div className="mx-auto max-w-lg px-5 pt-12">
+    <div className="min-h-screen pb-32">
+      <PageSeo title="Início — RC Bible" description="Seu painel bíblico diário: versículo do dia, planos ativos, destaques e progresso de leitura na RC Bible." path="/" />
+      <div className="mx-auto max-w-lg px-5 pt-10">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -63,42 +68,84 @@ const Dashboard = () => {
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             RC Bible · Guia Bíblico
           </p>
-          <h1 className="mt-3 font-serif text-4xl font-normal leading-[1.05] text-foreground">
+          <h1
+            data-testid="dashboard-greeting"
+            className="mt-3 font-serif text-4xl font-normal leading-[1.05] text-foreground"
+          >
             {greeting},<br />
-            <span className="uppercase tracking-tight">{readerName}</span>
+            <span className="uppercase tracking-tight text-accent">{readerName}</span>
           </h1>
           <SacredDivider className="mt-5" />
         </motion.div>
 
-        <div className="mt-6 space-y-4">
+        {/* Streak */}
+        <div className="mt-6">
           <StreakBadge />
-          <DevotionalCard />
         </div>
 
+        {/* Versículo do Dia — hero card */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05, duration: 0.4 }}
+          className="mt-4"
+        >
+          <VerseOfDayCard />
+        </motion.div>
 
-
+        {/* Grid: Progresso + Planos Ativos */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.4 }}
-          className="mt-6"
+          className="mt-5 grid grid-cols-2 gap-3"
         >
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-foreground">Lendo: {bookName}</span>
-            <span className="text-muted-foreground">
-              {progress.chapter} de {totalChapters} capítulos
-            </span>
-          </div>
-          <Progress value={pct} className="mt-2 h-2" />
+          <ReadingProgressRing value={pct} />
+          <ActivePlansMini />
         </motion.div>
 
+        {/* Grid: Destaques + Notas */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.4 }}
+          className="mt-3 grid grid-cols-2 gap-3"
+        >
+          <RecentHighlightsMini />
+          <RecentNotesMini />
+        </motion.div>
+
+        {/* Devocional de hoje */}
+        <div className="mt-5">
+          <DevotionalCard />
+        </div>
+
+        {/* Continuar leitura */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25, duration: 0.4 }}
+          className="mt-4"
+        >
+          <Button
+            onClick={continueReading}
+            className="w-full rounded-3xl py-7 text-base font-semibold shadow-float"
+            size="lg"
+          >
+            <BookOpen size={20} className="mr-2" />
+            Continuar {bookName} {progress.chapter}
+            <ChevronRight size={18} className="ml-auto" />
+          </Button>
+        </motion.div>
+
+        {/* Tutor IA */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-          className="mt-6"
+          transition={{ delay: 0.3, duration: 0.4 }}
+          className="mt-3"
         >
-          <Card className="relative overflow-hidden rounded-2xl border-0 bg-primary p-5 text-primary-foreground shadow-lg">
+          <Card className="relative overflow-hidden rounded-3xl border-0 bg-primary p-5 text-primary-foreground shadow-float">
             <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-accent/20" />
             <div className="absolute -bottom-4 -right-4 h-20 w-20 rounded-full bg-accent/10" />
             <div className="relative z-10">
@@ -124,23 +171,7 @@ const Dashboard = () => {
           </Card>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          className="mt-6"
-        >
-          <Button
-            onClick={continueReading}
-            className="w-full rounded-2xl py-7 text-base font-semibold shadow-md"
-            size="lg"
-          >
-            <BookOpen size={20} className="mr-2" />
-            Continuar Leitura
-            <ChevronRight size={18} className="ml-auto" />
-          </Button>
-        </motion.div>
-
+        {/* Planos link */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -149,7 +180,7 @@ const Dashboard = () => {
         >
           <button
             onClick={() => navigate("/plans")}
-            className="flex w-full items-center justify-between rounded-2xl border bg-card px-5 py-4 text-left transition-colors hover:bg-accent/10"
+            className="flex w-full items-center justify-between rounded-3xl border border-border/60 bg-card px-5 py-4 text-left transition-colors hover:bg-accent/10"
           >
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15 text-accent">
@@ -166,25 +197,6 @@ const Dashboard = () => {
             </div>
             <ChevronRight size={18} className="text-muted-foreground" />
           </button>
-        </motion.div>
-
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-          className="mt-6 grid grid-cols-3 gap-3"
-        >
-          {[
-            { label: "Capítulos lidos", value: String(chaptersRead) },
-            { label: "Livro atual", value: bookName.split(" ")[0] },
-            { label: "Capítulo", value: String(progress.chapter) },
-          ].map((stat) => (
-            <Card key={stat.label} className="rounded-xl border p-3 text-center">
-              <p className="text-lg font-bold text-foreground">{stat.value}</p>
-              <p className="text-[11px] text-muted-foreground">{stat.label}</p>
-            </Card>
-          ))}
         </motion.div>
       </div>
 

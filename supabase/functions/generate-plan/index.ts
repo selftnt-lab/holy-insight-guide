@@ -1,4 +1,5 @@
 import { CONFESSIONAL_SYSTEM_PROMPT } from "../_shared/system-prompt.ts";
+import { callAI, extractJsonContent } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,9 +18,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
-
     const userPrompt = `Crie um plano de leitura bíblica sobre **${topic}** com duração de **${days} dias**, nível **${level ?? "intermediário"}**.
 
 Responda APENAS JSON:
@@ -34,40 +32,24 @@ Responda APENAS JSON:
 
 Use referências bíblicas reais e variadas (AT e NT). Reflexões pastorais e bíblicas, sem nomear tradições, denominações ou autores.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: CONFESSIONAL_SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-      }),
+    const ai = await callAI({
+      model: "claude-sonnet-5",
+      fallbackModel: "claude-haiku-4-5-20251001",
+      messages: [
+        { role: "system", content: CONFESSIONAL_SYSTEM_PROMPT },
+        { role: "user", content: userPrompt },
+      ],
     });
 
-    if (!response.ok) {
-      const t = await response.text();
-      console.error("AI error", response.status, t);
-      return new Response(JSON.stringify({ error: `AI error ${response.status}` }), {
-        status: response.status === 429 || response.status === 402 ? response.status : 500,
+    if (!ai.ok) {
+      return new Response(JSON.stringify({ error: ai.error }), {
+        status: ai.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content ?? "{}";
-    let parsed: any;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      const m = raw.match(/\{[\s\S]*\}/);
-      parsed = m ? JSON.parse(m[0]) : {};
-    }
+    const aiJson = await ai.response.json();
+    const parsed = extractJsonContent(aiJson);
 
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

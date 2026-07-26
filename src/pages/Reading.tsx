@@ -1,3 +1,4 @@
+import PageSeo from "@/components/PageSeo";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Sparkles, ChevronLeft, ChevronRight, BookOpen, AlertCircle, Languages, Maximize2, Minimize2, GraduationCap } from "lucide-react";
@@ -20,6 +21,15 @@ import TranslationComparison from "@/components/TranslationComparison";
 import ReadingAudioControls from "@/components/ReadingAudioControls";
 import StudySheet from "@/components/StudySheet";
 import { BIBLE_BOOKS, getBookBySlug } from "@/lib/bible-books";
+import { BIBLE_TRANSLATIONS } from "@/lib/bible-translations";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useBibleChapter } from "@/hooks/useBibleChapter";
 import { useChapterWordMap } from "@/hooks/useChapterWordMap";
 import { useChapterHighlights } from "@/hooks/useChapterHighlights";
@@ -27,16 +37,20 @@ import { getHighlightBg } from "@/lib/highlight-colors";
 import { fetchProgress, saveProgress } from "@/lib/reading-progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useAudioPlayer } from "@/contexts/AudioPlayerProvider";
+import { debugCodepoints } from "@/lib/sanitize-bible-text";
 
 const Reading = () => {
   const [params, setParams] = useSearchParams();
   const { user } = useAuth();
   const [bookSlug, setBookSlug] = useState(params.get("book") || "genesis");
   const [chapter, setChapter] = useState(Number(params.get("chapter")) || 1);
+  const { translation, setTranslation, immersive, setImmersive } = useUserPreferences();
   const [showChat, setShowChat] = useState(false);
   const [showStudy, setShowStudy] = useState(false);
-  const [bookSheetOpen, setBookSheetOpen] = useState(false);
-  const [chapterSheetOpen, setChapterSheetOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const [navStep, setNavStep] = useState<"book" | "chapter" | "verse">("book");
+  const [navBookSlug, setNavBookSlug] = useState<string>(bookSlug);
+  const [navChapter, setNavChapter] = useState<number>(chapter);
   const [hydrated, setHydrated] = useState(false);
   const [activeVerse, setActiveVerse] = useState<{ verse: number; text: string } | null>(null);
   const [activeWord, setActiveWord] = useState<{
@@ -49,14 +63,43 @@ const Reading = () => {
   const [actionVerse, setActionVerse] = useState<{ verse: number; text: string } | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareVerse, setCompareVerse] = useState<number | undefined>(undefined);
-  const [immersive, setImmersive] = useState(false);
   const [chromeVisible, setChromeVisible] = useState(true);
   const verseRefs = useRef<Map<number, HTMLParagraphElement>>(new Map());
+  const [flashVerse, setFlashVerse] = useState<number | null>(null);
+  const flashTimeoutRef = useRef<number | null>(null);
+  const triggerFlash = (verse: number) => {
+    if (flashTimeoutRef.current) window.clearTimeout(flashTimeoutRef.current);
+    setFlashVerse(verse);
+    flashTimeoutRef.current = window.setTimeout(() => setFlashVerse(null), 2400);
+  };
   const audio = useAudioPlayer();
   const initialVerseParam = params.get("verse");
 
   const book = getBookBySlug(bookSlug) || BIBLE_BOOKS[0];
-  const { data, loading, error } = useBibleChapter(bookSlug, chapter);
+  const { data, loading, error } = useBibleChapter(bookSlug, chapter, translation);
+
+  const handleTranslationChange = (code: string) => {
+    setTranslation(code);
+  };
+
+  // If user changes translation while narration is active on this chapter,
+  // restart the TTS with the new translation from the current verse so the
+  // voice never keeps reading text from the previous version.
+  useEffect(() => {
+    if (
+      audio.target &&
+      audio.target.bookSlug === bookSlug &&
+      audio.target.chapter === chapter &&
+      audio.target.translation !== translation &&
+      (audio.playing || audio.paused)
+    ) {
+      audio.play(
+        { bookSlug, bookName: book.name, chapter, translation },
+        audio.currentVerse ?? 1,
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [translation]);
   const { data: wordMap } = useChapterWordMap(bookSlug, chapter);
   const { upsert, remove, byVerse } = useChapterHighlights(bookSlug, chapter);
   const [chaptersRead, setChaptersRead] = useState<Set<number>>(new Set());
@@ -94,6 +137,16 @@ const Reading = () => {
     }
   }, [user, hydrated, params]);
 
+  // Sync state when URL params change externally (e.g., clicking a bible reference link
+  // while already on /reading). Guarded so we don't fight the effect that writes params.
+  useEffect(() => {
+    const b = params.get("book");
+    const c = Number(params.get("chapter"));
+    if (b && b !== bookSlug) setBookSlug(b);
+    if (c && Number.isFinite(c) && c > 0 && c !== chapter) setChapter(c);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
+
   useEffect(() => {
     if (user && hydrated) saveProgress(user.id, bookSlug, chapter);
     const next: Record<string, string> = { book: bookSlug, chapter: String(chapter) };
@@ -102,23 +155,42 @@ const Reading = () => {
     if (!initialVerseParam) window.scrollTo({ top: 0, behavior: "smooth" });
   }, [bookSlug, chapter, setParams, user, hydrated, initialVerseParam]);
 
-  // Load user preference for immersive mode
-  useEffect(() => {
-    const v = localStorage.getItem("reading.immersive");
-    if (v === "true") setImmersive(true);
-  }, []);
+  // Immersive preference is hydrated by useUserPreferences (backend + localStorage fallback)
 
-  // Scroll to ?verse= once data is loaded
+
+  // Scroll to ?verse= once data is loaded (retries until the verse node exists)
   const didJumpRef = useRef(false);
+  useEffect(() => {
+    // Reset jump flag whenever target verse/chapter/book changes
+    didJumpRef.current = false;
+  }, [initialVerseParam, bookSlug, chapter]);
+
   useEffect(() => {
     if (didJumpRef.current || !data || !initialVerseParam) return;
     const v = Number(initialVerseParam);
-    const el = verseRefs.current.get(v);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-      didJumpRef.current = true;
-    }
+    if (!Number.isFinite(v) || v <= 0) return;
+
+    let cancelled = false;
+    let attempts = 0;
+    const tryScroll = () => {
+      if (cancelled || didJumpRef.current) return;
+      const el = verseRefs.current.get(v);
+      if (el) {
+        // Position the verse near the top of the viewport, accounting for sticky chrome
+        const y = el.getBoundingClientRect().top + window.scrollY - 96;
+        window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+        didJumpRef.current = true;
+        triggerFlash(v);
+        return;
+      }
+      if (attempts++ < 30) requestAnimationFrame(tryScroll);
+    };
+    requestAnimationFrame(tryScroll);
+    return () => {
+      cancelled = true;
+    };
   }, [data, initialVerseParam]);
+
 
   // Auto-scroll to currently narrated verse
   useEffect(() => {
@@ -138,9 +210,7 @@ const Reading = () => {
   const toggleImmersive = () => {
     setImmersive((p) => {
       const next = !p;
-      localStorage.setItem("reading.immersive", String(next));
-      if (next) setChromeVisible(false);
-      else setChromeVisible(true);
+      setChromeVisible(!next);
       return next;
     });
   };
@@ -188,6 +258,14 @@ const Reading = () => {
     ? data.verses.map((v) => `${v.verse}. ${v.text}`).join("\n")
     : "";
 
+  // (B) pre-render — the exact strings the UI is about to paint.
+  useEffect(() => {
+    if (!data) return;
+    for (const v of data.verses) {
+      debugCodepoints(`pre-render ${bookSlug} ${chapter}:${v.verse}`, v.text);
+    }
+  }, [data, bookSlug, chapter]);
+
   return (
     <div
       className="min-h-screen pb-28 bg-background text-foreground transition-colors"
@@ -198,6 +276,7 @@ const Reading = () => {
         if (e.target === e.currentTarget) setChromeVisible((v) => !v);
       }}
     >
+      <PageSeo title="Leitura — RC Bible" description="Leia a Bíblia em várias traduções em português, com destaques, anotações e estudo assistido por IA." path="/reading" />
       <div className="mx-auto max-w-lg px-5 pt-10">
         {/* Selectors */}
         <motion.div
@@ -205,87 +284,277 @@ const Reading = () => {
           animate={{ opacity: 1 }}
           className="mb-6 flex items-center gap-2"
         >
-          <Sheet open={bookSheetOpen} onOpenChange={setBookSheetOpen}>
+          <Sheet
+            open={navOpen}
+            onOpenChange={(open) => {
+              setNavOpen(open);
+              if (open) {
+                // Reset the wizard to book step whenever it reopens
+                setNavStep("book");
+                setNavBookSlug(bookSlug);
+                setNavChapter(chapter);
+              }
+            }}
+          >
             <SheetTrigger asChild>
               <Button variant="outline" className="flex-1 justify-start gap-2 rounded-full">
                 <BookOpen size={16} />
-                <span className="truncate">{book.name}</span>
+                <span className="truncate">
+                  {book.name} {chapter}
+                </span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="h-[80vh]">
-              <SheetHeader>
-                <SheetTitle>Escolha um livro</SheetTitle>
-              </SheetHeader>
-              <div className="mt-4 overflow-y-auto h-[calc(80vh-80px)]">
-                {(["AT", "NT"] as const).map((t) => (
-                  <div key={t} className="mb-4">
-                    <p className="px-2 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      {t === "AT" ? "Antigo Testamento" : "Novo Testamento"}
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {BIBLE_BOOKS.filter((b) => b.testament === t).map((b) => (
+            <SheetContent
+              side="bottom"
+              className="h-[85vh] p-0"
+              onCloseAutoFocus={(e) => {
+                // Prevent Radix from refocusing the trigger, which would scroll
+                // the page back to the top and cancel our jump-to-verse scroll.
+                e.preventDefault();
+              }}
+            >
+              {(() => {
+                const navBook = getBookBySlug(navBookSlug) || book;
+                const verseCount = data?.verses.length ?? 0;
+                return (
+                  <div className="flex h-full flex-col">
+                    {/* Header with breadcrumb */}
+                    <div className="flex items-center gap-2 border-b px-5 py-4">
+                      {navStep !== "book" && (
                         <button
-                          key={b.slug}
-                          onClick={() => {
-                            setBookSlug(b.slug);
-                            setChapter(1);
-                            setBookSheetOpen(false);
-                          }}
-                          className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                            b.slug === bookSlug
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted"
+                          type="button"
+                          onClick={() =>
+                            setNavStep(navStep === "verse" ? "chapter" : "book")
+                          }
+                          className="rounded-full p-1.5 hover:bg-muted"
+                          aria-label="Voltar"
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                      )}
+                      <div className="flex-1 text-sm">
+                        <button
+                          type="button"
+                          onClick={() => setNavStep("book")}
+                          className={`transition-colors ${
+                            navStep === "book"
+                              ? "font-semibold text-foreground"
+                              : "text-muted-foreground hover:text-foreground"
                           }`}
                         >
-                          {b.name}
+                          {navStep === "book" ? "Escolha um livro" : navBook.name}
                         </button>
-                      ))}
+                        {navStep !== "book" && (
+                          <>
+                            <span className="mx-1 text-muted-foreground">·</span>
+                            <button
+                              type="button"
+                              onClick={() => setNavStep("chapter")}
+                              className={`transition-colors ${
+                                navStep === "chapter"
+                                  ? "font-semibold text-foreground"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              {navStep === "chapter"
+                                ? "Escolha um capítulo"
+                                : `Cap. ${navChapter}`}
+                            </button>
+                          </>
+                        )}
+                        {navStep === "verse" && (
+                          <>
+                            <span className="mx-1 text-muted-foreground">·</span>
+                            <span className="font-semibold text-foreground">
+                              Versículo
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Book step */}
+                    {navStep === "book" && (
+                      <div className="flex-1 overflow-y-auto px-5 py-4">
+                        {(["AT", "NT"] as const).map((t) => {
+                          const isAT = t === "AT";
+                          return (
+                            <div key={t} className="mb-5">
+                              <div className="mb-2 flex items-center gap-2 px-1">
+                                <span
+                                  className={`inline-flex h-5 items-center rounded-full px-2 text-[10px] font-bold uppercase tracking-wider ${
+                                    isAT
+                                      ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                                      : "bg-sky-500/15 text-sky-700 dark:text-sky-300"
+                                  }`}
+                                >
+                                  {t}
+                                </span>
+                                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                  {isAT ? "Antigo Testamento" : "Novo Testamento"}
+                                </p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                {BIBLE_BOOKS.filter((b) => b.testament === t).map((b) => {
+                                  const selected = b.slug === navBookSlug;
+                                  return (
+                                    <button
+                                      key={b.slug}
+                                      onClick={() => {
+                                        setNavBookSlug(b.slug);
+                                        setNavChapter(1);
+                                        setNavStep("chapter");
+                                      }}
+                                      className={`rounded-lg border-l-[3px] px-3 py-2 text-left text-sm transition-colors ${
+                                        isAT
+                                          ? "border-amber-500/70 bg-amber-500/[0.06] hover:bg-amber-500/15 dark:bg-amber-400/[0.06] dark:hover:bg-amber-400/15"
+                                          : "border-sky-500/70 bg-sky-500/[0.06] hover:bg-sky-500/15 dark:bg-sky-400/[0.06] dark:hover:bg-sky-400/15"
+                                      } ${
+                                        selected
+                                          ? "!bg-primary !text-primary-foreground border-l-primary"
+                                          : ""
+                                      }`}
+                                    >
+                                      {b.name}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+
+                    {/* Chapter step */}
+                    {navStep === "chapter" && (
+                      <div className="flex flex-1 flex-col overflow-hidden">
+                        <div className="grid grid-cols-6 gap-2 overflow-y-auto px-5 py-4">
+                          {Array.from({ length: navBook.chapters }, (_, i) => i + 1).map((n) => {
+                            const isCurrent =
+                              navBookSlug === bookSlug && n === chapter;
+                            const read = navBookSlug === bookSlug && chaptersRead.has(n);
+                            return (
+                              <button
+                                key={n}
+                                onClick={() => {
+                                  setNavChapter(n);
+                                  // Commit book+chapter immediately, then offer verse step
+                                  setBookSlug(navBookSlug);
+                                  setChapter(n);
+                                  setNavStep("verse");
+                                }}
+                                className={`relative aspect-square rounded-lg text-sm font-medium transition-colors ${
+                                  isCurrent
+                                    ? "bg-primary text-primary-foreground"
+                                    : read
+                                    ? "bg-accent/15 text-foreground hover:bg-accent/25"
+                                    : "bg-muted hover:bg-muted/70"
+                                }`}
+                                aria-label={`Capítulo ${n}${read ? " (já lido)" : ""}`}
+                              >
+                                {n}
+                                {read && !isCurrent && (
+                                  <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-accent" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Verse step */}
+                    {navStep === "verse" && (
+                      <div className="flex flex-1 flex-col overflow-hidden">
+                        <div className="flex-1 overflow-y-auto px-5 py-4">
+                          {loading || verseCount === 0 ? (
+                            <p className="py-8 text-center text-sm text-muted-foreground">
+                              Carregando versículos…
+                            </p>
+                          ) : (
+                            <div className="grid grid-cols-6 gap-2">
+                              {Array.from({ length: verseCount }, (_, i) => i + 1).map((n) => (
+                                <button
+                                  key={n}
+                                  onClick={() => {
+                                    setParams((prev) => {
+                                      const next = new URLSearchParams(prev);
+                                      next.set("book", bookSlug);
+                                      next.set("chapter", String(chapter));
+                                      next.set("verse", String(n));
+                                      return next;
+                                    });
+                                    didJumpRef.current = false;
+                                    setNavOpen(false);
+
+                                    // Imperative scroll: wait for the sheet's close animation
+                                    // to release the scroll lock, then retry until the node is painted.
+                                    let attempts = 0;
+                                    const tryScroll = () => {
+                                      const el = verseRefs.current.get(n);
+                                      if (el) {
+                                        const y =
+                                          el.getBoundingClientRect().top + window.scrollY - 96;
+                                        window.scrollTo({
+                                          top: Math.max(0, y),
+                                          behavior: "smooth",
+                                        });
+                                        didJumpRef.current = true;
+                                        triggerFlash(n);
+                                        return;
+                                      }
+                                      if (attempts++ < 40) {
+                                        requestAnimationFrame(tryScroll);
+                                      }
+                                    };
+                                    // Kick off immediately; the Sheet no longer
+                                    // scrolls the page on close (onCloseAutoFocus prevented).
+                                    requestAnimationFrame(tryScroll);
+                                  }}
+                                  className="aspect-square rounded-lg bg-muted text-sm font-medium transition-colors hover:bg-muted/70"
+                                >
+                                  {n}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="border-t px-5 py-3">
+                          <Button
+                            variant="ghost"
+                            className="w-full rounded-full"
+                            onClick={() => setNavOpen(false)}
+                          >
+                            Ler capítulo inteiro
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </SheetContent>
           </Sheet>
 
-          <Sheet open={chapterSheetOpen} onOpenChange={setChapterSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="rounded-full">
-                Cap. {chapter}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[60vh]">
-              <SheetHeader>
-                <SheetTitle>{book.name} — Capítulo</SheetTitle>
-              </SheetHeader>
-              <div className="mt-4 grid grid-cols-6 gap-2 overflow-y-auto h-[calc(60vh-80px)]">
-                {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => {
-                  const read = chaptersRead.has(n);
-                  return (
-                    <button
-                      key={n}
-                      onClick={() => {
-                        setChapter(n);
-                        setChapterSheetOpen(false);
-                      }}
-                      className={`relative aspect-square rounded-lg text-sm font-medium transition-colors ${
-                        n === chapter
-                          ? "bg-primary text-primary-foreground"
-                          : read
-                          ? "bg-accent/15 text-foreground hover:bg-accent/25"
-                          : "bg-muted hover:bg-muted/70"
-                      }`}
-                      aria-label={`Capítulo ${n}${read ? " (já lido)" : ""}`}
-                    >
-                      {n}
-                      {read && n !== chapter && (
-                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-accent" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </SheetContent>
-          </Sheet>
+
+          <Select value={translation} onValueChange={handleTranslationChange}>
+            <SelectTrigger
+              className="w-[92px] rounded-full"
+              aria-label="Versão da Bíblia"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              {BIBLE_TRANSLATIONS.map((t) => (
+                <SelectItem key={t.code} value={t.code}>
+                  <span className="font-medium">{t.label}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">{t.full}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <Button
             variant="outline"
@@ -326,6 +595,7 @@ const Reading = () => {
             bookSlug={bookSlug}
             bookName={book.name}
             chapter={chapter}
+            translation={translation}
           />
         </div>
 
@@ -399,7 +669,7 @@ const Reading = () => {
                     e.preventDefault();
                     setActionVerse({ verse: v.verse, text: v.text });
                   }}
-                  className={`reading-prose rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} ${isActive ? "verse-active" : ""} select-none`}
+                  className={`reading-prose rounded-lg px-2 py-1 font-serif text-lg leading-relaxed text-foreground/90 transition-colors ${getHighlightBg(hl?.color)} ${isActive ? "verse-active" : ""} ${flashVerse === v.verse ? "verse-flash" : ""} select-none`}
                 >
                   <button
                     type="button"
@@ -453,7 +723,8 @@ const Reading = () => {
         animate={{ scale: 1 }}
         transition={{ delay: 0.3, type: "spring" }}
         onClick={() => setShowChat(true)}
-        className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/30 transition-transform active:scale-95"
+        className="fixed right-5 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/30 transition-transform active:scale-95"
+        style={{ bottom: "calc(7rem + env(safe-area-inset-bottom))" }}
         aria-label="Abrir Tutor IA"
       >
         <Sparkles size={24} />

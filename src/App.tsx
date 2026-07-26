@@ -1,68 +1,99 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { AuthProvider } from "@/hooks/useAuth";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import BottomNav from "@/components/BottomNav";
-import AppHeader from "@/components/AppHeader";
-import Dashboard from "@/pages/Dashboard";
-import Reading from "@/pages/Reading";
-import Explore from "@/pages/Explore";
-import Profile from "@/pages/Profile";
-import Auth from "@/pages/Auth";
-import ChatHistory from "@/pages/ChatHistory";
-import Plans from "@/pages/Plans";
-import Search from "@/pages/Search";
-import Journal from "@/pages/Journal";
-import Terms from "@/pages/legal/Terms";
-import Privacy from "@/pages/legal/Privacy";
-import Licenses from "@/pages/legal/Licenses";
-import NotFound from "@/pages/NotFound";
-import { AudioPlayerProvider } from "@/contexts/AudioPlayerProvider";
-import MiniAudioPlayer from "@/components/MiniAudioPlayer";
-import AppFooter from "@/components/AppFooter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { ThemeProvider } from "./components/ThemeProvider";
+import AppHeader from "./components/AppHeader";
+import BottomNav from "./components/BottomNav";
+import AppErrorBoundary from "./components/AppErrorBoundary";
+import ProtectedRoute from "./components/ProtectedRoute";
+import MiniAudioPlayer from "./components/MiniAudioPlayer";
+import { AudioPlayerProvider } from "./contexts/AudioPlayerProvider";
+import { AuthProvider } from "./hooks/useAuth";
 
+// Corrigindo caminhos de importação baseados na estrutura real de arquivos
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Reading = lazy(() => import("./pages/Reading"));
+const Explore = lazy(() => import("./pages/Explore"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Plans = lazy(() => import("./pages/Plans"));
+const Journal = lazy(() => import("./pages/Journal"));
+const Search = lazy(() => import("./pages/Search"));
+const WriterList = lazy(() => import("./pages/writer/WriterList"));
+const WriterEditor = lazy(() => import("./pages/writer/WriterEditor"));
+const ChatHistory = lazy(() => import("./pages/ChatHistory"));
+const AdminKnowledge = lazy(() => import("./pages/admin/Knowledge"));
+const AdminErrors = lazy(() => import("./pages/admin/ClientErrors"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+const Terms = lazy(() => import("./pages/legal/Terms"));
+const Privacy = lazy(() => import("./pages/legal/Privacy"));
+const Licenses = lazy(() => import("./pages/legal/Licenses"));
+const Contribute = lazy(() => import("./pages/Contribute"));
+const Planning = lazy(() => import("./pages/Planning"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
-
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+  <AppErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
           <AuthProvider>
             <AudioPlayerProvider>
-              <AppHeader />
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/reading" element={<ProtectedRoute><Reading /></ProtectedRoute>} />
-                <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
-                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/chat-history" element={<ProtectedRoute><ChatHistory /></ProtectedRoute>} />
-                <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
-                <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
-                <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
-                <Route path="/legal/termos" element={<Terms />} />
-                <Route path="/legal/privacidade" element={<Privacy />} />
-                <Route path="/legal/licencas" element={<Licenses />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <MiniAudioPlayer />
-              <AppFooter />
-              <BottomNav />
+              <Toaster />
+              <BrowserRouter>
+                <AppHeader />
+                <Suspense fallback={<div className="flex h-screen items-center justify-center font-serif text-muted-foreground">Carregando...</div>}>
+                  <main id="main">
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/auth/v1/consent" element={<OAuthConsent />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      
+                      {/* ProtectedRoute espera children, então usamos um componente de layout que renderiza o Outlet */}
+                      <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/reading" element={<Reading />} />
+                        <Route path="/explore" element={<Explore />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/plans" element={<Plans />} />
+                        <Route path="/journal" element={<Journal />} />
+                        <Route path="/search" element={<Search />} />
+                        <Route path="/writer" element={<WriterList />} />
+                        <Route path="/writer/:id" element={<WriterEditor />} />
+                        <Route path="/chat-history" element={<ChatHistory />} />
+                        <Route path="/admin/knowledge" element={<AdminKnowledge />} />
+                        <Route path="/admin/errors" element={<AdminErrors />} />
+                        <Route path="/contribute" element={<Contribute />} />
+                        <Route path="/planning" element={<Planning />} />
+                      </Route>
+                      
+                      <Route path="/legal/termos" element={<Terms />} />
+                      <Route path="/legal/privacidade" element={<Privacy />} />
+                      <Route path="/legal/licencas" element={<Licenses />} />
+                    </Routes>
+                  </main>
+                </Suspense>
+                <MiniAudioPlayer />
+                <BottomNav />
+              </BrowserRouter>
             </AudioPlayerProvider>
           </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </AppErrorBoundary>
 );
 
 export default App;

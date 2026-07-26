@@ -1,19 +1,19 @@
-// Helper unificado para chamar o Lovable AI Gateway a partir de Edge Functions.
-// - Tratamento padronizado de 429/402/5xx
-// - Fallback automático para modelo "lite" em erros 5xx
+// Helper unificado para chamar a API da Anthropic (Claude) a partir de Edge Functions.
+// - Tratamento padronizado de 429/5xx
+// - Fallback automático para modelo alternativo em erros 5xx/529 (sobrecarga)
 // - Mensagens de erro em português, prontas para repassar ao cliente
+// - Traduz para o formato OpenAI-compatible (choices[0].message) que os callers já esperam,
+//   assim extractJsonContent/extractToolCallArgs continuam funcionando sem mudança
 //
-// Não expor LOVABLE_API_KEY ao cliente. Use sempre via Deno.env.
+// Não expor ANTHROPIC_API_KEY ao cliente. Use sempre via Deno.env.
 
 export interface CallAIOptions {
   model: string;
   fallbackModel?: string;
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
-  // OpenAI-compatible options
-  tools?: unknown[];
-  tool_choice?: unknown;
-  response_format?: unknown;
-  stream?: boolean;
+  // Definições de tool no formato OpenAI (type: "function", function: {name, description, parameters})
+  tools?: Array<{ type: "function"; function: { name: string; description?: string; parameters?: unknown } }>;
+  tool_choice?: { type: "function"; function: { name: string } };
   // Tempo máximo de espera por chamada (ms)
   timeoutMs?: number;
 }
@@ -29,59 +29,123 @@ export interface CallAIError {
 }
 export type CallAIResult = CallAISuccess | CallAIError;
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_VERSION = "2023-06-01";
+const MAX_TOKENS = 4096;
 
-async function postOnce(
-  apiKey: string,
-  model: string,
-  body: Omit<CallAIOptions, "model" | "fallbackModel" | "timeoutMs">,
-  timeoutMs: number,
-): Promise<Response> {
+function toAnthropicMessages(messages: CallAIOptions["messages"]) {
+  const system = messages
+    .filter((m) => m.role === "system")
+    .map((m) => m.content)
+    .join("\n\n");
+  const rest = messages
+    .filter((m) => m.role !== "system")
+    .map((m) => ({ role: m.role, content: m.content }));
+  return { system: system || undefined, messages: rest };
+}
+
+function toAnthropicTools(tools: CallAIOptions["tools"]) {
+  if (!tools?.length) return undefined;
+  return tools.map((t) => ({
+    name: t.function.name,
+    description: t.function.description,
+    input_schema: t.function.parameters ?? { type: "object", properties: {} },
+  }));
+}
+
+function toAnthropicToolChoice(toolChoice: CallAIOptions["tool_choice"]) {
+  if (!toolChoice) return undefined;
+  return { type: "tool" as const, name: toolChoice.function.name };
+}
+
+// Traduz o corpo JSON da Anthropic Messages API para o formato
+// { choices: [{ message: { content, tool_calls } }] } que os callers esperam.
+function toOpenAIShapedResponse(anthropicBody: {
+  content?: Array<{ type: string; text?: string; id?: string; name?: string; input?: unknown }>;
+}): Response {
+  const blocks = anthropicBody?.content ?? [];
+  const text = blocks
+    .filter((b) => b.type === "text")
+    .map((b) => b.text ?? "")
+    .join("");
+  const toolUse = blocks.find((b) => b.type === "tool_use");
+
+  const message: Record<string, unknown> = { role: "assistant", content: text || null };
+  if (toolUse) {
+    message.tool_calls = [
+      {
+        id: toolUse.id,
+        type: "function",
+        function: { name: toolUse.name, arguments: JSON.stringify(toolUse.input ?? {}) },
+      },
+    ];
+  }
+
+  return new Response(JSON.stringify({ choices: [{ message }] }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+async function postOnce(apiKey: string, model: string, opts: CallAIOptions, timeoutMs: number): Promise<Response> {
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(GATEWAY_URL, {
+    const { system, messages } = toAnthropicMessages(opts.messages);
+    const body: Record<string, unknown> = { model, max_tokens: MAX_TOKENS, messages };
+    if (system) body.system = system;
+    const tools = toAnthropicTools(opts.tools);
+    if (tools) body.tools = tools;
+    const toolChoice = toAnthropicToolChoice(opts.tool_choice);
+    if (toolChoice) body.tool_choice = toolChoice;
+
+    return await fetch(ANTHROPIC_URL, {
       method: "POST",
       signal: controller.signal,
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        "x-api-key": apiKey,
+        "anthropic-version": ANTHROPIC_VERSION,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ model, ...body }),
+      body: JSON.stringify(body),
     });
   } finally {
     clearTimeout(t);
   }
 }
 
-export async function callLovableAI(opts: CallAIOptions): Promise<CallAIResult> {
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+export async function callAI(opts: CallAIOptions): Promise<CallAIResult> {
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) {
-    return { ok: false, status: 500, error: "LOVABLE_API_KEY não configurada." };
+    return { ok: false, status: 500, error: "ANTHROPIC_API_KEY não configurada." };
   }
 
-  const { model, fallbackModel, timeoutMs = 60_000, ...rest } = opts;
+  const { model, fallbackModel, timeoutMs = 60_000 } = opts;
 
   let res: Response;
   try {
-    res = await postOnce(apiKey, model, rest, timeoutMs);
+    res = await postOnce(apiKey, model, opts, timeoutMs);
   } catch (e) {
-    console.error("AI gateway network error:", e);
+    console.error("Anthropic network error:", e);
     return { ok: false, status: 503, error: "Falha de rede ao contatar a IA." };
   }
 
-  // Retry em 5xx com fallback
-  if (!res.ok && [500, 502, 503, 504].includes(res.status) && fallbackModel) {
+  // Retry em 5xx/529 (sobrecarga) com fallback
+  if (!res.ok && [500, 502, 503, 504, 529].includes(res.status) && fallbackModel) {
     console.warn(`AI primary failed (${res.status}); tentando fallback ${fallbackModel}`);
     try {
-      res = await postOnce(apiKey, fallbackModel, rest, timeoutMs);
+      res = await postOnce(apiKey, fallbackModel, opts, timeoutMs);
     } catch (e) {
       console.error("AI fallback network error:", e);
       return { ok: false, status: 503, error: "Falha de rede ao contatar a IA." };
     }
   }
 
-  if (res.ok) return { ok: true, response: res };
+  if (res.ok) {
+    const anthropicBody = await res.json().catch(() => null);
+    if (!anthropicBody) return { ok: false, status: 500, error: "Resposta inválida da IA." };
+    return { ok: true, response: toOpenAIShapedResponse(anthropicBody) };
+  }
 
   if (res.status === 429) {
     return {
@@ -90,16 +154,9 @@ export async function callLovableAI(opts: CallAIOptions): Promise<CallAIResult> 
       error: "Muitas requisições. Tente novamente em alguns segundos.",
     };
   }
-  if (res.status === 402) {
-    return {
-      ok: false,
-      status: 402,
-      error: "Créditos de IA esgotados. Solicite ao administrador adicionar fundos.",
-    };
-  }
 
-  const body = await res.text().catch(() => "");
-  console.error("AI gateway error:", res.status, body);
+  const errBody = await res.text().catch(() => "");
+  console.error("Anthropic API error:", res.status, errBody);
   return {
     ok: false,
     status: 500,

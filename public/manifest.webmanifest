@@ -1,6 +1,6 @@
 {
-  "name": "RC Bible — Renovada Church",
-  "short_name": "RC Bible",
+  "name": "RC Bíblia",
+  "short_name": "RC Bíblia",
   "description": "Guia bíblico de bolso da Renovada Church com leitura, estudo com IA e devocional diário.",
   "start_url": "/",
   "scope": "/",
@@ -11,10 +11,28 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/__l5e/assets-v1/c5062f68-a44f-4095-973d-a7816dfffaa8/rc-bible-logo.png",
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "1200x1200",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
     }
   ]
 }

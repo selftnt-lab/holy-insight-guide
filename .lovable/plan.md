@@ -1,96 +1,103 @@
-# Repaginação Visual RC Bible — Editorial Serif
 
-Aplicar a estética da tela de referência (serifa editorial grande, muito whitespace, divisores minimalistas, cards com borda suave) em **todas** as telas do app. Estrutura, conteúdo, posição de botões e navegação permanecem inalterados — só muda a camada visual.
+# Refatoração Visual — Meio-termo entre o app atual e os mockups
 
-## Direção visual
+**Regras invioláveis (repetidas do pedido):**
+- 🔒 Nenhuma mudança estrutural. Nada de mover, remover ou adicionar botões, cards, containers, rotas ou lógica.
+- 🔒 Apenas cor, tipografia, ícone, gradiente, sombra, radius e microdetalhes de card.
+- 🎯 Nem "tech demais" (glows neon, gradientes ciano-elétricos exagerados dos mockups) nem "clássico demais" (papel creme puro atual). Um verde-sálvia mais vivo, acentos sutis de brilho, superfícies limpas.
 
-- **Tipografia:** DM Serif Display (títulos, saudações, versículos em destaque) + Fira Sans (corpo, UI, labels, botões). Carregadas via `@fontsource` em `src/main.tsx`.
-- **Paleta (Light — padrão):**
-  - Background `#FAFAF8` (off-white quente sutil)
-  - Foreground `#1A1A1A`
-  - Muted text `#6B6B6B`
-  - Border `#E8E6E1`
-  - Card `#FFFFFF`
-  - **Accent teal (da logo)** `#4A8B8C` — usado em links, ícones ativos, streak, badges, ring de foco, divisores decorativos
-  - Accent-foreground `#FFFFFF`
-- **Paleta (Dark — toggle):**
-  - Background `#0D0D0D`, foreground `#F5F5F0`, border `#1F1F1F`, card `#141414`, muted `#8A8A85`
-  - Accent teal levemente clareado `#6BB0B1` para contraste
-- **Componentes:**
-  - Cards: borda 1px `border`, radius `0.75rem`, sombra quase inexistente (`0 1px 2px hsl(0 0% 0% / 0.04)`)
-  - Divisores: linha fina com pequeno ícone central (já existe em `SacredDivider` — repintado com accent teal)
-  - Labels de seção: uppercase, tracking wide, 11px, cor muted (ex: "SEQUÊNCIA ATIVA", "DEVOTIONAL DE HOJE")
-  - Saudações em serifa 36px+ com quebra de linha natural ("Bom dia, / MAXWELL")
-- **Modo padrão:** Claro. Toggle permanece no Perfil. Sem detecção automática de SO.
+---
 
-## Escopo de arquivos
+## Alteração 1 — Paleta de acento (light mode)
+**Onde:** `src/index.css` `:root`
+- `--accent` sobe de `140 22% 52%` (sage baço) → **`152 45% 48%`** (verde-esmeralda suave, entre o sage atual e o mint dos mockups).
+- Novo token `--accent-glow: 152 60% 62%` para halos e gradientes leves (não vira cor de UI dominante).
+- `--ring` acompanha o novo accent.
+- `--gradient-sacred` reformulado: `linear-gradient(135deg, hsl(152 45% 48%), hsl(160 55% 62%))`.
 
-**Design tokens (base de tudo):**
-- `src/index.css` — reescrever variáveis `:root` e `.dark` com paleta acima; ajustar `--gradient-*` e `--shadow-scripture` para o novo tom; adicionar `--font-serif` e `--font-sans`.
-- `tailwind.config.ts` — trocar `fontFamily.serif` para `DM Serif Display` e `sans` para `Fira Sans`; adicionar utilitário se necessário.
-- `src/main.tsx` — importar `@fontsource/dm-serif-display` e `@fontsource/fira-sans` (pesos 300/400/500/600/700).
-- `package.json` — adicionar `@fontsource/dm-serif-display` e `@fontsource/fira-sans` via `bun add`.
-- Remover `@import` do Google Fonts (`Lora`, `Inter`) em `index.css`.
+## Alteração 2 — Paleta de acento (dark mode)
+**Onde:** `src/index.css` `.dark`
+- `--background` de `30 8% 7%` → **`220 15% 8%`** (carvão levemente azulado — combina com os mockups escuros sem virar preto puro).
+- `--card` → `220 12% 11%`.
+- `--accent` → **`152 55% 55%`** + `--accent-glow: 160 70% 65%`.
+- `--gradient-sacred` dark: `linear-gradient(135deg, hsl(152 55% 45%), hsl(180 60% 55%))` — leve toque ciano só nos gradientes, nunca em texto/ícone puro.
 
-**Telas repaginadas (só camada visual, sem mexer em lógica):**
-- `src/pages/Dashboard.tsx` — saudação em DM Serif grande, labels uppercase, cards limpos com o novo estilo.
-- `src/pages/Reading.tsx` — versículos em DM Serif para números/destaques, corpo em Fira Sans, ajuste do modo imersivo.
-- `src/pages/Explore.tsx`, `src/pages/Plans.tsx`, `src/pages/Journal.tsx`, `src/pages/Profile.tsx`, `src/pages/ChatHistory.tsx`, `src/pages/Search.tsx` — títulos serif, cards no novo padrão, accent teal em elementos ativos.
-- `src/pages/Auth.tsx` — logo já grande, título em serif, botões e inputs no novo tom.
-- `src/pages/legal/*.tsx` — tipografia editorial coerente.
+## Alteração 3 — Fundo geral (light)
+- `--background` sobe de `38 30% 95%` (creme quente) → **`40 20% 97%`** (off-white mais neutro, como o mockup INÍCIO).
+- `--card` mantém contraste sutil: `0 0% 100%` (branco puro) para os cards flutuantes, deixando o fundo respirar.
 
-**Componentes tocados:**
-- `src/components/AppHeader.tsx` — mantém logo centralizada; separador inferior fininho na cor border.
-- `src/components/AppFooter.tsx` — tipografia Fira Sans, cor muted mais sutil.
-- `src/components/BottomNav.tsx` — item ativo em accent teal, inativo em muted; label em Fira Sans.
-- `src/components/SacredDivider.tsx` — repintado com accent teal a 50%.
-- `src/components/StreakBadge.tsx`, `DevotionalCard.tsx`, `VerseOfDayCard.tsx` — cards no novo padrão, labels uppercase, valores em DM Serif.
-- `src/components/ui/button.tsx` — variantes ajustadas ao novo accent; default = primary escuro, secondary = outline sutil.
-- `src/components/ui/card.tsx`, `input.tsx`, `tabs.tsx` — checar bordas e radius alinhados aos tokens.
+## Alteração 4 — Tipografia de saudação e títulos de página
+**Onde:** `src/pages/Dashboard.tsx` (e páginas com header editorial)
+- Manter DM Serif Display, mas destacar palavra-chave em `text-accent` (ex: "Olá, **User!**" — "User!" em verde), replicando o padrão azul-ciano do mockup **sem** o excesso técnico.
+- Peso do título mantém-se serif; sem mudanças de tamanho.
 
-**Metadata:**
-- `index.html` — `theme-color` para `#FAFAF8` (light).
-- `public/manifest.webmanifest` — `background_color` e `theme_color` para `#FAFAF8`.
+## Alteração 5 — VerseOfDayCard
+**Onde:** `src/components/VerseOfDayCard.tsx`
+- Remover (ou reduzir) a imagem de paisagem introduzida antes → superfície branca sólida com fina borda `border-border/60`, canto `rounded-2xl`.
+- Referência "João 3:16" em `font-serif-bible` maior, `text-foreground`.
+- Barra de progresso "Versículos Lidos 25/36" com trilha `bg-muted` e preenchimento `bg-accent` + gradiente leve `--gradient-sacred`.
+- Sem glow neon; apenas 1 sombra suave `shadow-scripture`.
 
-## Regras de execução
+## Alteração 6 — Cards "Planos em Destaque" / "Acesso Rápido"
+**Onde:** `src/components/dashboard/ActivePlansMini.tsx` + tiles do dashboard
+- Cards de plano ganham **duas variantes de fundo alternadas**: `bg-accent/10` e `bg-accent/20` (verde-sálvia lavado) mimetizando os quadrados azul/verde do mockup, mas em uma família de cor só (evita o dueto azul-ciano tecnológico).
+- Ícone interno em `text-accent`.
+- Tiles "Acesso Rápido" (grid 2×2 ou 4×1 conforme atual): fundo `bg-muted/60`, ícone `text-foreground/70`, hover `bg-accent/10`.
 
-1. **Zero mudança de conteúdo, layout ou comportamento.** Só CSS, tokens, tipografia e classes.
-2. **Nenhuma cor hardcoded** em componentes — tudo passa por tokens semânticos (`bg-background`, `text-foreground`, `text-accent`, `border-border`, etc.).
-3. **Sem gradientes decorativos**, sem sombras dramáticas, sem "glow". Estética editorial calma.
-4. Ícones Lucide mantidos; peso `1.5`, tamanho consistente.
-5. Verificar via Playwright após aplicação: Home, Leitura, Perfil (light e dark).
+## Alteração 7 — BottomNav
+**Onde:** `src/components/BottomNav.tsx`
+- Manter container flutuante (já existe).
+- Item ativo: substituir destaque atual por **pílula fina `bg-accent/15` + label `text-accent`** e uma barrinha superior de 2px `bg-accent` (marcador delicado, sem "glow").
+- Item inativo: `text-muted-foreground` como já é. Sem alterar quantidade nem ordem.
 
-## Detalhes técnicos
+## Alteração 8 — Header (`AppHeader.tsx`)
+- Sem alterar estrutura (logo + textos).
+- Fundo passa a ser `bg-background/85 backdrop-blur-md` com borda inferior `border-border/50` (mais leve que a atual). Sino/ícones (quando existirem) em `text-foreground/70`.
 
-```ts
-// tailwind.config.ts
-fontFamily: {
-  sans: ["'Fira Sans'", "system-ui", "sans-serif"],
-  serif: ["'DM Serif Display'", "Georgia", "serif"],
-}
-```
+## Alteração 9 — Página Bíblia (`Reading.tsx`)
+- Chip da tradução (ex: "NVI") ganha `text-accent` + `border-accent/40 rounded-full`.
+- Referência do capítulo em `font-serif-bible` mantém tamanho.
+- Botão de áudio (círculo com ícone alto-falante) recebe `bg-accent text-accent-foreground shadow-scripture`.
+- FAB de compartilhar (canto inferior direito) migra do verde chapado para **gradiente `--gradient-sacred`** — pequeno toque "tech" contido.
 
-```css
-/* index.css :root */
---background: 48 20% 97%;
---foreground: 0 0% 10%;
---card: 0 0% 100%;
---muted-foreground: 0 0% 42%;
---border: 40 12% 90%;
---primary: 0 0% 10%;
---accent: 182 30% 42%;   /* teal da logo */
---accent-foreground: 0 0% 100%;
---ring: 182 30% 42%;
---radius: 0.75rem;
-```
+## Alteração 10 — Escritor (WriterEditor)
+- Toolbar de formatação mantém-se; ícones ganham `text-foreground/70`, ativos `text-accent`.
+- Chips de tag (`#Fé`, `#Estudo`) → `bg-accent/12 text-accent border border-accent/25 rounded-full`.
+- Botão **Salvar** ganha `bg-gradient-to-r from-[hsl(var(--accent))] to-[hsl(var(--accent-glow))] text-accent-foreground` — único ponto onde o gradiente aparece com destaque.
 
-```css
-/* .dark */
---background: 0 0% 5%;
---foreground: 40 15% 94%;
---card: 0 0% 8%;
---border: 0 0% 12%;
---accent: 182 30% 55%;
-```
+## Alteração 11 — Explorar
+- Tiles grandes (Planos de Leitura, Podcasts, Vídeos, Comunidade) recebem tratamento em **dois tons de accent** (10% e 20%) como no dashboard, mantendo layout.
+- Chips de tags (Ansiedade, Gratidão, Liderança) `rounded-full border-border` sem cor sólida.
 
-Quando aprovar, executo tudo em uma passada, rodo typecheck e valido as telas principais com screenshot.
+## Alteração 12 — Perfil
+- Avatar em anel `ring-2 ring-accent/40 ring-offset-2 ring-offset-background` (substitui qualquer destaque atual).
+- Stat cards (Dias de Leitura / Versículos Lidos): números em `font-serif-bible`, labels em `text-muted-foreground`. Sem mudança de layout.
+- Lista de opções (Meus Planos, Anotações, etc.) mantém ícone à esquerda + chevron à direita; ícones em `text-accent`.
+- Botão **Sair**: light → `border-destructive/40 text-destructive` outline; dark → mesmo estilo (não texto vermelho vibrante como no mockup escuro; menos agressivo).
+
+## Alteração 13 — Radius e sombras globais
+- `--radius` mantém `1.25rem` (já bate com os mockups).
+- Padronizar todas sombras de card via `shadow-scripture` (leve) e `shadow-float` (para elementos elevados/flutuantes). Sem mudanças estruturais.
+
+## Alteração 14 — Removidos os "excessos tech"
+Para deixar claro o que **não** vou copiar dos mockups:
+- ❌ Pontinhos de "partícula" verde/ciano espalhados no fundo.
+- ❌ Anéis neon ao redor do avatar (uso apenas `ring/40`, discreto).
+- ❌ Botão Salvar em ciano→verde-elétrico saturado (uso gradiente contido em accent).
+- ❌ Fundo dark em preto absoluto (uso carvão levemente azulado).
+
+---
+
+## Ordem de execução
+1. Tokens em `src/index.css` (Alterações 1–3, 13).
+2. Header + BottomNav (8, 7).
+3. Dashboard + VerseOfDayCard (4, 5, 6).
+4. Reading, Writer, Explorar, Perfil (9–12).
+5. `bun run build` + revisão visual em light e dark.
+
+## Fora de escopo
+- Nada de novo componente, rota, hook, migração, dep.
+- Nada de mudança em tamanho/posição de cards ou botões.
+- Nada de novo asset de imagem (paisagens, ilustrações).
+
+Aprovando, entro em build e aplico exatamente nesta ordem.

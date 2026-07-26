@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { callAI, extractToolCallArgs } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,9 +62,6 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
-
     // Determine testament for language hint
     const ntBooks = new Set([
       "matthew","mark","luke","john","acts","romans",
@@ -91,114 +89,92 @@ Palavra em português a estudar: "${wordPt}"
 
 Identifique a palavra original correspondente e retorne o estudo via tool calling.`;
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "return_word_study",
-              description: "Retorna o estudo linguístico da palavra original.",
-              parameters: {
-                type: "object",
-                properties: {
-                  strong_code: {
-                    type: "string",
-                    description: "Código Strong (ex: G3056, H7225). Use H para hebraico/aramaico, G para grego.",
-                  },
-                  language: {
-                    type: "string",
-                    enum: ["hebrew", "greek", "aramaic"],
-                  },
-                  original: {
-                    type: "string",
-                    description: "Palavra no script original (ex: λόγος, רֵאשִׁית).",
-                  },
-                  transliteration: { type: "string" },
-                  pronunciation: {
-                    type: "string",
-                    description: "Pronúncia aproximada (ex: LO-gos).",
-                  },
-                  short_definition: {
-                    type: "string",
-                    description: "Definição principal em 1 frase curta.",
-                  },
-                  full_definition: {
-                    type: "string",
-                    description: "Definição mais completa baseada em léxicos clássicos (2-4 frases).",
-                  },
-                  part_of_speech: {
-                    type: "string",
-                    description: "Classe gramatical (substantivo masc., verbo qal, etc.)",
-                  },
-                  context_meaning: {
-                    type: "string",
-                    description: "Como a palavra funciona NESTE versículo específico.",
-                  },
-                  secondary_meanings: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Outros significados/usos (até 5).",
-                  },
-                  contextual_explanation: {
-                    type: "string",
-                    description: "Explicação linguística/literária mais profunda em markdown (3-6 frases). Sem viés doutrinário.",
-                  },
-                  confidence: {
-                    type: "number",
-                    description: "0 a 1. Quão certo você está do código Strong correto.",
-                  },
+    const ai = await callAI({
+      model: "claude-sonnet-5",
+      fallbackModel: "claude-haiku-4-5-20251001",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "return_word_study",
+            description: "Retorna o estudo linguístico da palavra original.",
+            parameters: {
+              type: "object",
+              properties: {
+                strong_code: {
+                  type: "string",
+                  description: "Código Strong (ex: G3056, H7225). Use H para hebraico/aramaico, G para grego.",
                 },
-                required: [
-                  "strong_code","language","original","transliteration","pronunciation",
-                  "short_definition","full_definition","part_of_speech",
-                  "context_meaning","secondary_meanings","contextual_explanation","confidence"
-                ],
-                additionalProperties: false,
+                language: {
+                  type: "string",
+                  enum: ["hebrew", "greek", "aramaic"],
+                },
+                original: {
+                  type: "string",
+                  description: "Palavra no script original (ex: λόγος, רֵאשִׁית).",
+                },
+                transliteration: { type: "string" },
+                pronunciation: {
+                  type: "string",
+                  description: "Pronúncia aproximada (ex: LO-gos).",
+                },
+                short_definition: {
+                  type: "string",
+                  description: "Definição principal em 1 frase curta.",
+                },
+                full_definition: {
+                  type: "string",
+                  description: "Definição mais completa baseada em léxicos clássicos (2-4 frases).",
+                },
+                part_of_speech: {
+                  type: "string",
+                  description: "Classe gramatical (substantivo masc., verbo qal, etc.)",
+                },
+                context_meaning: {
+                  type: "string",
+                  description: "Como a palavra funciona NESTE versículo específico.",
+                },
+                secondary_meanings: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "Outros significados/usos (até 5).",
+                },
+                contextual_explanation: {
+                  type: "string",
+                  description: "Explicação linguística/literária mais profunda em markdown (3-6 frases). Sem viés doutrinário.",
+                },
+                confidence: {
+                  type: "number",
+                  description: "0 a 1. Quão certo você está do código Strong correto.",
+                },
               },
+              required: [
+                "strong_code","language","original","transliteration","pronunciation",
+                "short_definition","full_definition","part_of_speech",
+                "context_meaning","secondary_meanings","contextual_explanation","confidence"
+              ],
+              additionalProperties: false,
             },
           },
-        ],
-        tool_choice: { type: "function", function: { name: "return_word_study" } },
-      }),
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "return_word_study" } },
     });
 
-    if (!aiRes.ok) {
-      if (aiRes.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Limite de requisições atingido. Tente em instantes." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (aiRes.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos de IA esgotados." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const t = await aiRes.text();
-      console.error("AI gateway error:", aiRes.status, t);
+    if (!ai.ok) {
       return new Response(
-        JSON.stringify({ error: "Erro ao gerar estudo da palavra." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: ai.error }),
+        { status: ai.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const aiJson = await aiRes.json();
-    const toolCall = aiJson.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) throw new Error("IA não retornou estudo estruturado.");
-
-    const study = JSON.parse(toolCall.function.arguments) as WordStudyPayload;
+    const aiJson = await ai.response.json();
+    const study = extractToolCallArgs<WordStudyPayload>(aiJson);
+    if (!study) throw new Error("IA não retornou estudo estruturado.");
 
     // 2) persist strong_entries
     await supabase.from("strong_entries").upsert(

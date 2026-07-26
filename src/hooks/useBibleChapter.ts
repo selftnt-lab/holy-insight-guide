@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { DEFAULT_TRANSLATION } from "@/lib/bible-translations";
+import { sanitizeForTranslation, warnIfSuspect, debugCodepoints } from "@/lib/sanitize-bible-text";
 
 export interface BibleVerse {
   verse: number;
@@ -13,7 +15,11 @@ export interface BibleChapterData {
 
 const BIBLE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bible`;
 
-export const useBibleChapter = (bookSlug: string, chapter: number) => {
+export const useBibleChapter = (
+  bookSlug: string,
+  chapter: number,
+  translation: string = DEFAULT_TRANSLATION,
+) => {
   const [data, setData] = useState<BibleChapterData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,8 +36,7 @@ export const useBibleChapter = (bookSlug: string, chapter: number) => {
     setError(null);
     setData(null);
 
-
-    const url = `${BIBLE_URL}?book=${encodeURIComponent(bookSlug)}&chapter=${chapter}`;
+    const url = `${BIBLE_URL}?book=${encodeURIComponent(bookSlug)}&chapter=${chapter}&translation=${encodeURIComponent(translation)}`;
     fetch(url, {
       headers: {
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
@@ -40,7 +45,17 @@ export const useBibleChapter = (bookSlug: string, chapter: number) => {
       .then(async (r) => {
         const j = await r.json();
         if (!r.ok) throw new Error(j.error || "Erro ao carregar");
-        return j as BibleChapterData;
+        const d = j as BibleChapterData;
+        // Single source of truth: sanitize every verse before it reaches
+        // the UI, the TTS engine, or the Writer insert pipeline.
+        d.verses = (d.verses ?? []).map((v) => {
+          // (A) RAW — as it arrives from the dataset/API.
+          debugCodepoints(`raw ${bookSlug} ${chapter}:${v.verse} (${translation})`, v.text);
+          const clean = sanitizeForTranslation(v.text, translation);
+          warnIfSuspect(clean, `${bookSlug} ${chapter}:${v.verse} (${translation})`);
+          return { ...v, text: clean };
+        });
+        return d;
       })
       .then((d) => {
         if (!cancelled) setData(d);
@@ -55,7 +70,7 @@ export const useBibleChapter = (bookSlug: string, chapter: number) => {
     return () => {
       cancelled = true;
     };
-  }, [bookSlug, chapter]);
+  }, [bookSlug, chapter, translation]);
 
   return { data, loading, error };
 };

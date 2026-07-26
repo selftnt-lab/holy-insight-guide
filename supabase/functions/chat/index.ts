@@ -1,5 +1,50 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { CONFESSIONAL_SYSTEM_PROMPT } from "../_shared/system-prompt.ts";
+import { embedText } from "../_shared/embeddings.ts";
+
+async function retrieveKnowledge(query: string): Promise<string> {
+  try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!SUPABASE_URL || !SERVICE_ROLE) return "";
+
+    const client = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+    // Load admin-tunable RAG settings (fallback to defaults)
+    let threshold = 0.35;
+    let matchCount = 5;
+    const { data: settings } = await client
+      .from("kb_settings")
+      .select("similarity_threshold, match_count")
+      .eq("id", true)
+      .maybeSingle();
+    if (settings) {
+      threshold = settings.similarity_threshold ?? threshold;
+      matchCount = settings.match_count ?? matchCount;
+    }
+
+    const embedding = await embedText(query.slice(0, 4000), "RETRIEVAL_QUERY");
+    if (!embedding) return "";
+
+    const { data, error } = await client.rpc("match_kb_chunks", {
+      query_embedding: embedding as unknown as string,
+      match_count: matchCount,
+    });
+    if (error || !data || data.length === 0) return "";
+
+    const relevant = (data as Array<{ content: string; title: string; source: string | null; similarity: number }>)
+      .filter((r) => r.similarity > threshold);
+    if (relevant.length === 0) return "";
+
+    return relevant
+      .map((r, i) => `[Trecho ${i + 1} — ${r.title}${r.source ? ` (${r.source})` : ""}]\n${r.content}`)
+      .join("\n\n---\n\n");
+  } catch (e) {
+    console.error("retrieveKnowledge error:", e);
+    return "";
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,18 +52,67 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const PRIMARY_MODEL = "google/gemini-2.5-flash";
-const FALLBACK_MODEL = "google/gemini-2.5-flash-lite";
+const PRIMARY_MODEL = "claude-sonnet-5";
+const FALLBACK_MODEL = "claude-haiku-4-5-20251001";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_VERSION = "2023-06-01";
+const MAX_TOKENS = 4096;
 
-async function callGateway(model: string, payload: any, apiKey: string) {
-  return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+async function callClaude(model: string, system: string, messages: Array<{ role: string; content: string }>, apiKey: string) {
+  return fetch(ANTHROPIC_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      "x-api-key": apiKey,
+      "anthropic-version": ANTHROPIC_VERSION,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ...payload, model }),
+    body: JSON.stringify({
+      model,
+      system,
+      messages,
+      max_tokens: MAX_TOKENS,
+      stream: true,
+    }),
   });
+}
+
+// Traduz o SSE nativo da Anthropic (event: content_block_delta / message_stop)
+// para o formato OpenAI-compatible que o front-end (AiChat.tsx) já sabe parsear:
+// `data: {"choices":[{"delta":{"content":"..."}}]}` terminando com `data: [DONE]`.
+function toOpenAICompatibleStream(anthropicBody: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  let buffer = "";
+
+  return anthropicBody.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        buffer += decoder.decode(chunk, { stream: true });
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+          const line = buffer.slice(0, newlineIndex).trim();
+          buffer = buffer.slice(newlineIndex + 1);
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr) continue;
+          let evt: any;
+          try {
+            evt = JSON.parse(jsonStr);
+          } catch {
+            continue;
+          }
+
+          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+            const shaped = { choices: [{ delta: { content: evt.delta.text } }] };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(shaped)}\n\n`));
+          } else if (evt.type === "message_stop") {
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          }
+        }
+      },
+    }),
+  );
 }
 
 serve(async (req) => {
@@ -35,8 +129,8 @@ serve(async (req) => {
       | { topicName?: string; description?: string }
       | undefined;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
     let systemContent = CONFESSIONAL_SYSTEM_PROMPT;
 
@@ -52,17 +146,50 @@ serve(async (req) => {
       systemContent += `\n\nO usuário quer aprender sobre **${topic.topicName}**${topic.description ? ` — ${topic.description}` : ""}. Forneça contexto bíblico, histórico e cultural sobre este tema.`;
     }
 
-    const payload = {
-      messages: [{ role: "system", content: systemContent }, ...messages],
-      stream: true,
-    };
+    // RAG: retrieve grounded material from admin-curated knowledge base
+    const lastUser = [...messages].reverse().find((m: { role: string }) => m.role === "user");
+    const queryText = [
+      topic?.topicName,
+      ctx?.bookName ? `${ctx.bookName} ${ctx.chapter ?? ""}` : "",
+      typeof lastUser?.content === "string" ? lastUser.content : "",
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
 
-    let response = await callGateway(PRIMARY_MODEL, payload, LOVABLE_API_KEY);
+    let kb = "";
+    if (queryText) {
+      kb = await retrieveKnowledge(queryText);
+    }
+
+    systemContent += `\n\n## PROTOCOLO DE RESPOSTA — CLASSIFIQUE A PERGUNTA ANTES DE RESPONDER
+
+**Tipo A — Perguntas objetivas / factuais** (dados históricos, geográficos, biográficos de personagens, cronologia, idiomas originais, contexto cultural, autoria, gênero literário, referências cruzadas, significado lexical de palavras):
+→ Responda prontamente com base em conhecimento bíblico-histórico consolidado. Seja informativo e direto.
+
+**Tipo B — Aplicações teológicas / doutrinárias** (interpretação de textos, doutrina, ética cristã, aplicação prática, "o que este texto ensina sobre...", "como devo viver...", soteriologia, escatologia, eclesiologia, hermenêutica):
+→ Você DEVE se restringir ESTRITAMENTE à linha teológica da BASE DE CONHECIMENTO APROVADA abaixo.
+→ Se NÃO houver material na base cobrindo o tema, responda: "Este tema teológico específico ainda não está coberto pela base doutrinária aprovada deste app. Posso oferecer o contexto histórico/textual, mas para aplicação teológica recomendo consultar sua liderança pastoral." — e ofereça o Tipo A se aplicável.
+→ NUNCA misture teologias divergentes (ex.: se a base é reformada, não introduza pelagianismo, universalismo, hipercalvinismo, dispensacionalismo etc. como se fossem equivalentes).
+→ Se o conhecimento genérico do modelo contradizer a base, a BASE PREVALECE sem exceção.`;
+
+    if (kb) {
+      systemContent += `\n\n## BASE DE CONHECIMENTO APROVADA (fonte doutrinária primária)\nOs trechos abaixo foram curados pela liderança do app. Integre o conteúdo com naturalidade pastoral — NÃO cite como "documento X" ou "trecho Y". Para perguntas do Tipo B, estes trechos são sua ÚNICA fonte doutrinária permitida.\n\n"""\n${kb}\n"""`;
+    } else {
+      systemContent += `\n\n## BASE DE CONHECIMENTO\n(Nenhum material curado foi encontrado para esta consulta.) Para perguntas do Tipo B, aplique a regra de recusa acima.`;
+    }
+
+    const claudeMessages = messages.map((m: { role: string; content: string }) => ({
+      role: m.role === "assistant" ? "assistant" : "user",
+      content: m.content,
+    }));
+
+    let response = await callClaude(PRIMARY_MODEL, systemContent, claudeMessages, ANTHROPIC_API_KEY);
 
     // fallback for transient errors
-    if (!response.ok && [500, 502, 503, 504].includes(response.status)) {
+    if (!response.ok && [500, 502, 503, 504, 529].includes(response.status)) {
       console.warn("Primary model failed, trying fallback:", response.status);
-      response = await callGateway(FALLBACK_MODEL, payload, LOVABLE_API_KEY);
+      response = await callClaude(FALLBACK_MODEL, systemContent, claudeMessages, ANTHROPIC_API_KEY);
     }
 
     if (!response.ok) {
@@ -72,21 +199,17 @@ serve(async (req) => {
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos esgotados. Adicione fundos nas configurações do workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
       const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("Anthropic API error:", response.status, t);
       return new Response(
         JSON.stringify({ error: `Erro no serviço de IA (${response.status})` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    return new Response(response.body, {
+    if (!response.body) throw new Error("Resposta sem corpo");
+
+    return new Response(toOpenAICompatibleStream(response.body), {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {

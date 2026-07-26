@@ -4,82 +4,95 @@
 
 @layer base {
   :root {
-    --background: 48 20% 97%;
-    --foreground: 0 0% 10%;
+    /* Off-white neutro, verde-esmeralda suave & âmbar — meio-termo editorial */
+    --background: 40 20% 97%;
+    --foreground: 30 10% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 30 10% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 30 10% 14%;
 
-    --primary: 0 0% 10%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 30 10% 14%;
+    --primary-foreground: 40 40% 98%;
 
-    --secondary: 40 12% 94%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 38 22% 92%;
+    --secondary-foreground: 30 10% 14%;
 
-    --muted: 40 12% 95%;
-    --muted-foreground: 0 0% 42%;
+    --muted: 38 18% 93%;
+    --muted-foreground: 30 8% 42%;
 
-    --accent: 182 30% 42%;
+    /* Verde-esmeralda suave — accent principal */
+    --accent: 152 45% 48%;
     --accent-foreground: 0 0% 100%;
+    --accent-glow: 152 60% 62%;
 
-    --destructive: 0 72% 48%;
+    /* Amber — highlight secundário */
+    --amber: 38 65% 55%;
+    --amber-foreground: 30 30% 15%;
+
+    --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 40 12% 90%;
-    --input: 40 12% 90%;
-    --ring: 182 30% 42%;
+    --border: 38 15% 87%;
+    --input: 38 15% 90%;
+    --ring: 152 45% 48%;
 
-    --gradient-sacred: linear-gradient(135deg, hsl(182 30% 42%), hsl(182 30% 55%));
-    --gradient-novus: linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(182 30% 42%) 100%);
-    --shadow-scripture: 0 1px 2px hsl(0 0% 0% / 0.04), 0 4px 12px -6px hsl(0 0% 0% / 0.06);
+    --gradient-sacred: linear-gradient(135deg, hsl(152 45% 48%), hsl(160 55% 62%));
+    --gradient-novus: linear-gradient(135deg, hsl(30 10% 14%) 0%, hsl(152 45% 48%) 100%);
+    --shadow-scripture: 0 1px 2px hsl(30 10% 14% / 0.04), 0 4px 12px -6px hsl(30 10% 14% / 0.06);
+    --shadow-float: 0 4px 24px -8px hsl(30 10% 14% / 0.12), 0 2px 6px -3px hsl(30 10% 14% / 0.08);
 
-    --radius: 0.75rem;
+    --radius: 1.25rem;
 
-    --sidebar-background: 48 20% 97%;
-    --sidebar-foreground: 0 0% 20%;
-    --sidebar-primary: 0 0% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 40 12% 94%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 40 12% 90%;
-    --sidebar-ring: 182 30% 42%;
+    --sidebar-background: 40 20% 97%;
+    --sidebar-foreground: 30 10% 20%;
+    --sidebar-primary: 30 10% 14%;
+    --sidebar-primary-foreground: 40 40% 98%;
+    --sidebar-accent: 38 22% 92%;
+    --sidebar-accent-foreground: 30 10% 14%;
+    --sidebar-border: 38 15% 87%;
+    --sidebar-ring: 152 45% 48%;
   }
 
   .dark {
-    --background: 0 0% 5%;
-    --foreground: 40 15% 94%;
+    --background: 220 15% 8%;
+    --foreground: 40 20% 92%;
 
-    --card: 0 0% 8%;
-    --card-foreground: 40 15% 94%;
+    --card: 220 12% 11%;
+    --card-foreground: 40 20% 92%;
 
-    --popover: 0 0% 8%;
-    --popover-foreground: 40 15% 94%;
+    --popover: 220 12% 11%;
+    --popover-foreground: 40 20% 92%;
 
-    --primary: 40 15% 94%;
-    --primary-foreground: 0 0% 8%;
+    --primary: 40 20% 92%;
+    --primary-foreground: 220 15% 10%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 40 15% 94%;
+    --secondary: 220 10% 15%;
+    --secondary-foreground: 40 20% 92%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 62%;
+    --muted: 220 10% 15%;
+    --muted-foreground: 40 8% 62%;
 
-    --accent: 182 32% 55%;
-    --accent-foreground: 0 0% 6%;
+    --accent: 152 55% 55%;
+    --accent-foreground: 220 15% 8%;
+    --accent-glow: 160 70% 65%;
 
-    --destructive: 0 62% 45%;
+    --amber: 38 60% 62%;
+    --amber-foreground: 30 8% 8%;
+
+    --destructive: 0 60% 45%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 14%;
-    --input: 0 0% 14%;
-    --ring: 182 32% 55%;
+    --border: 220 10% 18%;
+    --input: 220 10% 18%;
+    --ring: 152 55% 55%;
 
-    --gradient-sacred: linear-gradient(135deg, hsl(182 32% 45%), hsl(182 30% 30%));
-    --gradient-novus: linear-gradient(135deg, hsl(0 0% 6%) 0%, hsl(182 30% 30%) 100%);
+    --gradient-sacred: linear-gradient(135deg, hsl(152 55% 45%), hsl(180 60% 55%));
+    --gradient-novus: linear-gradient(135deg, hsl(220 15% 8%) 0%, hsl(152 55% 40%) 100%);
     --shadow-scripture: 0 10px 30px -12px hsl(0 0% 0% / 0.5);
+    --shadow-float: 0 8px 32px -8px hsl(0 0% 0% / 0.55), 0 2px 8px -3px hsl(0 0% 0% / 0.4);
   }
 }
 
@@ -102,6 +115,9 @@
 @layer utilities {
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .shadow-float {
+    box-shadow: var(--shadow-float);
   }
 }
 
@@ -126,6 +142,18 @@
 .verse-active {
   background: hsl(var(--accent) / 0.12);
   box-shadow: inset 3px 0 0 hsl(var(--accent));
+}
+
+/* Flash highlight after jumping to a verse via the navigator */
+@keyframes verse-flash-pulse {
+  0%   { background: hsl(var(--accent) / 0);      box-shadow: 0 0 0 0 hsl(var(--accent) / 0); }
+  15%  { background: hsl(var(--accent) / 0.22);   box-shadow: 0 0 0 4px hsl(var(--accent) / 0.30); }
+  70%  { background: hsl(var(--accent) / 0.14);   box-shadow: 0 0 0 3px hsl(var(--accent) / 0.18); }
+  100% { background: hsl(var(--accent) / 0);      box-shadow: 0 0 0 0 hsl(var(--accent) / 0); }
+}
+.verse-flash {
+  animation: verse-flash-pulse 2.2s ease-out;
+  border-radius: 0.5rem;
 }
 
 /* Hide app chrome in immersive reading */
