@@ -45,9 +45,6 @@ export_data = {
     ]
 }
 
-# Em um cenário real de migração completa, o usuário usaria o script SQL fornecido anteriormente.
-# Este JSON serve como amostra dos dados estruturados.
-
 with open('db_data_export.json', 'w', encoding='utf-8') as f:
     json.dump(export_data, f, ensure_ascii=False, indent=2)
 
