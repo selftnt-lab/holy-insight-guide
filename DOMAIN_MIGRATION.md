@@ -1,6 +1,42 @@
 # Migração de domínio Lovable → Vercel — status (2026-07-26)
 
-## ✅ RESOLVIDO (2026-07-26, mesma sessão)
+## ✅ TOTALMENTE RESOLVIDO (2026-07-26, mesma sessão)
+
+Além do DNS (abaixo), foram encontrados e corrigidos **dois problemas adicionais** que
+impediam qualquer código novo de chegar em produção:
+
+### Problema extra 1 — Vercel apontando pro repositório GitHub errado
+O projeto Vercel (`rc-bible`) estava conectado a `novusaisnp/novusaisnp` (repo pessoal,
+não relacionado), enquanto o código real vive em `selftnt-lab/holy-insight-guide`. Por isso
+nenhum push feito neste working tree jamais aparecia na Vercel — ela vigiava outro repo.
+**Corrigido**: Vercel → `rc-bible` → Settings → Git → Disconnect → reconectado à conta
+GitHub certa → selecionado `selftnt-lab/holy-insight-guide`.
+
+### Problema extra 2 — Plano Hobby bloqueia deploy por autoria do commit
+Depois de conectar o repo certo, todo deploy vinha como **"Blocked"** com a mensagem:
+*"The deployment was blocked because the commit author did not have contributing access
+to the project on Vercel. The Hobby Plan does not support collaboration for private
+repositories."* Os commits são autorados como `Maxe <mrassessoriaeconsultorias@gmail.com>`,
+identidade que a conta Vercel (Hobby, `novusaisnp`) não reconhece como colaboradora — e
+Hobby não permite adicionar colaboradores em repo privado (isso é feature do plano Pro).
+Nem "Redeploy" manual contornava (mesma mensagem, botão vira "Upgrade to Pro").
+**Corrigido**: tornado `selftnt-lab/holy-insight-guide` **público** no GitHub
+(Settings → Danger Zone → Change visibility → Make public). A restrição só existe pra
+repos privados, então isso destravou o deploy automático sem custo. Confirmado: push
+seguinte (`9dc2647`) buildou e foi pra produção como "Ready" sem bloqueio.
+
+**Também restaurado**: o Lovable (`gpt-engineer-app[bot]`) ainda estava sincronizado com
+esse mesmo repositório GitHub e, em algum ponto durante esta sessão, reverteu o rebranding
+via dois commits automáticos ("Changes", "Fast Visual Edit") — inclusive tocando `.env`
+(só valores `VITE_*` públicos, não é segredo). Resolvido desconectando o Git dentro do
+Lovable (Project → Settings → Git → Disconnect) antes de forçar o push de volta com o
+código correto.
+
+**Verificação final** (`curl -I --resolve rcbible.app:443:216.198.79.1`):
+`Server: Vercel`, `200 OK`, `<link rel="icon" type="image/png" href="/favicon.png">` e
+`<link rel="apple-touch-icon" href="/icon-512.png">` (caminhos novos, sem `/~flock.js`).
+
+## Resumo da parte de DNS
 
 `rcbible.app` e `www.rcbible.app` estão servindo a Vercel corretamente. Confirmado via
 `curl -I` em ambos: `Server: Vercel`, `200 OK`, sem `/~flock.js` nem referências a
