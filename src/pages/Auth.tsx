@@ -297,8 +297,7 @@ const Auth = () => {
       >
         <div className="flex flex-col items-center mb-8">
           <BrandLogo size="xl" />
-          <h1 className="mt-4 font-serif text-3xl font-bold text-foreground">RC Bible</h1>
-          <p className="text-sm text-muted-foreground">Renovada Church</p>
+          <p className="mt-4 text-lg text-muted-foreground">Renovada Church</p>
         </div>
 
         <Card className="p-6 rounded-2xl">

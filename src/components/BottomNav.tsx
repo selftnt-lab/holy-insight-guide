@@ -1,7 +1,7 @@
 import { Home, Compass, User, PenLine, BookOpen, Heart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import novusLogo from "@/assets/novus-ai-logo.png.asset.json";
+import novusLogo from "@/assets/novus-ai-logo.png";
 import { useAuth } from "@/hooks/useAuth";
 
 const tabs = [
@@ -67,7 +67,7 @@ const BottomNav = () => {
             <span className="flex items-center gap-1.5">
               <span>Um produto</span>
               <img
-                src={novusLogo.url}
+                src={novusLogo}
                 alt="NOVUS.AI"
                 className="h-3 w-auto opacity-90 transition-opacity hover:opacity-100 dark:brightness-110 dark:contrast-125"
               />
