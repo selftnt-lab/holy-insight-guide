@@ -50,7 +50,7 @@ const Licenses = () => (
           <ul className="list-disc pl-5">
             <li><a href="https://bible-api.com" target="_blank" rel="noreferrer" className="underline">bible-api.com</a> — texto bíblico em domínio público.</li>
             <li><strong>Supabase</strong> — autenticação, banco de dados e edge functions.</li>
-            <li><strong>Lovable AI Gateway</strong> — acesso a modelos de inteligência artificial (família Google Gemini).</li>
+            <li><strong>AI Gateway</strong> — acesso a modelos de inteligência artificial (família Google Gemini).</li>
             <li><strong>React, Vite, Tailwind CSS, shadcn/ui, framer-motion, lucide-react</strong> — bibliotecas open source.</li>
           </ul>
         </section>

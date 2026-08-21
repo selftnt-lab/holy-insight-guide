@@ -10,7 +10,7 @@ Writer / Chat virão em etapas futuras.
 - Docker em execução (o CLI sobe Postgres + GoTrue + PostgREST em containers).
 - Node/Bun com dependências do projeto instaladas (`bun install`).
 - Chromium do Playwright: `bunx playwright install chromium` (uma vez por
-  máquina; no ambiente Lovable o binário já está pré-instalado).
+  máquina; em alguns ambientes de nuvem o binário já vem pré-instalado).
 
 ## 1. Subir Supabase local
 

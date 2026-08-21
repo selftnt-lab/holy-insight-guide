@@ -4,22 +4,13 @@ O projeto inclui a base do Capacitor. Web continua funcionando normalmente; o Ca
 
 ## Configuração
 
-- `appId`: `app.lovable.868b953aad314e7a99d277b319621e59`
+- `appId`: `ai.novus.rcbiblia`
 - `appName`: `RC Bíblia`
 - `webDir`: `dist`
 
-## DEV vs PROD
-
-`capacitor.config.ts` alterna via variável `CAP_ENV`:
-
-- **DEV** (`CAP_ENV=dev`) → habilita `server.url` apontando para o preview do Lovable com hot-reload e `cleartext: true`.
-- **PROD** (default) → **nenhum** `server.url` é definido. O app roda o bundle empacotado em `dist/`.
+O app nativo sempre carrega o bundle empacotado em `dist/` (não há hot-reload contra um servidor remoto).
 
 ```bash
-# Desenvolvimento (hot-reload contra o preview do Lovable)
-CAP_ENV=dev npx cap sync
-
-# Produção (bundle local)
 bun run build
 npx cap sync
 ```
@@ -85,10 +76,6 @@ Para publicar nas lojas será necessário depois:
 
 - **Android**: intent filter com `android:autoVerify="true"` (App Links).
 - **iOS**: `apple-app-site-association` no domínio + Associated Domains no Xcode (Universal Links).
-
-## Blog Lovable
-
-Leia mais em: https://lovable.dev/blog/mobile-development
 
 ## Service Workers
 

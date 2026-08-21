@@ -1,7 +1,7 @@
 import json
 
 # Dados reais coletados do banco de dados (amostra representativa para exportação)
-# Estes dados foram extraídos via consultas SQL ao Lovable Cloud.
+# Estes dados foram extraídos via consultas SQL ao banco Supabase do projeto.
 
 export_data = {
     "profiles": [

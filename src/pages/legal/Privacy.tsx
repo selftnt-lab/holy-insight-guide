@@ -45,7 +45,7 @@ const Privacy = () => (
           <h2 className="font-serif text-lg font-semibold">4. Compartilhamento</h2>
           <p>
             Não vendemos dados. Compartilhamos apenas com fornecedores essenciais ao funcionamento:
-            provedor de banco/auth (Supabase), provedor de IA via Lovable AI Gateway (modelos
+            provedor de banco/auth (Supabase), provedor de IA via AI Gateway (modelos
             Google Gemini) e API pública de texto bíblico (bible-api.com). Esses parceiros tratam
             os dados conforme suas próprias políticas, restritos à finalidade descrita aqui.
           </p>

@@ -6,9 +6,9 @@ import listVerseHighlights from "./tools/list-verse-highlights";
 import searchWriter from "./tools/search-writer";
 
 // The OAuth issuer MUST be the direct Supabase host derived from the project
-// ref that Vite inlines at build time. Using SUPABASE_URL (which may be the
-// `.lovable.cloud` proxy on Lovable Cloud) would make mcp-js reject valid
-// tokens because the issuer in the discovery document wouldn't match.
+// ref that Vite inlines at build time. Using SUPABASE_URL (which may point to
+// a proxy in front of Supabase) would make mcp-js reject valid tokens because
+// the issuer in the discovery document wouldn't match.
 const projectRef =
   import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
 

@@ -227,7 +227,7 @@ const AiChat = ({ onClose, context, topic, initialMessages, readOnly }: Props) =
                 ? topic.topicName
                 : context
                 ? `${context.bookName} ${context.chapter}`
-                : "Powered by Lovable AI"}
+                : "Assistente de estudo bíblico"}
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 // Helper para gerar embeddings via Google AI Studio (Gemini) direto — sem passar
-// pelo Lovable AI Gateway. Mesma família de modelo (gemini-embedding-001) usada
+// pelo AI Gateway. Mesma família de modelo (gemini-embedding-001) usada
 // antes, então a dimensão do vetor (3072) permanece compatível com o schema
 // existente (kb_chunks.embedding halfvec(3072)).
 
