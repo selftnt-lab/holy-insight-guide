@@ -33,8 +33,8 @@ Responda APENAS JSON:
 Use referências bíblicas reais e variadas (AT e NT). Reflexões pastorais e bíblicas, sem nomear tradições, denominações ou autores.`;
 
     const ai = await callAI({
-      model: "claude-sonnet-5",
-      fallbackModel: "claude-haiku-4-5-20251001",
+      model: "gemini-3.6-flash",
+      fallbackModel: "gemini-3.5-flash-lite",
       messages: [
         { role: "system", content: CONFESSIONAL_SYSTEM_PROMPT },
         { role: "user", content: userPrompt },

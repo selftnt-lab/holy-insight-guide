@@ -28,7 +28,7 @@ Responda APENAS JSON:
 }`;
 
     const ai = await callAI({
-      model: "claude-haiku-4-5-20251001",
+      model: "gemini-3.5-flash-lite",
       messages: [
         { role: "system", content: CONFESSIONAL_SYSTEM_PROMPT },
         { role: "user", content: userPrompt },

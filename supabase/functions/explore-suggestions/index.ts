@@ -67,8 +67,8 @@ Distribua de forma equilibrada (idealmente 1-2 de cada tipo, conforme o capítul
 Os cards devem estar diretamente conectados ao conteúdo do capítulo informado e ajudar o leitor a explorar o texto em profundidade. Linguagem clara, acessível, em português brasileiro.`;
 
     const ai = await callAI({
-      model: "claude-sonnet-5",
-      fallbackModel: "claude-haiku-4-5-20251001",
+      model: "gemini-3.6-flash",
+      fallbackModel: "gemini-3.5-flash-lite",
       messages: [
         { role: "system", content: CONFESSIONAL_SYSTEM_PROMPT },
         { role: "user", content: userPrompt },

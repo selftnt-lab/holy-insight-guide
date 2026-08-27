@@ -13,7 +13,8 @@ sermões/anotações) da Renovada Church. Stack: React + Vite + TypeScript, Supa
 - Backend: Supabase — `supabase/functions` (edge functions: chat IA, TTS, lookup de
   Strong's, auth email hook, etc.), `supabase/migrations`, `supabase/tests` (pgTAP)
 - App nativo: `android/` via Capacitor
-- IA: Claude/Google (migrado de outro provedor — ver commit `a9de908`)
+- IA: Google Gemini (migrado da Anthropic/Claude em 2026-08-27 — chave `GOOGLE_AI_API_KEY`
+  nos secrets do Supabase; `ANTHROPIC_API_KEY` removida)
 
 ## Contas e onde cada coisa mora (mapa de identidades)
 

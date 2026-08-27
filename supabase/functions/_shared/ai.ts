@@ -1,11 +1,11 @@
-// Helper unificado para chamar a API da Anthropic (Claude) a partir de Edge Functions.
+// Helper unificado para chamar a API do Google Gemini a partir de Edge Functions.
 // - Tratamento padronizado de 429/5xx
-// - Fallback automático para modelo alternativo em erros 5xx/529 (sobrecarga)
+// - Fallback automático para modelo alternativo em erros 5xx (sobrecarga)
 // - Mensagens de erro em português, prontas para repassar ao cliente
 // - Traduz para o formato OpenAI-compatible (choices[0].message) que os callers já esperam,
 //   assim extractJsonContent/extractToolCallArgs continuam funcionando sem mudança
 //
-// Não expor ANTHROPIC_API_KEY ao cliente. Use sempre via Deno.env.
+// Não expor GOOGLE_AI_API_KEY ao cliente. Use sempre via Deno.env.
 
 export interface CallAIOptions {
   model: string;
@@ -29,54 +29,81 @@ export interface CallAIError {
 }
 export type CallAIResult = CallAISuccess | CallAIError;
 
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_VERSION = "2023-06-01";
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const MAX_TOKENS = 4096;
 
-function toAnthropicMessages(messages: CallAIOptions["messages"]) {
+function toGeminiContents(messages: CallAIOptions["messages"]) {
   const system = messages
     .filter((m) => m.role === "system")
     .map((m) => m.content)
     .join("\n\n");
-  const rest = messages
+  const contents = messages
     .filter((m) => m.role !== "system")
-    .map((m) => ({ role: m.role, content: m.content }));
-  return { system: system || undefined, messages: rest };
+    .map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+  return { system: system || undefined, contents };
 }
 
-function toAnthropicTools(tools: CallAIOptions["tools"]) {
+// O schema de parâmetros do Gemini é um subconjunto do OpenAPI 3.0 e rejeita
+// campos JSON Schema que ele não reconhece (ex: additionalProperties, $schema).
+function sanitizeSchemaForGemini(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(sanitizeSchemaForGemini);
+  if (schema && typeof schema === "object") {
+    const { additionalProperties, $schema, ...rest } = schema as Record<string, unknown>;
+    for (const key of Object.keys(rest)) {
+      rest[key] = sanitizeSchemaForGemini(rest[key]);
+    }
+    return rest;
+  }
+  return schema;
+}
+
+function toGeminiTools(tools: CallAIOptions["tools"]) {
   if (!tools?.length) return undefined;
-  return tools.map((t) => ({
-    name: t.function.name,
-    description: t.function.description,
-    input_schema: t.function.parameters ?? { type: "object", properties: {} },
-  }));
+  return [
+    {
+      functionDeclarations: tools.map((t) => ({
+        name: t.function.name,
+        description: t.function.description,
+        parameters: sanitizeSchemaForGemini(t.function.parameters ?? { type: "object", properties: {} }),
+      })),
+    },
+  ];
 }
 
-function toAnthropicToolChoice(toolChoice: CallAIOptions["tool_choice"]) {
+function toGeminiToolConfig(toolChoice: CallAIOptions["tool_choice"]) {
   if (!toolChoice) return undefined;
-  return { type: "tool" as const, name: toolChoice.function.name };
+  return {
+    functionCallingConfig: {
+      mode: "ANY" as const,
+      allowedFunctionNames: [toolChoice.function.name],
+    },
+  };
 }
 
-// Traduz o corpo JSON da Anthropic Messages API para o formato
+// Traduz o corpo JSON do Gemini para o formato
 // { choices: [{ message: { content, tool_calls } }] } que os callers esperam.
-function toOpenAIShapedResponse(anthropicBody: {
-  content?: Array<{ type: string; text?: string; id?: string; name?: string; input?: unknown }>;
+function toOpenAIShapedResponse(geminiBody: {
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string; functionCall?: { name: string; args?: unknown } }> };
+  }>;
 }): Response {
-  const blocks = anthropicBody?.content ?? [];
-  const text = blocks
-    .filter((b) => b.type === "text")
-    .map((b) => b.text ?? "")
+  const parts = geminiBody?.candidates?.[0]?.content?.parts ?? [];
+  const text = parts
+    .filter((p) => typeof p.text === "string")
+    .map((p) => p.text ?? "")
     .join("");
-  const toolUse = blocks.find((b) => b.type === "tool_use");
+  const functionCall = parts.find((p) => p.functionCall)?.functionCall;
 
   const message: Record<string, unknown> = { role: "assistant", content: text || null };
-  if (toolUse) {
+  if (functionCall) {
     message.tool_calls = [
       {
-        id: toolUse.id,
+        id: `call_${crypto.randomUUID()}`,
         type: "function",
-        function: { name: toolUse.name, arguments: JSON.stringify(toolUse.input ?? {}) },
+        function: { name: functionCall.name, arguments: JSON.stringify(functionCall.args ?? {}) },
       },
     ];
   }
@@ -91,22 +118,21 @@ async function postOnce(apiKey: string, model: string, opts: CallAIOptions, time
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const { system, messages } = toAnthropicMessages(opts.messages);
-    const body: Record<string, unknown> = { model, max_tokens: MAX_TOKENS, messages };
-    if (system) body.system = system;
-    const tools = toAnthropicTools(opts.tools);
+    const { system, contents } = toGeminiContents(opts.messages);
+    const body: Record<string, unknown> = {
+      contents,
+      generationConfig: { maxOutputTokens: MAX_TOKENS },
+    };
+    if (system) body.systemInstruction = { parts: [{ text: system }] };
+    const tools = toGeminiTools(opts.tools);
     if (tools) body.tools = tools;
-    const toolChoice = toAnthropicToolChoice(opts.tool_choice);
-    if (toolChoice) body.tool_choice = toolChoice;
+    const toolConfig = toGeminiToolConfig(opts.tool_choice);
+    if (toolConfig) body.toolConfig = toolConfig;
 
-    return await fetch(ANTHROPIC_URL, {
+    return await fetch(`${GEMINI_BASE_URL}/${model}:generateContent?key=${apiKey}`, {
       method: "POST",
       signal: controller.signal,
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": ANTHROPIC_VERSION,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
   } finally {
@@ -115,9 +141,9 @@ async function postOnce(apiKey: string, model: string, opts: CallAIOptions, time
 }
 
 export async function callAI(opts: CallAIOptions): Promise<CallAIResult> {
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  const apiKey = Deno.env.get("GOOGLE_AI_API_KEY");
   if (!apiKey) {
-    return { ok: false, status: 500, error: "ANTHROPIC_API_KEY não configurada." };
+    return { ok: false, status: 500, error: "GOOGLE_AI_API_KEY não configurada." };
   }
 
   const { model, fallbackModel, timeoutMs = 60_000 } = opts;
@@ -126,12 +152,12 @@ export async function callAI(opts: CallAIOptions): Promise<CallAIResult> {
   try {
     res = await postOnce(apiKey, model, opts, timeoutMs);
   } catch (e) {
-    console.error("Anthropic network error:", e);
+    console.error("Gemini network error:", e);
     return { ok: false, status: 503, error: "Falha de rede ao contatar a IA." };
   }
 
-  // Retry em 5xx/529 (sobrecarga) com fallback
-  if (!res.ok && [500, 502, 503, 504, 529].includes(res.status) && fallbackModel) {
+  // Retry em 5xx (sobrecarga/indisponibilidade) com fallback
+  if (!res.ok && [500, 502, 503, 504].includes(res.status) && fallbackModel) {
     console.warn(`AI primary failed (${res.status}); tentando fallback ${fallbackModel}`);
     try {
       res = await postOnce(apiKey, fallbackModel, opts, timeoutMs);
@@ -142,9 +168,9 @@ export async function callAI(opts: CallAIOptions): Promise<CallAIResult> {
   }
 
   if (res.ok) {
-    const anthropicBody = await res.json().catch(() => null);
-    if (!anthropicBody) return { ok: false, status: 500, error: "Resposta inválida da IA." };
-    return { ok: true, response: toOpenAIShapedResponse(anthropicBody) };
+    const geminiBody = await res.json().catch(() => null);
+    if (!geminiBody) return { ok: false, status: 500, error: "Resposta inválida da IA." };
+    return { ok: true, response: toOpenAIShapedResponse(geminiBody) };
   }
 
   if (res.status === 429) {
@@ -156,7 +182,7 @@ export async function callAI(opts: CallAIOptions): Promise<CallAIResult> {
   }
 
   const errBody = await res.text().catch(() => "");
-  console.error("Anthropic API error:", res.status, errBody);
+  console.error("Gemini API error:", res.status, errBody);
   return {
     ok: false,
     status: 500,

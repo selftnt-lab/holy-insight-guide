@@ -36,8 +36,8 @@ Responda APENAS um JSON válido com este formato exato:
 }`;
 
     const ai = await callAI({
-      model: "claude-sonnet-5",
-      fallbackModel: "claude-haiku-4-5-20251001",
+      model: "gemini-3.6-flash",
+      fallbackModel: "gemini-3.5-flash-lite",
       messages: [
         { role: "system", content: CONFESSIONAL_SYSTEM_PROMPT },
         { role: "user", content: userPrompt },

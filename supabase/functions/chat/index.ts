@@ -52,39 +52,36 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const PRIMARY_MODEL = "claude-sonnet-5";
-const FALLBACK_MODEL = "claude-haiku-4-5-20251001";
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_VERSION = "2023-06-01";
+const PRIMARY_MODEL = "gemini-3.6-flash";
+const FALLBACK_MODEL = "gemini-3.5-flash-lite";
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const MAX_TOKENS = 4096;
 
-async function callClaude(model: string, system: string, messages: Array<{ role: string; content: string }>, apiKey: string) {
-  return fetch(ANTHROPIC_URL, {
+async function callGemini(model: string, system: string, messages: Array<{ role: string; content: string }>, apiKey: string) {
+  const contents = messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+  return fetch(`${GEMINI_BASE_URL}/${model}:streamGenerateContent?alt=sse&key=${apiKey}`, {
     method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model,
-      system,
-      messages,
-      max_tokens: MAX_TOKENS,
-      stream: true,
+      contents,
+      systemInstruction: { parts: [{ text: system }] },
+      generationConfig: { maxOutputTokens: MAX_TOKENS },
     }),
   });
 }
 
-// Traduz o SSE nativo da Anthropic (event: content_block_delta / message_stop)
+// Traduz o SSE nativo do Gemini (data: {"candidates":[{"content":{"parts":[{"text":"..."}]}}]})
 // para o formato OpenAI-compatible que o front-end (AiChat.tsx) já sabe parsear:
 // `data: {"choices":[{"delta":{"content":"..."}}]}` terminando com `data: [DONE]`.
-function toOpenAICompatibleStream(anthropicBody: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
+function toOpenAICompatibleStream(geminiBody: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   let buffer = "";
 
-  return anthropicBody.pipeThrough(
+  return geminiBody.pipeThrough(
     new TransformStream<Uint8Array, Uint8Array>({
       transform(chunk, controller) {
         buffer += decoder.decode(chunk, { stream: true });
@@ -103,10 +100,17 @@ function toOpenAICompatibleStream(anthropicBody: ReadableStream<Uint8Array>): Re
             continue;
           }
 
-          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
-            const shaped = { choices: [{ delta: { content: evt.delta.text } }] };
+          const text = evt?.candidates?.[0]?.content?.parts
+            ?.filter((p: { text?: string }) => typeof p.text === "string")
+            ?.map((p: { text?: string }) => p.text)
+            ?.join("");
+          if (text) {
+            const shaped = { choices: [{ delta: { content: text } }] };
             controller.enqueue(encoder.encode(`data: ${JSON.stringify(shaped)}\n\n`));
-          } else if (evt.type === "message_stop") {
+          }
+
+          const finishReason = evt?.candidates?.[0]?.finishReason;
+          if (finishReason) {
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           }
         }
@@ -129,8 +133,8 @@ serve(async (req) => {
       | { topicName?: string; description?: string }
       | undefined;
 
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+    if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
     let systemContent = CONFESSIONAL_SYSTEM_PROMPT;
 
@@ -179,17 +183,17 @@ serve(async (req) => {
       systemContent += `\n\n## BASE DE CONHECIMENTO\n(Nenhum material curado foi encontrado para esta consulta.) Para perguntas do Tipo B, aplique a regra de recusa acima.`;
     }
 
-    const claudeMessages = messages.map((m: { role: string; content: string }) => ({
+    const chatMessages = messages.map((m: { role: string; content: string }) => ({
       role: m.role === "assistant" ? "assistant" : "user",
       content: m.content,
     }));
 
-    let response = await callClaude(PRIMARY_MODEL, systemContent, claudeMessages, ANTHROPIC_API_KEY);
+    let response = await callGemini(PRIMARY_MODEL, systemContent, chatMessages, GOOGLE_AI_API_KEY);
 
     // fallback for transient errors
-    if (!response.ok && [500, 502, 503, 504, 529].includes(response.status)) {
+    if (!response.ok && [500, 502, 503, 504].includes(response.status)) {
       console.warn("Primary model failed, trying fallback:", response.status);
-      response = await callClaude(FALLBACK_MODEL, systemContent, claudeMessages, ANTHROPIC_API_KEY);
+      response = await callGemini(FALLBACK_MODEL, systemContent, chatMessages, GOOGLE_AI_API_KEY);
     }
 
     if (!response.ok) {
@@ -200,7 +204,7 @@ serve(async (req) => {
         );
       }
       const t = await response.text();
-      console.error("Anthropic API error:", response.status, t);
+      console.error("Gemini API error:", response.status, t);
       return new Response(
         JSON.stringify({ error: `Erro no serviço de IA (${response.status})` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

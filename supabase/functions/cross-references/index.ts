@@ -35,8 +35,8 @@ ${verseText ? `Texto: "${verseText}"` : ""}
 Liste referências cruzadas bíblicas reais sobre o mesmo tema.`;
 
     const ai = await callAI({
-      model: "claude-sonnet-5",
-      fallbackModel: "claude-haiku-4-5-20251001",
+      model: "gemini-3.6-flash",
+      fallbackModel: "gemini-3.5-flash-lite",
       messages: [
         { role: "system", content: CONFESSIONAL_SYSTEM_PROMPT + technicalRules },
         { role: "user", content: userPrompt },
